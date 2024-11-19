@@ -4,6 +4,7 @@
   import MainLayout from "./lib/layouts/MainLayout.svelte";
   import Panel from "./lib/Panel.svelte";
   import SolverLayout from "./lib/layouts/SolverLayout.svelte";
+  import Hint from "svelte-hint";
 </script>
 
 <main>

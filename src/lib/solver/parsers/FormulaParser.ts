@@ -12,24 +12,36 @@ export class FormulaParser {
         let grammar = [
             new Rule('Formula', ['[' , 'Formula', ']']),
             new Rule('Formula', ['(', 'Formula', ')']),
-            new Rule('Formula', ['Formula', '&', 'Formula']),
-            new Rule('Formula', ['Formula', '|', 'Formula']),
-            new Rule('Formula', ['Formula', '>', 'Formula']),
-            new Rule('Formula', ['Formula', '=', 'Formula']),
+            new Rule('Formula', ['Formula', 'LogicalOp', 'Formula', 'LogicalTail']),
             new Rule('Formula', ['!', 'Formula']),
             new Rule('Formula', ['Quantifier', 'Variable', 'Formula']),
             new Rule('Formula', ['Predicate', '(', 'TermList', ')']),
+            new Rule('Formula', ['Constant']),
 
-            // @ - all, ? - exists
+            new Rule('LogicalOp', ['&']),
+            new Rule('LogicalOp', ['|']),
+            new Rule('LogicalOp', ['>']),
+            new Rule('LogicalOp', ['=']),
+
+            new Rule('LogicalTail', ['LogicalOp', 'Formula', 'LogicalTail']),
+            new Rule('LogicalTail', []),
+
             new Rule('Quantifier', ['@']),
             new Rule('Quantifier', ['?']),
+
+            new Rule('TermList', ['Term', 'TermListTail']),
+            new Rule('TermListTail', [',', 'Term', 'TermListTail']),
+            new Rule('TermListTail', []),
 
             new Rule('Term', ['Variable']),
             new Rule('Term', ['Constant']),
             new Rule('Term', ['Function', '(', 'TermList', ')']),
 
-            new Rule('TermList', ['Term']),
-            new Rule('TermList', ['Term', ',', 'TermList']),
+            new Rule('Predicate', ['Variable']),
+            new Rule('Predicate', ['Large']),
+
+            new Rule('Function', ['Variable']),
+            new Rule('Function', ['Constant']),
         ]
 
         // constant - [a-g]
@@ -39,23 +51,13 @@ export class FormulaParser {
 
         // small letters without constants - [h-z]
         for (let i = 7; i < 26; i++) {
-            grammar.push(new Rule('Small', [String.fromCharCode(97 + i)]));
+            grammar.push(new Rule('Variable', [String.fromCharCode(97 + i)]));
         }
 
         // large letters
         for (let i = 0; i < 26; i++) {
             grammar.push(new Rule('Large', [String.fromCharCode(65 + i)]));
         }
-
-        // predicate - function or relation, so small or large letter
-        grammar.push(new Rule('Predicate', ['Small']));
-        grammar.push(new Rule('Predicate', ['Large']));
-
-        // variable - [h-z]
-        grammar.push(new Rule('Variable', ['Small']));
-
-        // function - [a-z(x,y,z)]
-        grammar.push(new Rule('Function', ['Small']));
 
         return new EarleyParser('Formula', grammar);
     }
@@ -70,8 +72,8 @@ export class FormulaParser {
             return DeductionRule.UNKNOWN;
         }
 
-        // check semantics
-        // TODO
+        // determine deduction rule
+
 
         return DeductionRule.EALL;
     }

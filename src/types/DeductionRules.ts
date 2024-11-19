@@ -21,5 +21,5 @@ export enum DeductionRule {
     TR = 'TR', // Transposition
     MT = 'MT', // Modus Tollens
 
-    UNKNOWN = '⨯',
+    UNKNOWN = 'x',
 }

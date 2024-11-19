@@ -1,6 +1,7 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
     import {FormulaParser} from "../parsers/FormulaParser";
+    import Hint from "svelte-hint";
 
     let formulas: string = "";
     let textarea: HTMLTextAreaElement;
@@ -8,8 +9,8 @@
     let lineRulesEle: HTMLDivElement;
     let lineNumbers: string[] = [];
     let lineRules: string[] = [];
-    let container: HTMLDivElement;
     let focused: boolean = false;
+    let lastRows: string[] = [];
 
     // returns the total number of lines a given string takes up in the text area
     const calculateNumLines = (str: string): number => {
@@ -44,7 +45,7 @@
         return lineNumbers;
     }
 
-    const getLineRules = (): string[] => {
+    const getLineRules = (lineIndex?: number): string[] => {
         const lines = textarea.value.split('\n');
         let lineRules: string[] = [];
         let i = 1;
@@ -65,13 +66,30 @@
 
     // displays the line numbers
     const syncLineNumbers = () => {
+        const lines = textarea.value.split('\n');
         lineNumbers = calculateLineNumbers();
-        lineRules = getLineRules();
+        const newLineRules = [...lineRules];
+
+        if (lines.length < lastRows.length) {
+            // remove the last rows
+            newLineRules.splice(lines.length, lastRows.length - lines.length);
+        }
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i] !== lastRows[i]) {
+                // console.log('parsing formula on row', i, 'with value', lines[i]);
+                newLineRules[i] = FormulaParser.parseFormula(lines[i]);
+            }
+        }
+
+        lineRules = newLineRules;
+        lastRows = [...lines];
     }
 
     onMount(() => {
         const handleScroll = () => {
             lineNumbersEle.scrollTop = textarea.scrollTop;
+            lineRulesEle.scrollTop = textarea.scrollTop;
         };
 
         const handleFocus = () => {
@@ -82,14 +100,20 @@
             focused = false;
         };
 
+        // const handlePaste = (event: ClipboardEvent) => {
+        //     event.preventDefault();
+        // }
+
         textarea.addEventListener('input', syncLineNumbers);
         textarea.addEventListener('scroll', handleScroll);
         textarea.addEventListener('focus', handleFocus);
         textarea.addEventListener('blur', handleBlur);
+        // textarea.addEventListener('paste', handlePaste)
 
         const resizeObserver = new ResizeObserver(() => {
             const rect = textarea.getBoundingClientRect();
             lineNumbersEle.style.height = `${rect.height}px`;
+            lineRulesEle.style.height = `${rect.height}px`;
             syncLineNumbers();
         });
 
@@ -100,6 +124,7 @@
             textarea.removeEventListener('scroll', handleScroll);
             textarea.removeEventListener('focus', handleFocus);
             textarea.removeEventListener('blur', handleBlur);
+            // textarea.removeEventListener('paste', handlePaste);
             resizeObserver.disconnect();
         });
 
@@ -109,7 +134,7 @@
 </script>
 
 <!-- Input where the individual formulas will be written -->
-<div id="container" class="container" bind:this={container} class:focused={focused}>
+<div id="container" class="container" class:focused={focused}>
     <div id="line-numbers"
          class="formulas-line-numbers"
          bind:this={lineNumbersEle}
@@ -117,6 +142,11 @@
         {#each lineNumbers as number}
             <div>{number ? `${number}.` : '\u00A0'}</div>
         {/each}
+    </div>
+    <div class="hint-wrapper">
+        <Hint text="TODO!" placement="left">
+            <i class="fa fa-info-circle"></i>
+        </Hint>
     </div>
     <textarea
             id="textarea"
@@ -127,7 +157,7 @@
     </textarea>
     <div id="used-rules"
          class="formulas-line-rules"
-         bind:this={lineNumbersEle}
+         bind:this={lineRulesEle}
     >
         {#each lineRules as rule}
             <div>{rule ? `${rule}` : '\u00A0'}</div>
@@ -143,6 +173,9 @@
 
         flex-grow: 1;
         width: 100%;
+        max-height: 100%;
+        position: relative;
+        overflow: hidden;
 
         /* Edit styles here */
         --border-color: #424242;
@@ -158,10 +191,20 @@
         --border-color: #f4f9ff;
     }
 
+    .hint-wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(-50%, 25%);
+    }
+
     .formulas-textarea {
         border: none;
         resize: none;
         border-radius: 0;
+        overflow-y: auto;
+        flex-grow: 1;
+        min-height: 0;
 
         /* Synchronize styles */
         font-family: var(--font-family);
@@ -176,7 +219,16 @@
     .formulas-line-numbers {
         width: 3.5rem;
         overflow: hidden;
-        white-space: nowrap;
+
+        white-space: pre-wrap;
+        text-overflow: ellipsis;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-end;
+        max-height: 100%;
+
 
         /* Synchronize styles */
         font-family: var(--font-family);

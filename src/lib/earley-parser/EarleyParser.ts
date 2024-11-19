@@ -21,6 +21,10 @@ class EarleyItem {
         this.start = start;
     }
 
+    isComplete() {
+        return this.dot === this.rule.rhs.length;
+    }
+
     equals(item: EarleyItem) {
         return this.rule.lhs === item.rule.lhs && 
                this.rule.rhs.join('') === item.rule.rhs.join('') &&
@@ -87,13 +91,25 @@ export class EarleyParser {
     //     });
     // }
 
+    restart() {
+        this.states = [];
+        this.states[0] = new State();
+        const startingRules = this.grammar.filter(rule => rule.lhs === this.startingPoint);
+        startingRules.forEach(rule => {
+            this.states[0].push(new EarleyItem(rule, 0, 0));
+        });
+    }
+
     isNonTerminal(symbol: string) {
         return this.grammar.some(rule => rule.lhs === symbol);
     }
 
     parse(input: string): boolean {
         // remove whitespace characters
-        // input = input.replace(/\s/g, ''); 
+        input = input.replace(/\s/g, '');
+
+        // restart the parser
+        this.restart();
 
         // outer loop
         for (let i = 0; i < this.states.length; i++) {
@@ -101,7 +117,7 @@ export class EarleyParser {
             for (let j = 0; j < this.states[i].size(); j++) {
                 const item = this.states[i].get(j);
                 const inputChar = input[i];
-                if (item.dot === item.rule.rhs.length) {
+                if (item.isComplete()) {
                     this.complete(inputChar, this.states[i], j);
                 } else {
                     const symbol = item.rule.rhs[item.dot];
@@ -117,10 +133,10 @@ export class EarleyParser {
         }
 
         // print the result
-        this.states.forEach((state, index) => {
-            console.log(`\nState ${index}`);
-            console.log(state.toString());
-        });
+        // this.states.forEach((state, index) => {
+        //     console.log(`\nState ${index}`);
+        //     console.log(state.toString());
+        // });
 
         // check if the input is valid
         const lastState = this.states[this.states.length - 1];
@@ -170,43 +186,52 @@ export class EarleyParser {
 // const grammar = [
 //     new Rule('Formula', ['[' , 'Formula', ']']),
 //     new Rule('Formula', ['(', 'Formula', ')']),
-//     new Rule('Formula', ['Formula', '&', 'Formula']),
-//     new Rule('Formula', ['Formula', '|', 'Formula']),
-//     new Rule('Formula', ['Formula', '>', 'Formula']),
-//     new Rule('Formula', ['Formula', '=', 'Formula']),
+//     new Rule('Formula', ['Formula', 'LogicalOp', 'Formula', 'LogicalTail']),
 //     new Rule('Formula', ['!', 'Formula']),
 //     new Rule('Formula', ['Quantifier', 'Variable', 'Formula']),
 //     new Rule('Formula', ['Predicate', '(', 'TermList', ')']),
 //     new Rule('Formula', ['Variable']),
 //
-//     // @ - all, ? - exists
+//     new Rule('LogicalOp', ['&']),
+//     new Rule('LogicalOp', ['|']),
+//     new Rule('LogicalOp', ['>']),
+//     new Rule('LogicalOp', ['=']),
+//
+//     new Rule('LogicalTail', ['LogicalOp', 'Formula', 'LogicalTail']),
+//     new Rule('LogicalTail', []),
+//
 //     new Rule('Quantifier', ['@']),
 //     new Rule('Quantifier', ['?']),
 //
-//     new Rule('Predicate', ['P']),
-//     new Rule('Predicate', ['Q']),
-//     new Rule('Predicate', ['R']),
-//     new Rule('Predicate', ['S']),
-//     new Rule('Predicate', ['T']),
+//     new Rule('TermList', ['Term', 'TermListTail']),
+//     new Rule('TermListTail', [',', 'Term', 'TermListTail']),
+//     new Rule('TermListTail', []),
 //
 //     new Rule('Term', ['Variable']),
 //     new Rule('Term', ['Constant']),
 //     new Rule('Term', ['Function', '(', 'TermList', ')']),
 //
-//     new Rule('TermList', ['Term']),
-//     new Rule('TermList', ['Term', ',', 'TermList']),
-//
-//     new Rule('Variable', ['x']),
-//     new Rule('Variable', ['y']),
-//     new Rule('Variable', ['z']),
-//
 //     new Rule('Constant', ['a']),
 //     new Rule('Constant', ['b']),
 //     new Rule('Constant', ['c']),
-// ];
+//     new Rule('Constant', ['d']),
 //
-// const parser = new EarleyParser('Formula', grammar);
-// // parser.parse('?y(P(y) & R(a,y))');
-// parser.parse('[S(x) & S(x)]');
+//     new Rule('Variable', ['h']),
+//     new Rule('Variable', ['i']),
+//     new Rule('Variable', ['j']),
+//     new Rule('Variable', ['k']),
+//
+//     new Rule('Predicate', ['Variable']),
+//     new Rule('Predicate', ['Large']),
+//
+//     new Rule('Function', ['Variable']),
+//
+//     new Rule('Large', ['A']),
+//     new Rule('Large', ['B']),
+//     new Rule('Large', ['C']),
+//     new Rule('Large', ['D']),
+// ];
 
-    
+// const parser = new EarleyParser('Formula', grammar);
+// parser.parse('?y(P(y) & R(a,y))');
+// parser.parse('[A(h) & B(i)]');
