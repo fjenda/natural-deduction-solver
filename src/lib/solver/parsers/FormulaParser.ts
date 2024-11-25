@@ -64,17 +64,17 @@ export class FormulaParser {
 
     static parser: EarleyParser = this.initParser();
 
-    static parseFormula(formula: string): DeductionRule {
+    static  parseFormula(formula: string): string {
         // check syntax
         let res = this.parser.parse(formula);
 
         if (!res) {
-            return DeductionRule.UNKNOWN;
+            return DeductionRule.UNKNOWN.rule;
         }
 
         // determine deduction rule
 
 
-        return DeductionRule.EALL;
+        return DeductionRule.EALL.rule;
     }
 }

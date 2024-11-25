@@ -18,27 +18,39 @@
     .premise-input-wrapper {
         display: flex;
         align-items: center;
+        position: relative;
     }
 
     .premise-input-wrapper button i {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
 
     .premise-input-wrapper button {
-        margin-left: 0.5rem;
-        cursor: pointer;
-        max-height: 3.5rem;
-        height: 100%;
+        transition: color 0.2s;
+        position: absolute;
+        top: 50%;
+        right: 1px;
+        transform: translateY(-50%);
+        background: #121212;
+        padding: 0;
+        border: none;
+        height: 90%;
         aspect-ratio: 1;
-        text-align: center;
-        border: 1px solid #424242;
-        transition: color 0.2s, border 0.2s;
+    }
+
+    .premise-input-wrapper button:hover {
+        color: #ff0000;
     }
 
     .premise-input-wrapper button:hover,
     .premise-input-wrapper button:focus {
-        color: #ff0000;
-        border: 1px solid #ff0000;
         outline: none;
+        border: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+        .premise-input-wrapper button {
+            background: #ffffff;
+        }
     }
 </style>

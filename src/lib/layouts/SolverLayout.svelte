@@ -1,7 +1,3 @@
-<script lang="ts">
-    import Hint from 'svelte-hint';
-</script>
-
 <div class="solver-layout">
     <slot />
 </div>
@@ -12,6 +8,7 @@
         flex-direction: column;
         gap: 1rem;
         height: 100%;
+        width: 100%;
     }
 </style>
 

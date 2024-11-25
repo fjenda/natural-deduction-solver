@@ -6,3 +6,9 @@ export enum Op {
     NOT = 'NOT',
 }
 
+export interface Premise {
+    type: Op;
+    left?: Premise;
+    right?: Premise;
+    value?: string;
+}

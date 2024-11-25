@@ -3,7 +3,9 @@
     import {FormulaParser} from "../parsers/FormulaParser";
     import Hint from "svelte-hint";
 
-    let formulas: string = "";
+    export let formulas: string | null = "";
+
+    // let formulas: string = "";
     let textarea: HTMLTextAreaElement;
     let lineNumbersEle: HTMLDivElement;
     let lineRulesEle: HTMLDivElement;
@@ -174,6 +176,7 @@
         flex-grow: 1;
         width: 100%;
         max-height: 100%;
+        height: 25rem;
         position: relative;
         overflow: hidden;
 
@@ -194,8 +197,8 @@
     .hint-wrapper {
         position: absolute;
         top: 0;
-        right: 0;
-        transform: translate(-50%, 25%);
+        right: 3.5rem;
+        transform: translate(-50%, 50%);
     }
 
     .formulas-textarea {
@@ -229,7 +232,6 @@
         align-items: flex-end;
         max-height: 100%;
 
-
         /* Synchronize styles */
         font-family: var(--font-family);
         font-size: var(--font-size);
@@ -245,5 +247,20 @@
 
     .formulas-line-numbers {
         border-right: 1px solid var(--border-color);
+    }
+
+    @media (prefers-color-scheme: light) {
+        .container {
+            --border-color: #d1d1d1;
+        }
+
+        .container.focused {
+            --border-color: #424242;
+        }
+
+        .formulas-line-rules,
+        .formulas-line-numbers {
+            background-color: #f9f9f9;
+        }
     }
 </style>

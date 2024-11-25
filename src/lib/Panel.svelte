@@ -13,10 +13,24 @@
         border: 1px solid #424242;
     }
 
+    @media (prefers-color-scheme: light) {
+        .wrapper {
+            background-color: rgba(249, 249, 249, 0.25);
+            border: 1px solid #d1d1d1;
+        }
+    }
+
     .content {
         width: 100%;
         height: 100%;
+
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+
         border-radius: 0.5rem;
         padding: 1.5rem;
+        text-align: center;
     }
 </style>

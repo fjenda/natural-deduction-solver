@@ -5,55 +5,84 @@
     import Panel from "./lib/Panel.svelte";
     import SolverLayout from "./lib/layouts/SolverLayout.svelte";
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
+    import RulesLayout from "./lib/layouts/TheoremsLayout.svelte";
+    import RuleSlot from "./lib/rules/components/TheoremSlot.svelte";
+    import {DeductionRule} from "./types/DeductionRules";
+    import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
+    import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
+    import {theorems} from "./stores/theoremsStore";
+    import {solverContent} from "./stores/solverStore";
+    import {Solution} from "./lib/solver/Solution";
 
-    let premises: string[] = ["", ""];
+    $solverContent.premises = ["", ""];
 
     function addPremise() {
-        premises = [...premises, ""];
+        $solverContent.premises = [...$solverContent.premises, ""];
     }
 
     function removePremise(index: number) {
-        premises = premises.filter((_, i) => i !== index);
+        $solverContent.premises = $solverContent.premises.filter((_, i) => i !== index);
+    }
+
+    function addTheorem() {
+        theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
     }
 </script>
 
 <main>
   <MainLayout>
-<!--    <Panel>-->
-<!--        <h2>Analysis</h2>-->
-<!--    </Panel>-->
-
     <Panel>
         <SolverLayout>
-            {#each Array.from(premises) as _, i}
+            {#each Array.from($solverContent.premises) as _, i}
                 <PremiseInputRow fn={removePremise} index="{i}">
-                    <PremiseInput placeholder="Premise {i + 1}" bind:value="{premises[i]}" />
+                    <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" />
                 </PremiseInputRow>
             {/each}
-            <button class="add-premise-button" on:click={() => addPremise()}>Add Premise</button>
-            <PremiseInput placeholder="Conclusion" />
-            <FormulaInput />
+            <button class="add-button" on:click={() => addPremise()}>Add Solution</button>
+            <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" />
+            <FormulaInput bind:formulas="{$solverContent.proof}" />
         </SolverLayout>
     </Panel>
 
     <Panel>
-        <h2>Rules</h2>
+        <h2>Theorems</h2>
+        <button class="add-button" on:click={() => addTheorem()}>Add Theorem</button>
+        <TheoremsLayout>
+            {#if $theorems.length === 0}
+                <p>No theorems added yet.</p>
+            {/if}
+
+            {#each $theorems as theorem, i}
+                <TheoremSlot name="{theorem.name}" index="{i}" />
+            {/each}
+        </TheoremsLayout>
     </Panel>
   </MainLayout>
 </main>
 
 <style>
-    .add-premise-button {
+    .add-button {
+        width: 100%;
         height: 100%;
         max-height: 3.5rem;
         border: 1px solid #424242;
         transition: color 0.2s, border 0.2s;
     }
 
-    .add-premise-button:hover,
-    .add-premise-button:focus {
+    .add-button:hover {
         color: #00ff00;
         border: 1px solid #00ff00;
         outline: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+        .add-button {
+            border: 1px solid #d1d1d1;
+        }
+
+        .add-button:hover {
+            color: #00c800;
+            border: 1px solid #00c800;
+        }
     }
 </style>

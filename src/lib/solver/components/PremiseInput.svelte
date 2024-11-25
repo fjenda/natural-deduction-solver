@@ -3,35 +3,28 @@
     import Hint from "svelte-hint";
 
     export let placeholder: string;
-    export let value: string = "";
+    export let value: string | null = "";
     
-    
+    let hint: string = "" +
+        "Constants - [a-g]\n" +
+        "Variables - [h-z]\n" +
+        "Functions - [h-z]()\n" +
+        "Predicates - [A-Z]()\n" +
+        "Connectives:\n" +
+        "! for negation,\n" +
+        "& for conjunction,\n" +
+        "| for disjunction,\n" +
+        "> for implication,\n" +
+        "= for equivalence.";
+
+
 </script>
 
-<div class="wrapper">
-    <div class="hint-wrapper">
-        <Hint text="TODO!" placement="left">
-            <i class="fa fa-info-circle"></i>
-        </Hint>
-    </div>
-<!--    <input type="text" id="input" placeholder="{placeholder}" on:input={PremiseParser.parsePremise()} />-->
-    <input type="text" id="input" placeholder="{placeholder}" bind:value={value} />
-</div>
+<input type="text" placeholder={placeholder} bind:value={value} use:Hint={{hint}} />
 
 <style>
     input {
         max-height: 3.5rem;
-    }
-
-    .wrapper {
-        position: relative;
         flex-grow: 1;
-    }
-
-    .hint-wrapper {
-        position: absolute;
-        top: 0;
-        right: 0;
-        transform: translate(-50%, 25%);
     }
 </style>
