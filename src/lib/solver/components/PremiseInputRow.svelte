@@ -1,5 +1,6 @@
 <script lang="ts">
-    export let fn: (index: number) => void;
+    import {removePremise} from "../../../stores/solverStore";
+
     export let index: number;
 </script>
 
@@ -8,7 +9,7 @@
     <button
         type="button"
         aria-label="Remove premise"
-        on:click={() => fn(index)}
+        on:click={() => removePremise(index)}
     >
         <i class="fa fa-xmark"></i>
     </button>

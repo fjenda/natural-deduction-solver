@@ -1,3 +1,7 @@
+import type {Token} from "./Lexer";
+import {TokenType} from "./Lexer";
+import {VariableTable} from "./VariableTable";
+
 export enum DeductionRuleEnum {
     ICON = 'IC', // Introduction of Conjunction
     ECON = 'EC', // Elimination of Conjunction
@@ -54,4 +58,64 @@ export class DeductionRule {
         DeductionRule.IEX,
         DeductionRule.EEX,
     ];
+
+    static applyIC(A: Token[], B: Token[]) {
+        return [...A, { key: TokenType.AND }, ...B];
+    }
+
+    static applyEEX(A: Token[]) {
+        // get all variables from the formula
+        let table = VariableTable.initialize(A);
+        let constants = table.getType(TokenType.CONST);
+        let vars = table.getType(TokenType.VAR);
+
+        // get the existential quantifier variable
+        let variable = A[1].value!;
+
+        let c = 'a';
+        while (constants.includes(c)) {
+            c = String.fromCharCode(c.charCodeAt(0) + 1);
+
+            if (c === 'i') {
+                throw new Error('No more constants available');
+            }
+        }
+
+        // replace variable with constant
+        A = A.map(token => token.value === variable ? { type: TokenType.CONST, value: c } : token);
+
+        // remove existential quantifier
+        A = A.slice(2);
+
+        // remove any spaces that are around the formula
+        while (A[0].type === TokenType.SPACE) {
+            A = A.slice(1);
+        }
+
+        while (A[A.length - 1].type === TokenType.SPACE) {
+            A = A.slice(0, -1);
+        }
+
+        // remove outer brackets
+        A = A.slice(1, -1);
+
+        return A;
+    }
+
+    static tokenToString(token: Token): string {
+        switch (token.type) {
+            case TokenType.VAR:
+            case TokenType.CONST:
+            case TokenType.FUNCTION:
+            case TokenType.PREDICATE:
+            case TokenType.RELATION:
+                return token.value!;
+            default:
+                return token.type;
+        }
+    }
+
+    static tokensToString(tokens: Token[]): string {
+        return tokens.map(token => DeductionRule.tokenToString(token)).join('').trim();
+    }
 }

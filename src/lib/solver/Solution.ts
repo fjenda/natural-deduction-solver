@@ -1,7 +1,7 @@
 
 export class Solution {
     name: string = "";
-    premises: string[] = [];
+    premises: string[] = [""];
     conclusion: string | null = null;
     proof: string | null = "";
 
@@ -18,7 +18,7 @@ export class Solution {
     }
 
     addProof(premise: string) {
-        this.proof += `\n${premise}\n`;
+        this.proof += `${premise}\n`;
     }
 
     toString() {

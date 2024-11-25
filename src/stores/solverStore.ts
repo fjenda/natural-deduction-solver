@@ -1,4 +1,4 @@
-import {writable} from "svelte/store";
+import {get, writable} from "svelte/store";
 import {Solution} from "../lib/solver/Solution";
 
 
@@ -16,6 +16,20 @@ export const solverContent = function () {
         reset,
     }
 }();
+
+export const addPremise = () => {
+    solverContent.update(content => {
+        content.premises = [...content.premises, ""];
+        return content;
+    });
+}
+
+export const removePremise = (index: number) => {
+    solverContent.update(content => {
+        content.premises.splice(index, 1);
+        return content;
+    });
+}
 
 export const solverBackup = function () {
     const {set, update, subscribe} = writable<Solution>(new Solution("Backup Solution"));

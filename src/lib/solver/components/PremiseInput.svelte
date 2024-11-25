@@ -20,7 +20,7 @@
 
 </script>
 
-<input type="text" placeholder={placeholder} bind:value={value} use:Hint={{hint}} />
+<input type="text" placeholder={placeholder} bind:value={value} on:input={() => PremiseParser.parsePremise(value)}/>
 
 <style>
     input {

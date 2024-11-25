@@ -1,45 +1,30 @@
 <script lang="ts">
-    import { solverContent, solverBackup } from "../../../stores/solverStore";
-    import { theorems, selectedTheorem } from "../../../stores/theoremsStore";
+    import {selectedTheorem, removeTheorem, saveTheorem, editTheorem} from "../../../stores/theoremsStore";
+    import {solverContent} from "../../../stores/solverStore";
 
     export let name: string = "";
     export let index: number = -1;
-
-    function editTheorem() {
-        $solverBackup = $solverContent;
-        $solverContent = $theorems[index];
-        $selectedTheorem = index;
-    }
-
-    function deleteTheorem() {
-        theorems.update((theorems) => theorems.filter((_, i) => i !== index));
-    }
-
-    function saveTheorem() {
-        theorems.update((theorems) => {
-            theorems[index] = $solverContent;
-            return theorems;
-        });
-        $selectedTheorem = -1;
-        $solverContent = $solverBackup;
-    }
 </script>
 
 <div class="theorem-slot">
     <div class="name">
-        {name}
+        {#if index === $selectedTheorem}
+            <input type="text" bind:value={$solverContent.name} class="name-input" placeholder="Theorem Name" />
+        {:else}
+            {name}
+        {/if}
     </div>
     <div class="actions">
         {#if index === $selectedTheorem}
-            <button class="edit-button" aria-label="Save Theorem" on:click={() => saveTheorem()}>
+            <button class="save-button" aria-label="Save Theorem" on:click={() => saveTheorem(index)}>
                 <i class="fa-regular fa-floppy-disk"></i>
             </button>
         {:else}
-            <button class="edit-button" aria-label="Edit Theorem" on:click={() => editTheorem()} disabled={$selectedTheorem !== -1}>
+            <button class="edit-button" aria-label="Edit Theorem" on:click={() => editTheorem(index)} disabled={$selectedTheorem !== -1}>
                 <i class="fas fa-edit"></i>
             </button>
         {/if}
-        <button class="delete-button" aria-label="Delete Theorem" on:click={() => deleteTheorem()}>
+        <button class="delete-button" aria-label="Delete Theorem" on:click={() => removeTheorem(index)}>
             <i class="fas fa-xmark"></i>
         </button>
     </div>
@@ -59,13 +44,27 @@
         align-items: center;
     }
 
+    .theorem-slot .name {
+        text-align: left;
+    }
+
+    .theorem-slot .name input {
+        width: 100%;
+        padding: 0.5rem;
+        border: none;
+        outline: 1px solid #424242;
+        border-radius: 0.25rem;
+        background-color: #1a1a1a;
+        color: #fff;
+    }
+
     .theorem-slot .actions {
         display: flex;
         gap: 1rem;
     }
 
     .theorem-slot .actions button {
-        width: fit-content;
+        width: 20px;
         aspect-ratio: 1;
         padding: 0;
         display: flex;
@@ -79,12 +78,16 @@
         font-size: 1.25rem;
     }
 
+    .theorem-slot .actions .edit-button:disabled {
+        cursor: not-allowed;
+    }
+
     .theorem-slot .actions .delete-button:hover {
         color: #ff0000;
     }
 
-    .theorem-slot .actions .edit-button:disabled {
-        cursor: not-allowed;
+    .theorem-slot .actions .save-button:hover {
+        color: #00ff00;
     }
 
     .theorem-slot .actions .edit-button:hover:not([disabled]) {

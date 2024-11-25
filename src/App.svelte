@@ -5,27 +5,27 @@
     import Panel from "./lib/Panel.svelte";
     import SolverLayout from "./lib/layouts/SolverLayout.svelte";
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
-    import RulesLayout from "./lib/layouts/TheoremsLayout.svelte";
-    import RuleSlot from "./lib/rules/components/TheoremSlot.svelte";
-    import {DeductionRule} from "./types/DeductionRules";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
     import {theorems} from "./stores/theoremsStore";
-    import {solverContent} from "./stores/solverStore";
+    import {addPremise, solverContent} from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
+    import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
+    import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
 
-    $solverContent.premises = ["", ""];
+    $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
 
-    function addPremise() {
-        $solverContent.premises = [...$solverContent.premises, ""];
-    }
-
-    function removePremise(index: number) {
-        $solverContent.premises = $solverContent.premises.filter((_, i) => i !== index);
-    }
+    $: parsedPremises = $solverContent.premises.map(premise => {
+        return PremiseParser.parsePremise(premise);
+    });
 
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
+
+        solverContent.update((sc) => {
+            sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
+            return sc;
+        });
     }
 </script>
 
@@ -34,11 +34,11 @@
     <Panel>
         <SolverLayout>
             {#each Array.from($solverContent.premises) as _, i}
-                <PremiseInputRow fn={removePremise} index="{i}">
+                <PremiseInputRow index="{i}">
                     <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" />
                 </PremiseInputRow>
             {/each}
-            <button class="add-button" on:click={() => addPremise()}>Add Solution</button>
+            <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
             <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" />
             <FormulaInput bind:formulas="{$solverContent.proof}" />
         </SolverLayout>

@@ -1,4 +1,4 @@
-import {DeductionRule} from "../../../types/DeductionRules";
+import {DeductionRule} from "./DeductionRules";
 import { EarleyParser, Rule } from '../../earley-parser/EarleyParser';
 
 export class FormulaParser {
@@ -64,7 +64,7 @@ export class FormulaParser {
 
     static parser: EarleyParser = this.initParser();
 
-    static  parseFormula(formula: string): string {
+    static parseFormula(formula: string): string {
         // check syntax
         let res = this.parser.parse(formula);
 
@@ -72,7 +72,7 @@ export class FormulaParser {
             return DeductionRule.UNKNOWN.rule;
         }
 
-        // determine deduction rule
+
 
 
         return DeductionRule.EALL.rule;
