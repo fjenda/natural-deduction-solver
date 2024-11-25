@@ -4,6 +4,7 @@
 
     export let placeholder: string;
     export let value: string | null = "";
+    export let error: boolean = false;
     
     let hint: string = "" +
         "Constants - [a-g]\n" +
@@ -20,11 +21,15 @@
 
 </script>
 
-<input type="text" placeholder={placeholder} bind:value={value} on:input={() => PremiseParser.parsePremise(value)}/>
+<input type="text" placeholder={placeholder} bind:value={value} on:input={() => PremiseParser.parsePremise(value)} class:error={error} />
 
 <style>
     input {
         max-height: 3.5rem;
         flex-grow: 1;
+    }
+
+    input.error {
+        background-color: red;
     }
 </style>

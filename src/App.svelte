@@ -10,10 +10,10 @@
     import {theorems} from "./stores/theoremsStore";
     import {addPremise, solverContent} from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
-    import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
     import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
 
     $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
+    // $solverContent.premises = ["a"];
 
     $: parsedPremises = $solverContent.premises.map(premise => {
         return PremiseParser.parsePremise(premise);
@@ -22,10 +22,10 @@
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
 
-        solverContent.update((sc) => {
-            sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
-            return sc;
-        });
+        // solverContent.update((sc) => {
+        //     sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
+        //     return sc;
+        // });
     }
 </script>
 
@@ -35,7 +35,7 @@
         <SolverLayout>
             {#each Array.from($solverContent.premises) as _, i}
                 <PremiseInputRow index="{i}">
-                    <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" />
+                    <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" error="{!parsedPremises[i]}" />
                 </PremiseInputRow>
             {/each}
             <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
