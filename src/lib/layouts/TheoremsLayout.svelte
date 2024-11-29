@@ -8,11 +8,12 @@
 <style>
     .theorem-wrapper {
         width: 100%;
-        max-height: 500px;
+        min-height: 3.5rem;
+        max-height: 300px;
         padding: 1rem;
         overflow-y: auto;
-        background-color: #242424;
-        border: 1px solid #424242;
+        background-color: var(--dark-background-color);
+        border: 1px solid var(--dark-border-color);
         border-radius: 0.5rem;
     }
 

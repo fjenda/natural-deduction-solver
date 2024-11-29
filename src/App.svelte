@@ -11,16 +11,34 @@
     import {addPremise, solverContent} from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
     import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
+    import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
+    import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
+    import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
+    import Separator from "./lib/Separator.svelte";
+    import {Node} from "./lib/parsers/Node";
+    import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
 
-    $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
-    // $solverContent.premises = ["a"];
+    // $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
+    $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
+    // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
+    // $solverContent.conclusion = "?x [P(x,a) > Q(x,b)]";
+    $solverContent.conclusion = "?x [S(x,a) > P(x,a)]";
 
     $: parsedPremises = $solverContent.premises.map(premise => {
         return PremiseParser.parsePremise(premise);
     });
 
+    $: parsedContent = PremiseParser.parsePremise($solverContent.conclusion);
+
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
+
+        if (parsedPremises[0] && parsedPremises[1]) {
+            const op = new Node("LogicalOp", "&");
+            const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], op);
+            console.log(DeductionProcessor.toString(res!));
+            res!.print();
+        }
 
         // solverContent.update((sc) => {
         //     sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
@@ -39,12 +57,21 @@
                 </PremiseInputRow>
             {/each}
             <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
-            <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" />
+            <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedContent}" />
             <FormulaInput bind:formulas="{$solverContent.proof}" />
         </SolverLayout>
     </Panel>
 
     <Panel>
+        <h2>Deduction Rules</h2>
+        <RuleGridLayout>
+            {#each DeductionRule.rules as rule}
+                <RuleSlot rule="{rule}" />
+            {/each}
+        </RuleGridLayout>
+
+        <Separator />
+
         <h2>Theorems</h2>
         <button class="add-button" on:click={() => addTheorem()}>Add Theorem</button>
         <TheoremsLayout>
@@ -63,10 +90,10 @@
 <style>
     .add-button {
         width: 100%;
-        height: 100%;
-        max-height: 3.5rem;
-        border: 1px solid #424242;
-        transition: color 0.2s, border 0.2s;
+        /*height: 100%;*/
+        height: 3.5rem;
+        border: 1px solid var(--dark-border-color);
+        transition: color 0.2s, border 0.2s, background-color 0.2s;
     }
 
     .add-button:hover {
@@ -77,7 +104,7 @@
 
     @media (prefers-color-scheme: light) {
         .add-button {
-            border: 1px solid #d1d1d1;
+            border: 1px solid var(--light-border-color);
         }
 
         .add-button:hover {

@@ -35,9 +35,9 @@
         width: 100%;
         height: 100%;
         padding: 1rem;
-        background-color: #1a1a1a;
+        background-color: var(--dark-element-color);
         border-radius: 0.5rem;
-        border: 1px solid #424242;
+        border: 1px solid var(--dark-border-color);
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 1rem;
@@ -52,9 +52,9 @@
         width: 100%;
         padding: 0.5rem;
         border: none;
-        outline: 1px solid #424242;
+        outline: 1px solid var(--dark-border-color);
         border-radius: 0.25rem;
-        background-color: #1a1a1a;
+        background-color: var(--dark-element-color);
         color: #fff;
     }
 
@@ -100,8 +100,8 @@
 
     @media (prefers-color-scheme: light) {
         .theorem-slot {
-            background-color: #f9f9f9;
-            border: 1px solid #d1d1d1;
+            background-color: var(--light-element-color);
+            border: 1px solid var(--light-border-color);
         }
     }
 </style>

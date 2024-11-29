@@ -19,7 +19,7 @@
     .premise-input-wrapper {
         display: flex;
         align-items: center;
-        position: relative;
+        gap: 1rem;
     }
 
     .premise-input-wrapper button i {
@@ -27,16 +27,14 @@
     }
 
     .premise-input-wrapper button {
-        transition: color 0.2s;
-        position: absolute;
-        top: 50%;
-        right: 1px;
-        transform: translateY(-50%);
-        background: #121212;
-        padding: 0;
-        border: none;
-        height: 90%;
+        width: 20px;
         aspect-ratio: 1;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border: none;
+        transition: color 0.2s;
     }
 
     .premise-input-wrapper button:hover {
@@ -51,7 +49,7 @@
 
     @media (prefers-color-scheme: light) {
         .premise-input-wrapper button {
-            background: #ffffff;
+            background: var(--light-bg-color);
         }
     }
 </style>

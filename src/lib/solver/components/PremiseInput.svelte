@@ -21,15 +21,21 @@
 
 </script>
 
-<input type="text" placeholder={placeholder} bind:value={value} on:input={() => PremiseParser.parsePremise(value)} class:error={error} />
+<input type="text" placeholder={placeholder} bind:value={value} class:error={error} />
 
 <style>
     input {
-        max-height: 3.5rem;
-        flex-grow: 1;
+        height: 3.5rem;
+        /*flex-grow: 1;*/
+        transition: background-color 0.2s;
+    }
+
+    input.error::placeholder {
+        color: white;
     }
 
     input.error {
-        background-color: red;
+        background-color: #df7171;
     }
+
 </style>

@@ -1,30 +1,42 @@
 export class TokenStream {
-    private readonly tokens: string[];
-    private index: number = 0;
+    private tokens: string[];
+    private index: number;
 
     constructor(input: string) {
-        this.tokens = input.split('');
+        this.tokens = input.split(/\s*/).filter(token => token.length > 0);
+        this.index = 0;
     }
 
-    current(): string | undefined {
-        return this.tokens[this.index];
+    current(): string | null {
+        return this.index < this.tokens.length ? this.tokens[this.index] : null;
     }
 
-    match(expected: string): boolean {
-        if (this.current() === expected) {
-            this.index++;
+    match(token: string): boolean {
+        if (this.current() === token) {
+            this.advance();
             return true;
         }
         return false;
     }
 
     advance(): void {
-        if (!this.isAtEnd()) {
-            this.index++;
-        }
+        this.index++;
     }
 
     isAtEnd(): boolean {
         return this.index >= this.tokens.length;
+    }
+
+    // New methods for backtracking
+    save(): number {
+        return this.index;
+    }
+
+    restore(savedIndex: number): void {
+        this.index = savedIndex;
+    }
+
+    getIndex(): number {
+        return this.index;
     }
 }

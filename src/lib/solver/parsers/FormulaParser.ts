@@ -1,5 +1,7 @@
 import {DeductionRule} from "./DeductionRules";
 import {Parser} from "../../parsers/Parser";
+import {get} from "svelte/store";
+import {solverContent} from "../../../stores/solverStore";
 
 export class FormulaParser {
     static parseFormula(formula: string): string {
@@ -8,9 +10,11 @@ export class FormulaParser {
         let res = parser.parse(formula);
 
         if (!res) {
-            return DeductionRule.UNKNOWN.rule;
+            return DeductionRule.UNKNOWN.short;
         }
 
-        return DeductionRule.EALL.rule;
+        res.print();
+
+        return DeductionRule.EALL.short;
     }
 }

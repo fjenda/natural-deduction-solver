@@ -13,13 +13,15 @@ export class VariableTable {
             switch (token.type) {
                 case TokenType.FORALL:
                 case TokenType.EXISTS:
-                    table.addVariable(token.value!, TokenType.VAR); break;
+                    table.addVariable(token.value!, TokenType.VAR);
+                    break;
 
                 case TokenType.PREDICATE:
                 case TokenType.FUNCTION:
                 case TokenType.RELATION:
                 case TokenType.CONST:
-                        table.addVariable(token.value!, token.type); break;
+                    table.addVariable(token.value!, token.type);
+                    break;
 
                 default: break;
             }

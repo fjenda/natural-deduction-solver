@@ -20,19 +20,22 @@
 // Large -> [A-Z]
 
 import { TokenStream} from "./TokenStream";
+import { Node } from "./Node"
 
 const LOGGING: boolean = false;
 
+
+// TODO: Replace string types with enums, we're not in the 90s anymore
 export class Parser {
     private tokenStream!: TokenStream;
 
-    parse(formula: string): boolean {
+    parse(formula: string): Node | null {
         this.tokenStream = new TokenStream(formula);
-        const result = this.parseFormula();
+        const tree = this.parseFormula();
 
-        if (LOGGING) console.log('result', result, this.tokenStream.current());
+        if (LOGGING) console.log('result', tree, this.tokenStream.current());
 
-        if (!result || !this.tokenStream.isAtEnd()) {
+        if (!tree || !this.tokenStream.isAtEnd()) {
             if (LOGGING) {
                 console.error(
                     `Parsing failed at index ${
@@ -40,124 +43,253 @@ export class Parser {
                     }`
                 );
             }
-            return false;
+            return null;
         }
 
-        return true;
+        // remove all children that are null
+        tree.removeNullChildren();
+
+        return tree;
     }
 
-    private parseFormula(): boolean {
+    private parseFormula(): Node | null {
         if (LOGGING) console.log('formula', this.tokenStream.current());
-        return this.parseFormulaSimple() && this.parseFormulaPrime();
+        const formulaSimple = this.parseFormulaSimple();
+        if (!formulaSimple) return null;
+
+        const formulaPrime = this.parseFormulaPrime();
+        const node = new Node("Formula");
+        node.children.push(formulaSimple);
+
+        if (formulaSimple) {
+            node.children.push(formulaPrime!);
+        }
+
+        return node;
     }
 
-    private parseFormulaPrime(): boolean {
+    private parseFormulaPrime(): Node | null {
         if (LOGGING) console.log('formula prime', this.tokenStream.current());
-        if (this.parseLogicalOp()) {
-            return this.parseFormulaSimple() && this.parseFormulaPrime();
+
+        const logicalOp = this.parseLogicalOp();
+
+        if (logicalOp) {
+            const simpleFormula = this.parseFormulaSimple();
+            if (!simpleFormula) return null;
+
+            const formulaPrime = this.parseFormulaPrime();
+            const node = new Node("OperatorBlock");
+            node.children.push(logicalOp, simpleFormula);
+
+            if (formulaPrime) {
+                node.children.push(formulaPrime);
+            }
+
+            return node;
         }
-        return true; // ε
+
+        return null;
     }
 
-    private parseFormulaSimple(): boolean {
+    private parseFormulaSimple(): Node | null {
         if (LOGGING) console.log('formula simple', this.tokenStream.current());
+
+        const startIndex = this.tokenStream.save();
+
+        // [Formula]
         if (this.tokenStream.match('[')) {
-            if (this.parseFormula() && this.tokenStream.match(']')) {
-                return true;
+            const formula = this.parseFormula();
+            if (formula && this.tokenStream.match(']')) {
+                const node = new Node("BracketsBlock");
+                node.children.push(new Node("Bracket", "["), formula, new Node("Bracket", "]"));
+                return node;
             }
-        } else if (this.tokenStream.match('(')) {
-            if (this.parseFormula() && this.tokenStream.match(')')) {
-                return true;
-            }
-        } else if (this.tokenStream.match('!') && this.parseFormula()) {
-            return true;
-        } else if (this.parseQuantifier() && this.parseVariable() && this.parseFormula()) {
-            return true;
-        } else if (this.parsePredicate() && this.tokenStream.match('(') && this.parseTermList() && this.tokenStream.match(')')) {
-            return true;
-        } else if (this.parseConstant()) {
-            return true;
-        } else if ((this.parseVariable() || this.parseConstant()) && this.tokenStream.match('(') && this.parseTermList() && this.tokenStream.match(')')) {
-            return true;
+            this.tokenStream.restore(startIndex);
         }
-        return false;
+
+        // (Formula)
+        if (this.tokenStream.match('(')) {
+            const formula = this.parseFormula();
+            if (formula && this.tokenStream.match(')')) {
+                const node = new Node("ParenthesesBlock");
+                node.children.push(new Node("Parenthesis", "("), formula, new Node("Parenthesis", ")"));
+                return node;
+            }
+            this.tokenStream.restore(startIndex);
+        }
+
+        // !Formula
+        if (this.tokenStream.match('!')) {
+            const formula = this.parseFormula();
+            if (formula) {
+                const node = new Node("NegationBlock");
+                node.children.push(new Node("Negation", "!"), formula);
+                return node;
+            }
+            this.tokenStream.restore(startIndex);
+        }
+
+        // Quantifier Variable Formula
+        const quantifier = this.parseQuantifier();
+        if (quantifier) {
+            const variableStartIndex = this.tokenStream.save();
+            const variable = this.parseVariable();
+            if (!variable) this.tokenStream.restore(variableStartIndex);
+
+            const formulaStartIndex = this.tokenStream.save();
+            const formula = this.parseFormula();
+            if (!formula) this.tokenStream.restore(formulaStartIndex);
+
+            if (quantifier && variable && formula) {
+                const node = new Node("QuantifierBlock");
+                node.children.push(quantifier, variable, formula);
+                return node;
+            }
+            this.tokenStream.restore(startIndex);
+        }
+
+        // Predicate (TermList)
+        const predicate = this.parsePredicate();
+        if (predicate && this.tokenStream.match('(')) {
+            const termList = this.parseTermList();
+            if (termList && this.tokenStream.match(')')) {
+                const node = new Node("PredicateBlock");
+                node.children.push(predicate, new Node("Parenthesis", "("), termList, new Node("Parenthesis", ")"));
+                return node;
+            }
+            this.tokenStream.restore(startIndex);
+        }
+
+        // Constant
+        const constant = this.parseConstant();
+        if (constant) return constant;
+
+        // Function (TermList)
+        const func = this.parseFunction();
+        if (func && this.tokenStream.match('(')) {
+            const termList = this.parseTermList();
+            if (termList && this.tokenStream.match(')')) {
+                const node = new Node("FunctionBlock");
+                node.children.push(func, new Node("Parenthesis", "("), termList, new Node("Parenthesis", ")"));
+                return node;
+            }
+            this.tokenStream.restore(startIndex);
+        }
+
+        return null;
     }
 
-    private parseLogicalOp(): boolean {
+
+    private parseLogicalOp(): Node | null {
         if (LOGGING) console.log('logical op', this.tokenStream.current());
-        return this.tokenStream.match('&') ||
-            this.tokenStream.match('|') ||
-            this.tokenStream.match('>') ||
-            this.tokenStream.match('=');
-    }
-
-    private parseQuantifier(): boolean {
-        if (LOGGING) console.log('quantifier', this.tokenStream.current());
-        return this.tokenStream.match('@') || this.tokenStream.match('?');
-    }
-
-    private parseTermList(): boolean {
-        if (LOGGING) console.log('term list', this.tokenStream.current());
-        return this.parseTerm() && this.parseTermListTail();
-    }
-
-    private parseTermListTail(): boolean {
-        if (LOGGING) console.log('term list tail', this.tokenStream.current());
-        if (this.tokenStream.match(',') && this.parseTerm() && this.parseTermListTail()) {
-            return true;
+        const current = this.tokenStream.current();
+        if (this.tokenStream.match('&') || this.tokenStream.match('|') || this.tokenStream.match('>') || this.tokenStream.match('=')) {
+            return new Node("LogicalOp", current!);
         }
-        return true; // ε
+        return null;
     }
 
-    private parseTerm(): boolean {
+    private parseQuantifier(): Node | null {
+        if (LOGGING) console.log('quantifier', this.tokenStream.current());
+        const current = this.tokenStream.current();
+        if (this.tokenStream.match('@') || this.tokenStream.match('?')) {
+            return new Node("Quantifier", current!);
+        }
+        return null;
+    }
+
+    private parseTermList(): Node | null {
+        if (LOGGING) console.log('term list', this.tokenStream.current());
+        const term = this.parseTerm();
+        if (!term) return null;
+
+        const termListTail = this.parseTermListTail();
+        const node = new Node("TermList");
+        node.children.push(term);
+        if (termListTail) {
+            node.children.push(termListTail);
+        }
+        return node;
+    }
+
+    private parseTermListTail(): Node | null {
+        if (LOGGING) console.log('term list tail', this.tokenStream.current());
+        if (this.tokenStream.match(',')) {
+            const term = this.parseTerm();
+            if (!term) return null;
+
+            const termListTail = this.parseTermListTail();
+            const node = new Node("TermListTail");
+            node.children.push(new Node("Comma", ","), term);
+            if (termListTail) {
+                node.children.push(termListTail);
+            }
+            return node;
+        }
+        return null; // ε
+    }
+
+
+    private parseTerm(): Node | null {
         if (LOGGING) console.log('term', this.tokenStream.current());
         return (
             this.parseVariable() ||
             this.parseConstant() ||
-            (this.parseFunction() &&
-                this.tokenStream.match('(') &&
-                this.parseTermList() &&
-                this.tokenStream.match(')'))
+            this.parseFunctionCall()
         );
     }
 
-    private parsePredicate(): boolean {
+    private parseFunctionCall(): Node | null {
+        if (LOGGING) console.log('function', this.tokenStream.current());
+        const func = this.parseFunction();
+        if (func && this.tokenStream.match('(')) {
+            const termList = this.parseTermList();
+            if (termList && this.tokenStream.match(')')) {
+                const node = new Node("FunctionCall");
+                node.children.push(func, new Node("Parenthesis", "("), termList, new Node("Parenthesis", ")"));
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private parsePredicate(): Node | null {
         if (LOGGING) console.log('predicate', this.tokenStream.current());
         return this.parseVariable() || this.parseLarge();
     }
 
-    private parseFunction(): boolean {
+    private parseFunction(): Node | null {
         if (LOGGING) console.log('function', this.tokenStream.current());
         return this.parseVariable() || this.parseConstant();
     }
 
-    private parseConstant(): boolean {
+    private parseConstant(): Node | null {
         if (LOGGING) console.log('constant', this.tokenStream.current());
         const current = this.tokenStream.current();
         if (current && current.match(/[a-g]/)) {
             this.tokenStream.advance();
-            return true;
+            return new Node("Constant", current);
         }
-        return false;
+        return null;
     }
 
-    private parseVariable(): boolean {
+    private parseVariable(): Node | null {
         if (LOGGING) console.log('variable', this.tokenStream.current());
         const current = this.tokenStream.current();
         if (current && current.match(/[h-z]/)) {
             this.tokenStream.advance();
-            return true;
+            return new Node("Variable", current);
         }
-        return false;
+        return null;
     }
 
-    private parseLarge(): boolean {
+    private parseLarge(): Node | null {
         if (LOGGING) console.log('large', this.tokenStream.current());
         const current = this.tokenStream.current();
         if (current && current.match(/[A-Z]/)) {
             this.tokenStream.advance();
-            return true;
+            return new Node("Large", current);
         }
-        return false;
+        return null;
     }
 }

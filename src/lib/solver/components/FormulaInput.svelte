@@ -231,6 +231,7 @@
         justify-content: flex-start;
         align-items: flex-end;
         max-height: 100%;
+        background: var(--dark-element-color);
 
         /* Synchronize styles */
         font-family: var(--font-family);
@@ -260,7 +261,7 @@
 
         .formulas-line-rules,
         .formulas-line-numbers {
-            background-color: #f9f9f9;
+            background-color: var(--light-element-color);
         }
     }
 </style>
