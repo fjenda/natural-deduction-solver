@@ -5,6 +5,7 @@ import {get} from "svelte/store";
 import {solverContent} from "../../../stores/solverStore";
 import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 import {Node} from "../../parsers/Node";
+import {PrattParser} from "../../parsers/PrattParser";
 
 export class PremiseParser {
     static parsePremise(premise: string | null) {
@@ -16,69 +17,17 @@ export class PremiseParser {
         premise = premise.replace(/\s/g, '');
 
         // syntax check
-        let parser = new Parser();
-        let res = parser.parse(premise);
+        let pratt = new PrattParser();
+        let res = pratt.parse(premise);
 
-        if (!res) {
-            return false;
-        }
-
-        console.log(DeductionProcessor.getNextOperation(res));
-
+        if (!res) return false;
         res.print();
-        console.log(`Before:  ${DeductionProcessor.toString(res)}`);
-
-        let rows = DeductionProcessor.eliminateOperator(res)!;
-        // for (let row of rows) {
-        //     console.log(`ElimOp:  ${DeductionProcessor.toString(row)}`);
-        // }
-
-        // res = DeductionProcessor.eliminateQuantifier(res)!;
-        // console.log(`ElimEx:  ${DeductionProcessor.toString(res)}`);
-        // let rows = DeductionProcessor.eliminateOperator(res)!;
-        // for (let row of rows) {
-        //     console.log(`ElimOp:  ${DeductionProcessor.toString(row)}`);
-        // }
-        // res = DeductionProcessor.introduceOperator(rows[0], rows[1], '&');
-        // console.log(`IntOp:   ${DeductionProcessor.toString(res!)}`);
-
-        // console.log(DeductionProcessor.toString(DeductionProcessor.eliminateQuantifier(res)!));
-
-        // let newPremises = DeductionProcessor.eliminateOperator(res);
-        // for (let premise of newPremises!) {
-        //     console.log(DeductionProcessor.toString(premise));
-        // }
-
-
-        // get(solverContent).proof
 
         return res;
         // TODO: check if all variables are declared
         //       get tokens from premise
         //       initialize variable table
         //       come up with a smart way to represent the tokens so its easy to apply the deduction rules
-
-
-        // // get tokens from premise
-        // let tokens = Lexer.lex(premise);
-        //
-        // // initialize variable table
-        // let variables = VariableTable.initialize(tokens);
-        //
-        // // check if all variables are declared
-        // for (let token of tokens) {
-        //     if (token.type == TokenType.VAR) {
-        //         if (!variables.exists(token.value!)) {
-        //             console.log(`Variable ${token.value} not declared`);
-        //             return null;
-        //         }
-        //     }
-        // }
-        //
-        // console.log(tokens);
-        // variables.printTable();
-
-        // return tokens;
     }
 }
 

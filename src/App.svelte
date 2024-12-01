@@ -18,13 +18,16 @@
     import {Node} from "./lib/parsers/Node";
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
 
-    $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
-    // $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
+    // $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
+    $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.premises = ["(a > b | c) & (d = e > f | g)"];
-    // $solverContent.premises = ["a > b | c & d = e > f | g"];
+    // $solverContent.premises = ["a > b | !c & d = e > f | g"];
+    // $solverContent.premises = ["a", "b"];
+    // $solverContent.conclusion = "a";
     // $solverContent.conclusion = "?x [P(x,a) > Q(x,b)]";
-    $solverContent.conclusion = "?x [S(x,a) > P(x,a)]";
+    // $solverContent.conclusion = "f(a) > g(x)";
+    // $solverContent.conclusion = "@x [f(x) > b]";
 
     $: parsedPremises = $solverContent.premises.map(premise => {
         return PremiseParser.parsePremise(premise);
@@ -36,9 +39,8 @@
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
 
         if (parsedPremises[0] && parsedPremises[1]) {
-            const op = new Node("LogicalOp", "&");
-            const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], op);
-            console.log(DeductionProcessor.toString(res!));
+            const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], "&");
+            // console.log(DeductionProcessor.toString(res!));
             res!.print();
         }
 

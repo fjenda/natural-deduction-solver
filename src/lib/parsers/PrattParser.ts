@@ -1,0 +1,214 @@
+// Formula -> SimpleFormula FormulaPrime
+// FormulaPrime -> LogicalOp SimpleFormula FormulaPrime | ε
+// FormulaSimple -> '[' Formula ']'
+//                | '(' Formula ')'
+//                | '!' Formula
+//                | Quantifier Variable Formula
+//                | Predicate '(' TermList ')'
+//                | Constant
+//
+// LogicalOp -> '&' | '|' | '>' | '='
+// Quantifier -> '@' | '?'
+// TermList -> Term TermListTail
+// TermListTail -> ',' Term TermListTail | ε
+// Term -> Variable | Constant | Function '(' TermList ')'
+// Predicate -> Variable | Large
+// Function -> Variable | Constant
+// Constant -> [a-g]
+// Variable -> [h-z]
+// Large -> [A-Z]
+
+import { TokenStream} from "./TokenStream";
+import { Node } from "./Node"
+
+
+const PRECEDENCE: { [key: string]: number } = {
+    "=": 1,
+    ">": 2,
+    "|": 3,
+    "&": 4,
+    "!": 5,
+};
+
+export class PrattParser {
+    private tokenStream!: TokenStream;
+
+    parse(formula: string): Node | null {
+        this.tokenStream = new TokenStream(formula);
+        const tree = this.parseExpression(0);
+
+        if (!this.tokenStream.isAtEnd()) {
+            throw new Error("Unexpected token: " + this.tokenStream.current());
+        }
+
+        return tree;
+    }
+
+    private parseExpression(precedence: number): Node | null {
+        let left = this.parseToken();
+
+        if (!left) return null;
+
+        while (!this.tokenStream.isAtEnd() && precedence < this.getPrecedence()) {
+            const token = this.tokenStream.current();
+            this.tokenStream.advance();
+            left = this.parseLed(token!, left!);
+        }
+
+        return left;
+    }
+
+    private parseToken(): Node | null {
+        const token = this.tokenStream.current();
+        this.tokenStream.advance();
+        let savedIndex = this.tokenStream.save();
+
+        if (!token) return null;
+
+        if (token.match(/[h-z]/) || token.match(/[a-g]/)) {
+            if (this.tokenStream.match("(")) {
+                const termList = this.parseTermList();
+                if (!this.tokenStream.match(")")) {
+                    throw new Error("Expected ) after term list in function call");
+                }
+
+                const node = new Node("Function", token);
+                node.children.push(termList!);
+
+                return node;
+            }
+
+            // if failed, restore index
+            this.tokenStream.restore(savedIndex);
+        }
+
+        if (token.match(/[A-Z]/)) {
+            if (this.tokenStream.match("(")) {
+                const termList = this.parseTermList();
+                if (!this.tokenStream.match(")")) {
+                    throw new Error("Expected ) after term list in predicate call");
+                }
+
+                const node = new Node("Predicate", token);
+                node.children.push(termList!);
+
+                return node;
+            }
+            return new Node("Large", token);
+            // throw new Error("Expected '(' after predicate " + token);
+        }
+
+        if (token.match(/[a-g]/)) {
+            return new Node("Constant", token);
+        }
+
+        if (token.match(/[h-z]/)) {
+            return new Node("Variable", token);
+        }
+
+        if (token === "@" || token === "?") {
+            const node = new Node("Quantifier");
+            node.children.push(new Node("QuantifierOperator", token));
+
+            const variable = this.parseVariable();
+            if (!variable) {
+                throw new Error("Expected variable after quantifier " + token);
+            }
+            node.children.push(variable);
+
+            const formula = this.parseExpression(0);
+            if (!formula) {
+                throw new Error("Expected formula after variable " + variable.value);
+            }
+            node.children.push(formula);
+
+            return node;
+        }
+
+        if (token === "!") {
+            const right = this.parseExpression(PRECEDENCE["!"]);
+            const node = new Node("Negation");
+            node.children.push(new Node("NegationOperator", "!"), right!);
+
+            return node;
+        }
+
+        if (token === "(") {
+            const inner = this.parseExpression(0);
+            if (!this.tokenStream.match(")")) {
+                throw new Error("Expected )");
+            }
+
+            const parenNode = new Node("ParenthesesBlock");
+            parenNode.children.push(new Node("Parenthesis", "("), inner!, new Node("Parenthesis", ")"));
+
+            return parenNode;
+        }
+
+        if (token === "[") {
+            const inner = this.parseExpression(0);
+            if (!this.tokenStream.match("]")) {
+                throw new Error("Expected ]");
+            }
+
+            const bracketNode = new Node("BracketsBlock");
+            bracketNode.children.push(new Node("Bracket", "["), inner!, new Node("Bracket", "]"));
+
+            return bracketNode;
+        }
+
+        throw new Error(`Unexpected token: ${token}`);
+    }
+
+    private parseLed(operator: string, left: Node): Node | null {
+        const precedence = PRECEDENCE[operator] || 0;
+
+        if (operator.match(/[&|>=]/)) {
+            const right = this.parseExpression(precedence);
+            const node = new Node("BinaryOperation", operator);
+            node.children.push(left, right!);
+
+            return node;
+        }
+
+        throw new Error(`Unknown operator: ${operator}`);
+    }
+
+    private parseTermList(): Node | null {
+        const node = new Node("TermList");
+
+        const term = this.parseExpression(0);
+        if (!term) {
+            throw new Error("Expected at least one term in TermList");
+        }
+        node.children.push(term!);
+
+        while (this.tokenStream.match(",")) {
+            const nextTerm = this.parseExpression(0);
+            if (!nextTerm) {
+                throw new Error("Expected term after ',' in TermList");
+            }
+            node.children.push(nextTerm!);
+        }
+
+        return node;
+    }
+
+    private parseVariable(): Node | null {
+        const token = this.tokenStream.current();
+
+        if (token && token.match(/[h-z]/)) {
+            this.tokenStream.advance();
+            return new Node("Variable", token);
+        }
+
+        return null;
+    }
+
+    private getPrecedence(): number {
+        const token = this.tokenStream.current();
+        if (!token) return 0;
+
+        return PRECEDENCE[token] || 0 ? PRECEDENCE[token] : 0;
+    }
+}
