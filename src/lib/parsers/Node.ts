@@ -3,6 +3,9 @@ export class Node {
     value?: string;
     children: Array<Node>;
 
+    parent?: Node;
+    index?: number;
+
     constructor(type: string, value?: string) {
         this.type = type;
         this.value = value;

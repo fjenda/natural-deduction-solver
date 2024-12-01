@@ -23,11 +23,24 @@ export class PremiseParser {
             return false;
         }
 
+        console.log(DeductionProcessor.getNextOperation(res));
+
         res.print();
-        console.log(`Before: ${DeductionProcessor.toString(res)}`);
-        res = DeductionProcessor.eliminateQuantifier(res)!;
-        console.log(`After:  ${DeductionProcessor.toString(res)}`);
-        // console.log(DeductionProcessor.getNextOperation(res));
+        console.log(`Before:  ${DeductionProcessor.toString(res)}`);
+
+        let rows = DeductionProcessor.eliminateOperator(res)!;
+        // for (let row of rows) {
+        //     console.log(`ElimOp:  ${DeductionProcessor.toString(row)}`);
+        // }
+
+        // res = DeductionProcessor.eliminateQuantifier(res)!;
+        // console.log(`ElimEx:  ${DeductionProcessor.toString(res)}`);
+        // let rows = DeductionProcessor.eliminateOperator(res)!;
+        // for (let row of rows) {
+        //     console.log(`ElimOp:  ${DeductionProcessor.toString(row)}`);
+        // }
+        // res = DeductionProcessor.introduceOperator(rows[0], rows[1], '&');
+        // console.log(`IntOp:   ${DeductionProcessor.toString(res!)}`);
 
         // console.log(DeductionProcessor.toString(DeductionProcessor.eliminateQuantifier(res)!));
 
