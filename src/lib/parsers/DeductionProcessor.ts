@@ -318,6 +318,8 @@ export class DeductionProcessor {
             default:
                 return null;
         }
+
+        return null;
     }
 
     private static splitTree(tree: Node): Node[] {
