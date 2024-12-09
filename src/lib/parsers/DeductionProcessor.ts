@@ -1,4 +1,5 @@
 import {Node} from "./Node";
+import {Operator} from "./Operator";
 
 export class DeductionProcessor {
     /**
@@ -41,9 +42,9 @@ export class DeductionProcessor {
      * @param tree - The tree to search
      * @returns The next operation to perform or null if there are no actions
      */
-    static getNextOperation(tree: Node): Node | null {
+    static getNextOperation(tree: Node): Operator {
         // return the root of the tree
-        return tree;
+        return tree.value as Operator;
 
         // let results: Node[] = [];
         // let queue = [tree];
@@ -224,17 +225,17 @@ export class DeductionProcessor {
         return tree;
     }
 
-    private static findChild(tree: Node, type: string): Node | null {
-        if (!tree) return null;
-
-        for (let child of tree.children) {
-            if (child.type === type) {
-                return child;
-            }
-        }
-
-        return null;
-    }
+    // private static findChild(tree: Node, type: string): Node | null {
+    //     if (!tree) return null;
+    //
+    //     for (let child of tree.children) {
+    //         if (child.type === type) {
+    //             return child;
+    //         }
+    //     }
+    //
+    //     return null;
+    // }
 
     /**
      * Eliminates a quantifier from the tree
@@ -286,13 +287,37 @@ export class DeductionProcessor {
     /**
      * Eliminates an operator from the tree
      * @param tree - The tree to eliminate the operator from
+     * @param operator - The operator to eliminate
      * @returns The two halves of the tree split by the operator
      */
-    static eliminateOperator(tree: Node): Node[] | null {
+    static eliminateOperator(tree: Node, operator: Operator): Node[] | null {
         if (!tree) return null;
 
-        // next operation is the root of the tree, we split the tree into two halves
-        return this.splitTree(tree);
+        console.log(`Eliminating operator: ${operator}`);
+
+        switch (operator) {
+            case Operator.CONJUNCTION: {
+                // if the operator is a conjunction, we split the tree into two halves
+                return this.splitTree(tree);
+            }
+            case Operator.DISJUNCTION: {
+                // TODO
+            }
+            case Operator.IMPLICATION: {
+                // TODO
+                break;
+            }
+            case Operator.EQUIVALENCE: {
+                // TODO
+                break;
+            }
+            case Operator.NEGATION: {
+                // TODO
+                break;
+            }
+            default:
+                return null;
+        }
     }
 
     private static splitTree(tree: Node): Node[] {

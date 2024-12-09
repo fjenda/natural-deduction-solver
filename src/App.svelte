@@ -19,10 +19,10 @@
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
 
     // $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
-    $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
+    // $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.premises = ["(a > b | c) & (d = e > f | g)"];
-    // $solverContent.premises = ["a > b | !c & d = e > f | g"];
+    $solverContent.premises = ["a > b | !c & d = e > f | g"];
     // $solverContent.premises = ["a", "b"];
     // $solverContent.conclusion = "a";
     // $solverContent.conclusion = "?x [P(x,a) > Q(x,b)]";

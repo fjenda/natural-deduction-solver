@@ -23,6 +23,7 @@ export class PremiseParser {
         if (!res) return false;
         res.print();
 
+
         return res;
         // TODO: check if all variables are declared
         //       get tokens from premise
