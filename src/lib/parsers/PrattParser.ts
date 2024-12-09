@@ -3,7 +3,7 @@
 // FormulaSimple -> '[' Formula ']'
 //                | '(' Formula ')'
 //                | '!' Formula
-//                | Quantifier Variable Formula
+//                | Quantifier Small Formula
 //                | Predicate '(' TermList ')'
 //                | Constant
 //
@@ -11,12 +11,13 @@
 // Quantifier -> '@' | '?'
 // TermList -> Term TermListTail
 // TermListTail -> ',' Term TermListTail | ε
-// Term -> Variable | Constant | Function '(' TermList ')'
-// Predicate -> Variable | Large
-// Function -> Variable | Constant
+// Term -> Function '(' TermList ')'
+// Predicate -> Large | Small
+// Function -> Small
 // Constant -> [a-g]
 // Variable -> [h-z]
 // Large -> [A-Z]
+// Small -> [a-z]
 
 import { TokenStream} from "./TokenStream";
 import { Node } from "./Node"
@@ -41,6 +42,8 @@ export class PrattParser {
             throw new Error("Unexpected token: " + this.tokenStream.current());
         }
 
+
+        console.log(tree);
         return tree;
     }
 
@@ -60,26 +63,35 @@ export class PrattParser {
 
     private parseToken(): Node | null {
         const token = this.tokenStream.current();
+        const beforeToken = this.tokenStream.save();
         this.tokenStream.advance();
         let savedIndex = this.tokenStream.save();
 
         if (!token) return null;
 
-        if (token.match(/[h-z]/) || token.match(/[a-g]/)) {
+        // small character
+        if (token.match(/[a-z]/)) {
+            // function or constant
             if (this.tokenStream.match("(")) {
                 const termList = this.parseTermList();
+                console.log(this.tokenStream);
                 if (!this.tokenStream.match(")")) {
                     throw new Error("Expected ) after term list in function call");
                 }
 
-                const node = new Node("Function", token);
-                node.children.push(termList!);
+                // empty termlist -> constant
+                if (!termList) {
+                    return new Node("Constant", token);
+                }
 
+                // function
+                const node = new Node("Function", token);
+                node.children.push(termList);
                 return node;
             }
 
-            // if failed, restore index
-            this.tokenStream.restore(savedIndex);
+            // variable
+            return new Node("Variable", token);
         }
 
         if (token.match(/[A-Z]/)) {
@@ -94,17 +106,18 @@ export class PrattParser {
 
                 return node;
             }
-            return new Node("Large", token);
-            // throw new Error("Expected '(' after predicate " + token);
+
+            // return new Node("Large", token);
+            throw new Error("Expected '(' after predicate " + token);
         }
 
-        if (token.match(/[a-g]/)) {
-            return new Node("Constant", token);
-        }
+        // if (token.match(/[a-g]/)) {
+        //     return new Node("Constant", token);
+        // }
 
-        if (token.match(/[h-z]/)) {
-            return new Node("Variable", token);
-        }
+        // if (token.match(/[a-z]/)) {
+        //     return new Node("Variable", token);
+        // }
 
         if (token === "@" || token === "?") {
             const node = new Node("Quantifier");
@@ -157,7 +170,9 @@ export class PrattParser {
             return bracketNode;
         }
 
-        throw new Error(`Unexpected token: ${token}`);
+        this.tokenStream.restore(beforeToken);
+        return null;
+        // throw new Error(`Unexpected token: ${token}`);
     }
 
     private parseLed(operator: string, left: Node): Node | null {
@@ -179,7 +194,8 @@ export class PrattParser {
 
         const term = this.parseExpression(0);
         if (!term) {
-            throw new Error("Expected at least one term in TermList");
+            // throw new Error("Expected at least one term in TermList");
+            return null;
         }
         node.children.push(term!);
 
@@ -197,7 +213,7 @@ export class PrattParser {
     private parseVariable(): Node | null {
         const token = this.tokenStream.current();
 
-        if (token && token.match(/[h-z]/)) {
+        if (token && token.match(/[a-z]/)) {
             this.tokenStream.advance();
             return new Node("Variable", token);
         }
