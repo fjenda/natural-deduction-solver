@@ -119,7 +119,7 @@ button {
   font-family: inherit;
   background-color: var(--dark-element-color);
   cursor: pointer;
-  transition: border-color 0.25s;
+  /*transition: border-color 0.25s;*/
 }
 button:hover {
   border-color: #646cff;

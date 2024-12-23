@@ -1,5 +1,9 @@
 import {Node} from "./Node";
 import {Operator} from "./Operator";
+import {NDRule} from "../solver/parsers/DeductionRules";
+import type {TreeRuleType} from "../../types/TreeRuleType";
+import {get} from "svelte/store";
+import {selectedRow} from "../../stores/solverStore";
 
 export class DeductionProcessor {
     /**
@@ -45,61 +49,6 @@ export class DeductionProcessor {
     static getNextOperation(tree: Node): Operator {
         // return the root of the tree
         return tree.value as Operator;
-
-        // let results: Node[] = [];
-        // let queue = [tree];
-        // let found = false;
-        //
-        // // breadth first search
-        // while (queue.length > 0) {
-        //     let node = queue.shift();
-        //     if (!node) continue;
-        //
-        //     // if the node is an action
-        //     if (this.isAction(node.type)) {
-        //         // if the node is an operator block, add it to the results with value of the operator
-        //         if (this.isOperator(node.type)) {
-        //             results.push(new Node(node.type, node.children[0].value));
-        //             queue.push(...node.children);
-        //             found = true;
-        //         } else {
-        //             return new Node(node.type, node.children[0].value);
-        //         }
-        //     } else if (found && ((node.type === "OperatorBlock" && node.children.length === 3 && node.children[2].type === "OperatorBlock") || node.type === "OperatorBlock")) {
-        //         queue.push(...node.children);
-        //     } else if (!found) {
-        //         queue.push(...node.children);
-        //     }
-        // }
-        //
-        // // OpBlock | 3 ch | ch[2] Op
-        // // OpBlock | 2 ch | ch[1] Ng
-        // // NgBlock | 2 ch | ch[1] Fm
-        //
-        // if (results.length === 0) {
-        //     return null;
-        // }
-        //
-        // if (results.length === 1) {
-        //     return results[0];
-        // }
-        //
-        // // check if all the results are the same operators
-        // let same = results.every(r => r.value === results[0].value);
-        //
-        // // if all are the same, evaluation proceeds with left-associative parentheses
-        // if (same) {
-        //     return results[0];
-        // }
-        //
-        // // get the operator with the highest precedence
-        // let maxPrecedence = Math.max(...results.map(r => this.getPrecedence(r.value!)));
-        // let maxPrecedenceOperators = results.filter(r => this.getPrecedence(r.value!) === maxPrecedence);
-        //
-        // // if there are multiple operators with the same precedence, return the first one
-        // return maxPrecedenceOperators[0];
-
-
     }
 
     // depth first search to build the string
@@ -246,17 +195,6 @@ export class DeductionProcessor {
         if (!tree) return null;
 
         return tree.children[2].children[1];
-
-        // if (tree.type === "Quantifier" && tree.children.length === 3 && ["?", "@"].includes(tree.children[0].value!)) {
-        //     const constant = this.getAvailableConstant(tree);
-        //
-        //     const res = this.replaceVariable(tree.children[2], tree.children[1].value!, constant);
-        //     return this.eliminateQuantifier(res);
-        // }
-        //
-        // if (tree.type === "BracketsBlock" && tree.children.length === 3) {
-        //     return tree.children[1];
-        // }
     }
 
     private static introduceOperatorInternal(first: Node, second: Node, operator: Node) {
@@ -272,13 +210,13 @@ export class DeductionProcessor {
     static introduceOperator(first: Node, second: Node, operator: string): Node | null {
         switch (operator) {
             case "&":
-                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "&"));
+                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "∧"));
             case "|":
-                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "|"));
+                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "∨"));
             case ">":
-                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", ">"));
+                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "⊃"));
             case "=":
-                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "="));
+                return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "≡"));
             default:
                 return null;
         }
@@ -322,10 +260,111 @@ export class DeductionProcessor {
         return null;
     }
 
+    /**
+     * Splits the tree into two halves
+     * @param tree - The tree to split
+     * @returns The two halves of the tree
+     */
     private static splitTree(tree: Node): Node[] {
         if (!tree) return [];
 
         return [tree.children[0], tree.children[1]];
+    }
+
+    public static getUsableRows(rows: TreeRuleType[], operation: NDRule): number[] {
+        switch (operation) {
+            case NDRule.ICON: {
+                // remove duplicates and retain row numbers
+                const uniqueRowsMap = new Map<string, number>();
+
+                rows.forEach((row, index) => {
+                    if (index + 1 === get(selectedRow)) return;
+
+                    if (!uniqueRowsMap.has(row.value)) {
+                        uniqueRowsMap.set(row.value, index + 1);
+                    }
+                });
+
+                // return the row_numbers of unique rows
+                return Array.from(uniqueRowsMap.values());
+            }
+
+            case NDRule.ECON: {
+                // check if the selected row has a conjunction operator
+                const row = rows[get(selectedRow) - 1];
+                if (row.tree?.value === "∧") {
+                    return [get(selectedRow)];
+                }
+
+                break;
+            }
+
+            case NDRule.IDIS: {
+                // remove duplicates and retain row numbers
+                const uniqueRowsMap = new Map<string, number>();
+
+                rows.forEach((row, index) => {
+                    if (index + 1 === get(selectedRow)) return;
+
+                    if (!uniqueRowsMap.has(row.value)) {
+                        uniqueRowsMap.set(row.value, index + 1);
+                    }
+                });
+
+                // return the row_numbers of unique rows
+                return Array.from(uniqueRowsMap.values());
+            }
+
+            // TODO: maybe make this work the other way? meaning if i select !A and find A | B i can use this?
+            case NDRule.EDIS: {
+                // check if the selected row has a disjunction operator
+                const row = rows[get(selectedRow) - 1];
+                if (row.tree?.value !== "∨") {
+                    break;
+                }
+
+                // get the left and the right part
+                let negatedLeft = new Node("Negation", "¬");
+                negatedLeft.children.push(row.tree.children[0]);
+
+                let negatedRight = new Node("Negation", "¬");
+                negatedRight.children.push(row.tree.children[1]);
+
+                // check if the negated left part exists in the rules
+                const leftIndex = rows.findIndex(r => r.tree?.equals(negatedLeft));
+
+                // check if the negated right part exists in the rules
+                const rightIndex = rows.findIndex(r => r.tree?.equals(negatedRight));
+
+                let indices: number[] = [];
+                if (leftIndex !== -1) {
+                    indices.push(leftIndex + 1);
+                }
+
+                if (rightIndex !== -1) {
+                    indices.push(rightIndex + 1);
+                }
+
+                return indices;
+            }
+        }
+
+
+        return [];
+    }
+
+    public canApplyRule(row: TreeRuleType): { applicable: boolean, rows?: number[] } {
+        switch (row.rule) {
+            case NDRule.ECON: {
+                if (row.tree?.value === "∧") {
+                    return { applicable: true };
+                }
+            }
+
+            case NDRule.EDIS: {
+
+            }
+        }
     }
 
     /**
@@ -352,4 +391,6 @@ export class DeductionProcessor {
     //     clonedNode.setChildren(prunedChildren.filter(child => child !== null));
     //     return clonedNode;
     // }
+
+
 }

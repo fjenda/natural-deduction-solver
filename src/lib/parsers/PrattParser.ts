@@ -25,11 +25,18 @@ import { Node } from "./Node"
 
 const PRECEDENCE: { [key: string]: number } = {
     "=": 1,
+    "≡": 1,
     ">": 2,
+    "⊃": 2,
     "|": 3,
+    "∨": 3,
     "&": 4,
+    "∧": 4,
     "!": 5,
+    "¬": 5,
 };
+
+const THROW_ERRORS = false;
 
 export class PrattParser {
     private tokenStream!: TokenStream;
@@ -39,9 +46,12 @@ export class PrattParser {
         const tree = this.parseExpression(0);
 
         if (!this.tokenStream.isAtEnd()) {
-            throw new Error("Unexpected token: " + this.tokenStream.current());
-        }
+            if (THROW_ERRORS) {
+                throw new Error("Unexpected token: " + this.tokenStream.current());
+            }
 
+            return null;
+        }
 
         console.log(tree);
         return tree;
@@ -76,7 +86,11 @@ export class PrattParser {
                 const termList = this.parseTermList();
                 console.log(this.tokenStream);
                 if (!this.tokenStream.match(")")) {
-                    throw new Error("Expected ) after term list in function call");
+                    if (THROW_ERRORS) {
+                        throw new Error("Expected ) after term list in function call");
+                    }
+
+                    return null;
                 }
 
                 // empty termlist -> constant
@@ -98,7 +112,11 @@ export class PrattParser {
             if (this.tokenStream.match("(")) {
                 const termList = this.parseTermList();
                 if (!this.tokenStream.match(")")) {
-                    throw new Error("Expected ) after term list in predicate call");
+                    if (THROW_ERRORS) {
+                        throw new Error("Expected ) after term list in predicate call");
+                    }
+
+                    return null;
                 }
 
                 const node = new Node("Predicate", token);
@@ -108,7 +126,11 @@ export class PrattParser {
             }
 
             // return new Node("Large", token);
-            throw new Error("Expected '(' after predicate " + token);
+            if (THROW_ERRORS) {
+                throw new Error("Expected '(' after predicate " + token);
+            }
+
+            return null;
         }
 
         // if (token.match(/[a-g]/)) {
@@ -119,29 +141,37 @@ export class PrattParser {
         //     return new Node("Variable", token);
         // }
 
-        if (token === "@" || token === "?") {
+        if (["@", "?", "∀", "∃"].includes(token)) {
             const node = new Node("Quantifier");
             node.children.push(new Node("QuantifierOperator", token));
 
             const variable = this.parseVariable();
             if (!variable) {
-                throw new Error("Expected variable after quantifier " + token);
+                if (THROW_ERRORS) {
+                    throw new Error("Expected variable after quantifier " + token);
+                }
+
+                return null;
             }
             node.children.push(variable);
 
             const formula = this.parseExpression(0);
             if (!formula) {
-                throw new Error("Expected formula after variable " + variable.value);
+                if (THROW_ERRORS) {
+                    throw new Error("Expected formula after quantifier " + token);
+                }
+
+                return null;
             }
             node.children.push(formula);
 
             return node;
         }
 
-        if (token === "!") {
-            const right = this.parseExpression(PRECEDENCE["!"]);
-            const node = new Node("Negation");
-            node.children.push(new Node("NegationOperator", "!"), right!);
+        if (["!", "¬"].includes(token)) {
+            const right = this.parseExpression(PRECEDENCE[token]);
+            const node = new Node("Negation", token);
+            node.children.push(right!);
 
             return node;
         }
@@ -149,7 +179,11 @@ export class PrattParser {
         if (token === "(") {
             const inner = this.parseExpression(0);
             if (!this.tokenStream.match(")")) {
-                throw new Error("Expected )");
+                if (THROW_ERRORS) {
+                    throw new Error("Expected )");
+                }
+
+                return null;
             }
 
             const parenNode = new Node("ParenthesesBlock");
@@ -161,7 +195,11 @@ export class PrattParser {
         if (token === "[") {
             const inner = this.parseExpression(0);
             if (!this.tokenStream.match("]")) {
-                throw new Error("Expected ]");
+                if (THROW_ERRORS) {
+                    throw new Error("Expected ]");
+                }
+
+                return null;
             }
 
             const bracketNode = new Node("BracketsBlock");
@@ -178,15 +216,28 @@ export class PrattParser {
     private parseLed(operator: string, left: Node): Node | null {
         const precedence = PRECEDENCE[operator] || 0;
 
-        if (operator.match(/[&|>=]/)) {
+        if (operator.match(/[&|>=∧∨⊃≡]/)) {
             const right = this.parseExpression(precedence);
+
+            if (!right) {
+                if (THROW_ERRORS) {
+                    throw new Error("Expected right side of binary operation");
+                }
+
+                return null;
+            }
+
             const node = new Node("BinaryOperation", operator);
-            node.children.push(left, right!);
+            node.children.push(left, right);
 
             return node;
         }
 
-        throw new Error(`Unknown operator: ${operator}`);
+        if (THROW_ERRORS) {
+            throw new Error(`Unknown operator: ${operator}`);
+        }
+
+        return null;
     }
 
     private parseTermList(): Node | null {
@@ -194,7 +245,10 @@ export class PrattParser {
 
         const term = this.parseExpression(0);
         if (!term) {
-            // throw new Error("Expected at least one term in TermList");
+            if (THROW_ERRORS) {
+                throw new Error("Expected at least one term in TermList");
+            }
+
             return null;
         }
         node.children.push(term!);
@@ -202,7 +256,11 @@ export class PrattParser {
         while (this.tokenStream.match(",")) {
             const nextTerm = this.parseExpression(0);
             if (!nextTerm) {
-                throw new Error("Expected term after ',' in TermList");
+                if (THROW_ERRORS) {
+                    throw new Error("Expected term after ',' in TermList");
+                }
+
+                return null;
             }
             node.children.push(nextTerm!);
         }

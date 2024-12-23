@@ -1,6 +1,6 @@
-import {get, writable} from "svelte/store";
+import {writable} from "svelte/store";
 import {Solution} from "../lib/solver/Solution";
-
+import type {TreeRuleType} from "../types/TreeRuleType";
 
 export const solverContent = function () {
     const {set, update, subscribe} = writable<Solution>(new Solution("Solution 1"));
@@ -45,3 +45,8 @@ export const solverBackup = function () {
         reset,
     }
 }();
+
+export const highlightedRows = writable<number[]>([]);
+
+export const parsedProof = writable<TreeRuleType[]>([]);
+export const selectedRow = writable<number>(-1);

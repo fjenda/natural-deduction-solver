@@ -2,8 +2,10 @@
     import {onDestroy, onMount} from 'svelte';
     import {FormulaParser} from "../parsers/FormulaParser";
     import Hint from "svelte-hint";
+    import {parsedProof, selectedRow} from "../../../stores/solverStore";
 
     export let formulas: string | null = "";
+    export let highlight_rows: number[] = [];
 
     // let formulas: string = "";
     let textarea: HTMLTextAreaElement;
@@ -47,24 +49,24 @@
         return lineNumbers;
     }
 
-    const getLineRules = (lineIndex?: number): string[] => {
-        const lines = textarea.value.split('\n');
-        let lineRules: string[] = [];
-        let i = 1;
-
-        for (const line of lines) {
-            const numLines = calculateNumLines(line);
-            lineRules.push(FormulaParser.parseFormula(line));
-
-            for (let j = 1; j < numLines; j++) {
-                lineRules.push('');
-            }
-
-            i++;
-        }
-
-        return lineRules;
-    }
+    // const getLineRules = (lineIndex?: number): string[] => {
+    //     const lines = textarea.value.split('\n');
+    //     let lineRules: string[] = [];
+    //     let i = 1;
+    //
+    //     for (const line of lines) {
+    //         const numLines = calculateNumLines(line);
+    //         lineRules.push(FormulaParser.parseFormula(line).rule);
+    //
+    //         for (let j = 1; j < numLines; j++) {
+    //             lineRules.push('');
+    //         }
+    //
+    //         i++;
+    //     }
+    //
+    //     return lineRules;
+    // }
 
     // displays the line numbers
     const syncLineNumbers = () => {
@@ -79,13 +81,19 @@
 
         for (let i = 0; i < lines.length; i++) {
             if (lines[i] !== lastRows[i]) {
+                $parsedProof[i] = FormulaParser.parseFormula(lines[i]);
                 // console.log('parsing formula on row', i, 'with value', lines[i]);
-                newLineRules[i] = FormulaParser.parseFormula(lines[i]);
+                newLineRules[i] = $parsedProof[i].rule;
             }
         }
 
         lineRules = newLineRules;
         lastRows = [...lines];
+    }
+
+    const handleCursorChange = () => {
+        const cursorPosition = textarea.selectionStart;
+        $selectedRow = textarea.value.slice(0, cursorPosition).split('\n').length;
     }
 
     onMount(() => {
@@ -100,6 +108,7 @@
 
         const handleBlur = () => {
             focused = false;
+            $selectedRow = -1;
         };
 
         // const handlePaste = (event: ClipboardEvent) => {
@@ -110,6 +119,8 @@
         textarea.addEventListener('scroll', handleScroll);
         textarea.addEventListener('focus', handleFocus);
         textarea.addEventListener('blur', handleBlur);
+        textarea.addEventListener('click', handleCursorChange);
+        textarea.addEventListener('keyup', handleCursorChange);
         // textarea.addEventListener('paste', handlePaste)
 
         const resizeObserver = new ResizeObserver(() => {
@@ -133,6 +144,17 @@
         syncLineNumbers(); // initial sync
     });
 
+    function applyHighlight(formulas: string | null, rows: number[]) {
+        // console.log(formulas?.split('\n'));
+        return formulas?.split('\n').map((formula, i) => {
+            if (rows.includes(i + 1)) {
+                return `<mark>${formula}</mark>`;
+            } else {
+                return formula;
+            }
+        }).join('\n');
+    }
+
 </script>
 
 <!-- Input where the individual formulas will be written -->
@@ -150,13 +172,24 @@
             <i class="fa fa-info-circle"></i>
         </Hint>
     </div>
-    <textarea
-            id="textarea"
-            class="formulas-textarea"
-            bind:this={textarea}
-            bind:value={formulas}
-            on:input={syncLineNumbers}>
+
+    <div class="text-area-wrapper">
+        <div class="backdrop">
+            <div class="highlight">
+                {@html applyHighlight(formulas, highlight_rows)}
+            </div>
+        </div>
+        <textarea
+                id="textarea"
+                class="formulas-textarea"
+                bind:this={textarea}
+                bind:value={formulas}
+                on:input={syncLineNumbers}
+        >
     </textarea>
+    </div>
+
+
     <div id="used-rules"
          class="formulas-line-rules"
          bind:this={lineRulesEle}
@@ -197,7 +230,8 @@
     .hint-wrapper {
         position: absolute;
         top: 0;
-        right: 3.5rem;
+        right: 6.5rem;
+        z-index: 5;
         transform: translate(-50%, 50%);
     }
 
@@ -208,6 +242,8 @@
         overflow-y: auto;
         flex-grow: 1;
         min-height: 0;
+        position: relative;
+        z-index: 2;
 
         /* Synchronize styles */
         font-family: var(--font-family);
@@ -218,9 +254,18 @@
         padding: var(--padding);
     }
 
-    .formulas-line-rules,
     .formulas-line-numbers {
         width: 3.5rem;
+        align-items: flex-end;
+    }
+
+    .formulas-line-rules {
+        width: 7rem;
+        /*align-items: flex-start;*/
+    }
+
+    .formulas-line-rules,
+    .formulas-line-numbers {
         overflow: hidden;
 
         white-space: pre-wrap;
@@ -229,7 +274,6 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
-        align-items: flex-end;
         max-height: 100%;
         background: var(--dark-element-color);
 
@@ -262,6 +306,53 @@
         .formulas-line-rules,
         .formulas-line-numbers {
             background-color: var(--light-element-color);
+        }
+    }
+
+    .highlight {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        color: transparent;
+        margin: 0 auto;
+        pointer-events: none;
+    }
+
+    .backdrop {
+        position: absolute;
+        text-align: left;
+        border: none;
+        resize: none;
+        border-radius: 0;
+        overflow-y: auto;
+        min-height: 0;
+        z-index: 10;
+        pointer-events: none;
+
+        /* Synchronize styles */
+        font-family: var(--font-family);
+        font-size: var(--font-size);
+        font-weight: var(--font-weight);
+        letter-spacing: var(--letter-spacing);
+        line-height: var(--line-height);
+        padding: var(--padding);
+
+    }
+
+    .text-area-wrapper {
+        width: 100%;
+        position: relative;
+    }
+
+    :global(mark) {
+        color: var(--dark-text-color);
+        border-radius: 0.2rem;
+        background-color: #00c800;
+    }
+
+    @media (prefers-color-scheme: light) {
+        :global(mark) {
+            background-color: #00ff00;
+            color: var(--light-text-color);
         }
     }
 </style>

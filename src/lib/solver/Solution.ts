@@ -1,4 +1,3 @@
-
 export class Solution {
     name: string = "";
     premises: string[] = [""];

@@ -8,26 +8,27 @@
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
     import {theorems} from "./stores/theoremsStore";
-    import {addPremise, solverContent} from "./stores/solverStore";
+    import {addPremise, highlightedRows, solverContent} from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
     import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
     import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
     import Separator from "./lib/Separator.svelte";
-    import {Node} from "./lib/parsers/Node";
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
+    import {EditState} from "./types/EditState";
+    import {editState} from "./stores/stateStore";
 
-    // $solverContent.premises = ["@x [(P(x,a) & P(x,b)) > Q(x,b)]", "?x [!Q(x,b) & P(x,b)]"];
-    // $solverContent.premises = ["@x [L(x) > !S(x)]", "?y [L(y) & P(y)]"];
+    // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
+    // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
-    // $solverContent.premises = ["(a > b | c) & (d = e > f | g)"];
-    $solverContent.premises = ["a > b | !c & d = e > f | g"];
+    // $solverContent.premises = ["(a ⊃ b ∨ c) ∧ (d ≡ e ⊃ f ∨ g)"];
+    $solverContent.premises = ["a ⊃ b ∨ ¬c ∧ d ≡ e ⊃ f ∨ g"];
     // $solverContent.premises = ["a", "b"];
     // $solverContent.conclusion = "a";
-    // $solverContent.conclusion = "?x [P(x,a) > Q(x,b)]";
-    // $solverContent.conclusion = "f(a) > g(x)";
-    // $solverContent.conclusion = "@x [f(x) > b]";
+    // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
+    // $solverContent.conclusion = "f(a) ⊃ g(x)";
+    // $solverContent.conclusion = "∀x [f(x) ⊃ b]";
 
     $: parsedPremises = $solverContent.premises.map(premise => {
         return PremiseParser.parsePremise(premise);
@@ -38,11 +39,11 @@
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
 
-        if (parsedPremises[0] && parsedPremises[1]) {
-            const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], "&");
-            // console.log(DeductionProcessor.toString(res!));
-            res!.print();
-        }
+        // if (parsedPremises[0] && parsedPremises[1]) {
+        //     const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], "&");
+        //     // console.log(DeductionProcessor.toString(res!));
+        //     res!.print();
+        // }
 
         // solverContent.update((sc) => {
         //     sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
@@ -60,9 +61,12 @@
                     <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" error="{!parsedPremises[i]}" />
                 </PremiseInputRow>
             {/each}
-            <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
-            <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedContent}" />
-            <FormulaInput bind:formulas="{$solverContent.proof}" />
+
+            {#if $editState === EditState.SOLVER}
+                <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
+                <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedContent}" />
+            {/if}
+            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />
         </SolverLayout>
     </Panel>
 
@@ -97,7 +101,7 @@
         /*height: 100%;*/
         height: 3.5rem;
         border: 1px solid var(--dark-border-color);
-        transition: color 0.2s, border 0.2s, background-color 0.2s;
+        /*transition: color 0.2s, border 0.2s, background-color 0.2s;*/
     }
 
     .add-button:hover {

@@ -3,9 +3,6 @@ export class Node {
     value?: string;
     children: Array<Node>;
 
-    parent?: Node;
-    index?: number;
-
     constructor(type: string, value?: string) {
         this.type = type;
         this.value = value;
@@ -40,5 +37,26 @@ export class Node {
         for (let child of this.children) {
             child.removeNullChildren();
         }
+    }
+
+    equals(other: Node): boolean {
+        // same object
+        if (this === other) return true;
+
+        // one is null/undefined
+        if (!this || !other) return false;
+
+        // different types
+        if (this.type !== other.type) return false;
+
+        // different values
+        if (this.value !== other.value) return false;
+
+        // different number of children
+        if ((this.children || []).length !== (other.children || []).length) return false;
+
+        return (this.children || []).every((child: any, index: number) =>
+            child.equals(other.children[index])
+        );
     }
 }

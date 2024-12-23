@@ -1,20 +1,18 @@
 import {DeductionRule} from "./DeductionRules";
-import {Parser} from "../../parsers/Parser";
-import {get} from "svelte/store";
-import {solverContent} from "../../../stores/solverStore";
-
+import {PrattParser} from "../../parsers/PrattParser";
+import type {TreeRuleType} from "../../../types/TreeRuleType";
 export class FormulaParser {
-    static parseFormula(formula: string): string {
+    static parseFormula(formula: string): TreeRuleType {
         // syntax check
-        let parser = new Parser();
+        let parser = new PrattParser();
         let res = parser.parse(formula);
 
         if (!res) {
-            return DeductionRule.UNKNOWN.short;
+            return {tree: null, rule: DeductionRule.UNKNOWN.short, value: formula};
         }
 
         res.print();
 
-        return DeductionRule.EALL.short;
+        return {tree: res, rule: DeductionRule.EALL.short, value: formula};
     }
 }
