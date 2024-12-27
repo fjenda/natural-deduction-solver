@@ -6,17 +6,30 @@
     export let rule: DeductionRule;
 
     function handleMouseOver() {
-        let rows = DeductionProcessor.getUsableRows($parsedProof, rule.short);
-        highlightedRows.set(rows);
+        let rows = DeductionProcessor.getUsableRows(rule.short);
+        highlightedRows.set(rows.highlighted);
     }
 
     function handleMouseOut() {
         highlightedRows.set([]);
     }
 
+    function handleClick() {
+        // TODO: handle selecting a rule using a modal or something if there are multiple choices
+        //       for now just select the first one
+        highlightedRows.set(DeductionProcessor.getUsableRows(rule.short).highlighted);
+        DeductionProcessor.applyRule(rule.short, $parsedProof[$highlightedRows[0] - 1]);
+        highlightedRows.set([]);
+    }
+
 </script>
 
-<div class="rule-slot" title="{rule.title}" on:mouseover={handleMouseOver} on:mouseout={handleMouseOut} >
+<div class="rule-slot"
+     title="{rule.title}"
+     on:mouseover={handleMouseOver}
+     on:mouseout={handleMouseOut}
+     on:mousedown|preventDefault={handleClick}
+>
     {rule.short}
 </div>
 

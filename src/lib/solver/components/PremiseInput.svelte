@@ -34,7 +34,8 @@
         setTimeout(() => {
             if (!inputElement) return;
 
-            inputElement.focus();
+            if (document.activeElement !== inputElement) inputElement.focus();
+
             inputElement.setSelectionRange(newPosition, newPosition);
         }, 0);
     }
@@ -44,7 +45,7 @@
     <input type="text" placeholder={placeholder} bind:this={inputElement} bind:value={value} class:error={error} />
     <div class="operator-input">
         {#each operators as operator}
-            <button on:click={() => insertOperator(operator)}>{operator}</button>
+            <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
         {/each}
     </div>
 </div>
@@ -68,20 +69,21 @@
     .operator-input {
         display: none;
         position: absolute;
-        max-width: 13rem;
         top: 3.5rem;
         right: 0;
         z-index: 10;
         color: black;
-        padding: 0.5rem;
+        padding: 0.25rem;
         border-radius: 0 0 0.5rem 0.5rem;
         border: 1px solid var(--dark-border-color);
         background-color: var(--dark-bg-color);
     }
 
     .operator-input button {
-        width: calc(33% - 0.15rem - 0.5rem);
         aspect-ratio: 1;
+        padding: 0.45em 0.8em;
+        font-size: 1.35em;
+        font-family: monospace;
         margin: 0.15rem;
         background-color: var(--dark-element-color);
         color: var(--dark-text-color);
@@ -116,8 +118,6 @@
 
     .wrapper:focus-within .operator-input {
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
     }
 
     .wrapper:focus-within input {

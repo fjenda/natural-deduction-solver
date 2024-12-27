@@ -17,7 +17,7 @@ export class Solution {
     }
 
     addProof(premise: string) {
-        this.proof += `${premise}\n`;
+        this.proof += `\n${premise}`;
     }
 
     toString() {

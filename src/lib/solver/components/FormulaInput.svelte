@@ -87,6 +87,11 @@
             }
         }
 
+        // remove the rest from the parsed proof
+        if (lines.length < $parsedProof.length) {
+            $parsedProof.splice(lines.length, $parsedProof.length - lines.length);
+        }
+
         lineRules = newLineRules;
         lastRows = [...lines];
     }
@@ -155,6 +160,33 @@
         }).join('\n');
     }
 
+    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+
+    function insertOperator(operator: string) {
+        // insert the operator at the current cursor position
+        const cursorPosition = textarea.selectionStart;
+
+        // get the text before and after the cursor
+        let textBefore = formulas?.slice(0, cursorPosition!);
+        let textAfter = formulas?.slice(cursorPosition!);
+
+        // replace undefined with empty string
+        if (!textBefore) textBefore = "";
+        if (!textAfter) textAfter = "";
+
+        // set the new value
+        formulas = textBefore + operator + textAfter;
+
+        // keep the cursor at the same position
+        const newPosition = cursorPosition! + 1;
+        setTimeout(() => {
+            if (!textarea) return;
+
+            textarea.focus();
+            textarea.setSelectionRange(newPosition, newPosition);
+        }, 0);
+    }
+
 </script>
 
 <!-- Input where the individual formulas will be written -->
@@ -167,11 +199,11 @@
             <div>{number ? `${number}.` : '\u00A0'}</div>
         {/each}
     </div>
-    <div class="hint-wrapper">
-        <Hint text="TODO!" placement="left">
-            <i class="fa fa-info-circle"></i>
-        </Hint>
-    </div>
+<!--    <div class="hint-wrapper">-->
+<!--        <Hint text="TODO!" placement="left">-->
+<!--            <i class="fa fa-info-circle"></i>-->
+<!--        </Hint>-->
+<!--    </div>-->
 
     <div class="text-area-wrapper">
         <div class="backdrop">
@@ -186,7 +218,12 @@
                 bind:value={formulas}
                 on:input={syncLineNumbers}
         >
-    </textarea>
+        </textarea>
+        <div class="operator-input">
+            {#each operators as operator}
+                <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
+            {/each}
+        </div>
     </div>
 
 
@@ -219,7 +256,7 @@
         --font-size: 1.5em;
         --font-weight: normal;
         --letter-spacing: normal;
-        --line-height: normal;
+        --line-height: 1.35em;
         --padding: 0.5em;
     }
 
@@ -240,7 +277,7 @@
         resize: none;
         border-radius: 0;
         overflow-y: auto;
-        flex-grow: 1;
+        /*flex-grow: 1;*/
         min-height: 0;
         position: relative;
         z-index: 2;
@@ -255,7 +292,7 @@
     }
 
     .formulas-line-numbers {
-        width: 3.5rem;
+        width: 4rem;
         align-items: flex-end;
     }
 
@@ -354,5 +391,59 @@
             background-color: #00ff00;
             color: var(--light-text-color);
         }
+    }
+
+    .operator-input {
+        display: none;
+        position: absolute;
+        max-height: 22.5rem;
+        top: 50%;
+        right: 0;
+        transform: translate(0, -50%);
+        z-index: 10;
+        color: black;
+        padding: 0.25rem;
+        border-radius: 0.5rem 0 0 0.5rem;
+        border: 1px solid var(--dark-border-color);
+        border-right: 0;
+        background-color: var(--dark-bg-color);
+    }
+
+    .operator-input button {
+        aspect-ratio: 1;
+        padding: 0.45em 0.8em;
+        font-size: 1.35em;
+        font-family: monospace;
+        margin: 0.15rem;
+        background-color: var(--dark-element-color);
+        color: var(--dark-text-color);
+    }
+
+    .operator-input button:hover {
+        outline: none;
+        border: 1px solid var(--light-border-color);
+    }
+
+    @media (prefers-color-scheme: light) {
+        .operator-input button {
+            border: 1px solid var(--light-border-color);
+            background: var(--light-element-color);
+            color: var(--light-text-color);
+        }
+
+        .operator-input button:hover {
+            border: 1px solid var(--dark-border-color);
+        }
+
+        .operator-input {
+            background-color: var(--light-bg-color);
+            border: 1px solid var(--light-border-color);
+        }
+    }
+
+    .text-area-wrapper:focus-within .operator-input {
+        display: flex;
+        flex-direction: column;
+        /*flex-wrap: wrap;*/
     }
 </style>

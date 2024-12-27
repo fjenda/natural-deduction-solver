@@ -24,6 +24,7 @@
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.premises = ["(a ⊃ b ∨ c) ∧ (d ≡ e ⊃ f ∨ g)"];
     $solverContent.premises = ["a ⊃ b ∨ ¬c ∧ d ≡ e ⊃ f ∨ g"];
+    $solverContent.proof = "a\nb";
     // $solverContent.premises = ["a", "b"];
     // $solverContent.conclusion = "a";
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";

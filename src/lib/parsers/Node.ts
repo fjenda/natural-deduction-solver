@@ -59,4 +59,23 @@ export class Node {
             child.equals(other.children[index])
         );
     }
+
+    static generateString(node: Node) {
+        if (node.children.length === 0) {
+            return node.value;
+        }
+
+        const childrenStrings = node.children.map(child => this.generateString(child));
+
+        switch (node.type) {
+            case "BinaryOperation":
+                return `(${childrenStrings.join(` ${node.value} `)})`;
+
+            case 'Negation':
+                return `${node.value}${childrenStrings[0]}`;
+
+            default:
+                return node.type;
+        }
+    }
 }

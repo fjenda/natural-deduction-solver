@@ -3,7 +3,7 @@ import {Operator} from "./Operator";
 import {NDRule} from "../solver/parsers/DeductionRules";
 import type {TreeRuleType} from "../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {selectedRow} from "../../stores/solverStore";
+import {parsedProof, selectedRow, solverContent} from "../../stores/solverStore";
 
 export class DeductionProcessor {
     /**
@@ -209,13 +209,13 @@ export class DeductionProcessor {
     //       and whether to wrap the trees in a ParenthesesBlock
     static introduceOperator(first: Node, second: Node, operator: string): Node | null {
         switch (operator) {
-            case "&":
+            case "∧":
                 return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "∧"));
-            case "|":
+            case "∨":
                 return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "∨"));
-            case ">":
+            case "⊃":
                 return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "⊃"));
-            case "=":
+            case "≡":
                 return this.introduceOperatorInternal(first, second, new Node("BinaryOperation", "≡"));
             default:
                 return null;
@@ -271,14 +271,24 @@ export class DeductionProcessor {
         return [tree.children[0], tree.children[1]];
     }
 
-    public static getUsableRows(rows: TreeRuleType[], operation: NDRule): number[] {
-        switch (operation) {
-            case NDRule.ICON: {
-                // remove duplicates and retain row numbers
-                const uniqueRowsMap = new Map<string, number>();
+    public static getUsableRows(operation: NDRule): { highlighted: number[], applicable: boolean } {
+        const rows = get(parsedProof);
 
+        if (get(selectedRow) === -1) return { highlighted: [], applicable: false };
+
+        const uniqueRowsMap = new Map<string, number>();
+        switch (operation) {
+            // A, B => A AND B
+            case NDRule.ICON:
+            // A => A OR B || B => A OR B
+            case NDRule.IDIS:
+            // B => A IMP B
+            case NDRule.IIMP: {
+                // remove duplicates and retain row numbers
                 rows.forEach((row, index) => {
                     if (index + 1 === get(selectedRow)) return;
+
+                    if (row.value === rows[get(selectedRow) - 1].value) return;
 
                     if (!uniqueRowsMap.has(row.value)) {
                         uniqueRowsMap.set(row.value, index + 1);
@@ -286,111 +296,208 @@ export class DeductionProcessor {
                 });
 
                 // return the row_numbers of unique rows
-                return Array.from(uniqueRowsMap.values());
+                return { highlighted: Array.from(uniqueRowsMap.values()), applicable: true };
             }
 
+            // A AND B => A, B
             case NDRule.ECON: {
                 // check if the selected row has a conjunction operator
                 const row = rows[get(selectedRow) - 1];
                 if (row.tree?.value === "∧") {
-                    return [get(selectedRow)];
+                    return { highlighted: [get(selectedRow)], applicable: true };
                 }
 
                 break;
             }
 
-            case NDRule.IDIS: {
-                // remove duplicates and retain row numbers
-                const uniqueRowsMap = new Map<string, number>();
-
-                rows.forEach((row, index) => {
-                    if (index + 1 === get(selectedRow)) return;
-
-                    if (!uniqueRowsMap.has(row.value)) {
-                        uniqueRowsMap.set(row.value, index + 1);
-                    }
-                });
-
-                // return the row_numbers of unique rows
-                return Array.from(uniqueRowsMap.values());
-            }
-
-            // TODO: maybe make this work the other way? meaning if i select !A and find A | B i can use this?
+            // TODO: Some cases need parentheses around them, figure out how to handle that
+            //       A  =   a OR b IMP c
+            //       !A = !(a OR b IMP c)
+            //       For now it works only for simple formulas like a single constant, variable or function
+            // A OR B, !A => B || A OR B, !B => A
             case NDRule.EDIS: {
+                // there are two cases, either the selected row has a disjunction or it's the "!A"
+                // TODO: replace with enum
+                let type = "disjunction";
+
                 // check if the selected row has a disjunction operator
                 const row = rows[get(selectedRow) - 1];
                 if (row.tree?.value !== "∨") {
+                    type = "basic";
+                }
+
+                switch (type) {
+                    // selected row is A OR B
+                    case "disjunction": {
+                        // get the left and the right part
+                        const [left, right] = this.splitTree(row.tree!);
+
+                        let negatedLeft = new Node("Negation", "¬");
+                        negatedLeft.setChildren([left]);
+
+                        let negatedRight = new Node("Negation", "¬");
+                        negatedRight.setChildren([right]);
+
+                        // check if the negated left part exists in the rules
+                        const leftIndex = rows.findIndex(r => r.tree?.equals(negatedLeft));
+
+                        // check if the negated right part exists in the rules
+                        const rightIndex = rows.findIndex(r => r.tree?.equals(negatedRight));
+
+                        let indices: number[] = [];
+                        if (leftIndex !== -1) {
+                            indices.push(leftIndex + 1);
+                        }
+
+                        if (rightIndex !== -1) {
+                            indices.push(rightIndex + 1);
+                        }
+
+                        return { highlighted: indices, applicable: true };
+                    }
+
+                    // selected row is !A
+                    case "basic": {
+                        // check if the selected row is a negation
+                        const row = rows[get(selectedRow) - 1];
+                        if (row.tree?.value !== "¬") {
+                            break;
+                        }
+
+                        // TODO: Finish this
+                    }
+                }
+
+                break;
+            }
+
+            // A IMP B, A => B
+            case NDRule.MP: {
+                // there are two cases, either the selected row has an implication or it's the "A"
+                // TODO: replace with enum
+                let type = "implication";
+
+                // check if implication operator is present
+                const row = rows[get(selectedRow) - 1];
+                if (row.tree?.value !== "⊃") {
+                    type = "basic";
+                }
+
+                switch (type) {
+                    // selected row is A IMP B
+                    case "implication": {
+                        // get the left and right part of the implication
+                        const [left, right] = this.splitTree(row.tree!);
+
+                        // check if the left part is present in the rules
+                        const leftIndex = rows.findIndex(r => r.tree?.equals(left));
+
+                        // if not found, return an empty array
+                        if (leftIndex === -1) return { highlighted: [], applicable: false };
+
+                        return { highlighted: [leftIndex + 1], applicable: true };
+                    }
+
+                    // selected row is A
+                    case "basic": {
+                        // remove duplicates and retain row numbers
+                        rows.forEach((row, index) => {
+                            if (index + 1 === get(selectedRow)) return;
+
+                            if (row.value === rows[get(selectedRow) - 1].value) return;
+
+                            if (!uniqueRowsMap.has(row.value)) {
+                                uniqueRowsMap.set(row.value, index + 1);
+                            }
+                        });
+                        // get rules that have implication operators
+                        // and have the selected row as the left part of the implication
+                        let indices: number[] = [];
+                        uniqueRowsMap.forEach((index, value) => {
+                            if (rows[index - 1].tree?.value === "⊃" && rows[index - 1].tree?.children[0].equals(row.tree!)) {
+                                indices.push(index);
+                            }
+                        });
+
+                        return { highlighted: indices, applicable: true };
+                    }
+                }
+
+                break;
+            }
+
+            // A IMP B, B IMP A
+            case NDRule.IEQ: {
+                // check if selected row has an implication operator
+                const row = rows[get(selectedRow) - 1];
+                if (row.tree?.value !== "⊃") {
                     break;
                 }
 
-                // get the left and the right part
-                let negatedLeft = new Node("Negation", "¬");
-                negatedLeft.children.push(row.tree.children[0]);
+                // get the left and right part of the implication
+                const [left, right] = this.splitTree(row.tree!);
 
-                let negatedRight = new Node("Negation", "¬");
-                negatedRight.children.push(row.tree.children[1]);
+                // reorganize the implication into "right IMP left"
+                const reorganized = new Node("BinaryOperation", "⊃");
+                reorganized.setChildren([right, left]);
 
-                // check if the negated left part exists in the rules
-                const leftIndex = rows.findIndex(r => r.tree?.equals(negatedLeft));
+                // check if the reorganized implication exists in the rules
+                const reorganizedIndex = rows.findIndex(r => r.tree?.equals(reorganized));
 
-                // check if the negated right part exists in the rules
-                const rightIndex = rows.findIndex(r => r.tree?.equals(negatedRight));
+                // if not found, return an empty array
+                if (reorganizedIndex === -1) return { highlighted: [], applicable: false };
 
-                let indices: number[] = [];
-                if (leftIndex !== -1) {
-                    indices.push(leftIndex + 1);
+                return { highlighted: [reorganizedIndex + 1], applicable: true };
+            }
+
+            // A EQ B => A IMP B, B IMP A
+            case NDRule.EEQ: {
+                // check if the selected row has an equivalence operator
+                const row = rows[get(selectedRow) - 1];
+                if (row.tree?.value !== "≡") {
+                    break;
                 }
 
-                if (rightIndex !== -1) {
-                    indices.push(rightIndex + 1);
-                }
-
-                return indices;
+                // TODO: should anything happen after? I don't think so
+                return { highlighted: [], applicable: true };
             }
         }
 
 
-        return [];
+        return { highlighted: [], applicable: false };
     }
 
-    public canApplyRule(row: TreeRuleType): { applicable: boolean, rows?: number[] } {
-        switch (row.rule) {
-            case NDRule.ECON: {
-                if (row.tree?.value === "∧") {
-                    return { applicable: true };
-                }
-            }
+    public static applyRule(operation: NDRule, other: TreeRuleType) {
+        const selected = get(parsedProof)[get(selectedRow) - 1];
 
-            case NDRule.EDIS: {
+        switch (operation) {
+            // A, B => A AND B
+            case NDRule.ICON: {
+                const res = this.introduceOperator(selected.tree!, other.tree!, "∧");
+                if (!res) return;
 
+                const resString = Node.generateString(res);
+                if (!resString) return;
+
+                solverContent.update(content => {
+                    content.addProof(resString);
+                    return content;
+                });
             }
         }
     }
 
-    /**
-     * Recursively prunes the tree to construct the first half up to the operator.
-     */
-    // static pruneTree(node: Node, operatorToRemove: Node): Node | null {
-    //     if (!node) return null;
+    // public canApplyRule(row: TreeRuleType): { applicable: boolean, rows?: number[] } {
+    //     switch (row.rule) {
+    //         case NDRule.ECON: {
+    //             if (row.tree?.value === "∧") {
+    //                 return { applicable: true };
+    //             }
+    //         }
     //
-    //     const clonedNode = new Node(node.type, node.value);
-    //     const op = operatorToRemove.value!;
+    //         case NDRule.EDIS: {
     //
-    //     // check if the current node's children include the operator
-    //     if (node.children[0]?.value === op) {
-    //         clonedNode.children = [];
-    //         return clonedNode;
+    //         }
     //     }
-    //
-    //     // recursively prune children
-    //     const prunedChildren = node.children.map(child =>
-    //         this.pruneTree(child, operatorToRemove)
-    //     );
-    //
-    //     // set only non-null pruned children
-    //     clonedNode.setChildren(prunedChildren.filter(child => child !== null));
-    //     return clonedNode;
     // }
-
-
 }
