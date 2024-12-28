@@ -54,4 +54,8 @@ export const removeTheorem = (index: number): void => {
     if (index < get(selectedTheorem)) {
         selectedTheorem.update(i => i - 1);
     }
+
+    if (get(editState) === EditState.THEOREM) {
+        editState.set(EditState.SOLVER);
+    }
 }

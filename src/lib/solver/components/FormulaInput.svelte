@@ -16,6 +16,8 @@
     let focused: boolean = false;
     let lastRows: string[] = [];
 
+    $: if (formulas && textarea) syncLineNumbers();
+
     // returns the total number of lines a given string takes up in the text area
     const calculateNumLines = (str: string): number => {
         const width = textarea.clientWidth - 2 * parseFloat(getComputedStyle(textarea).padding);
@@ -31,7 +33,8 @@
 
     // returns an array of line numbers
     const calculateLineNumbers = (): string[] => {
-        const lines = textarea.value.split('\n');
+        // const lines = textarea.value.split('\n');
+        const lines = formulas?.split('\n') ?? [];
         let lineNumbers: string[] = [];
         let i = 1;
 
@@ -70,19 +73,31 @@
 
     // displays the line numbers
     const syncLineNumbers = () => {
-        const lines = textarea.value.split('\n');
+        // const lines = textarea.value.split('\n');
+        const lines = formulas?.split('\n') ?? [];
         lineNumbers = calculateLineNumbers();
         const newLineRules = [...lineRules];
+
+        // console.log(lines);
 
         if (lines.length < lastRows.length) {
             // remove the last rows
             newLineRules.splice(lines.length, lastRows.length - lines.length);
         }
 
+        $parsedProof.forEach(p => console.log(p));
         for (let i = 0; i < lines.length; i++) {
             if (lines[i] !== lastRows[i]) {
-                $parsedProof[i] = FormulaParser.parseFormula(lines[i]);
-                // console.log('parsing formula on row', i, 'with value', lines[i]);
+                // if the line has changed then reparse it (it was written)
+                // otherwise it was probably added using a rule
+                if (!$parsedProof[i] || $parsedProof[i].value !== lines[i]) {
+                    console.log("reparse", lines[i]);
+                    $parsedProof[i] = FormulaParser.parseFormula(lines[i]);
+
+                    console.log($parsedProof[i]);
+                }
+
+                // console.log($parsedProof[i]);
                 newLineRules[i] = $parsedProof[i].rule;
             }
         }
@@ -120,7 +135,7 @@
         //     event.preventDefault();
         // }
 
-        textarea.addEventListener('input', syncLineNumbers);
+        // textarea.addEventListener('input', syncLineNumbers);
         textarea.addEventListener('scroll', handleScroll);
         textarea.addEventListener('focus', handleFocus);
         textarea.addEventListener('blur', handleBlur);
@@ -138,7 +153,7 @@
         resizeObserver.observe(textarea);
 
         onDestroy(() => {
-            textarea.removeEventListener('input', syncLineNumbers);
+            // textarea.removeEventListener('input', syncLineNumbers);
             textarea.removeEventListener('scroll', handleScroll);
             textarea.removeEventListener('focus', handleFocus);
             textarea.removeEventListener('blur', handleBlur);
@@ -253,7 +268,7 @@
         /* Edit styles here */
         --border-color: #424242;
         --font-family: monospace;
-        --font-size: 1.5em;
+        --font-size: 1.35em;
         --font-weight: normal;
         --letter-spacing: normal;
         --line-height: 1.35em;
@@ -297,7 +312,7 @@
     }
 
     .formulas-line-rules {
-        width: 7rem;
+        width: 8rem;
         /*align-items: flex-start;*/
     }
 

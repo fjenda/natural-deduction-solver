@@ -110,19 +110,17 @@ h1 {
 }
 
 button {
-  /*border-radius: 8px;*/
   border-radius: 0.5rem;
-  border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   background-color: var(--dark-element-color);
   cursor: pointer;
-  /*transition: border-color 0.25s;*/
+  border: 1px solid var(--dark-border-color);
 }
 button:hover {
-  border-color: #646cff;
+  border: 1px solid var(--light-border-color);
 }
 button:focus,
 button:focus-visible {
@@ -138,7 +136,11 @@ button:focus-visible {
     color: #747bff;
   }
   button {
+    border: 1px solid var(--light-border-color);
     background-color: var(--light-element-color);
+  }
+  button:hover {
+    border: 1px solid var(--dark-border-color);
   }
 }
 

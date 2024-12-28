@@ -17,7 +17,10 @@
     function handleClick() {
         // TODO: handle selecting a rule using a modal or something if there are multiple choices
         //       for now just select the first one
-        highlightedRows.set(DeductionProcessor.getUsableRows(rule.short).highlighted);
+        const result = DeductionProcessor.getUsableRows(rule.short);
+        if (!result.applicable) return;
+
+        highlightedRows.set(result.highlighted);
         DeductionProcessor.applyRule(rule.short, $parsedProof[$highlightedRows[0] - 1]);
         highlightedRows.set([]);
     }

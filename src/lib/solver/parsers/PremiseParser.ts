@@ -1,10 +1,3 @@
-import {Lexer, TokenType} from './Lexer';
-import {VariableTable} from "./VariableTable";
-import {Parser} from "../../parsers/Parser";
-import {get} from "svelte/store";
-import {solverContent} from "../../../stores/solverStore";
-import {DeductionProcessor} from "../../parsers/DeductionProcessor";
-import {Node} from "../../parsers/Node";
 import {PrattParser} from "../../parsers/PrattParser";
 
 export class PremiseParser {

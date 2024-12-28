@@ -15,9 +15,10 @@
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
     import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
     import Separator from "./lib/Separator.svelte";
-    import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
     import {EditState} from "./types/EditState";
     import {editState} from "./stores/stateStore";
+    import Modal from "./lib/Modal.svelte";
+    import type {ButtonContent} from "./types/ButtonContent";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -51,9 +52,31 @@
         //     return sc;
         // });
     }
+
+    let showModal = true;
+    let modalContent = "Select the second row with which to execute the rule";
+    let modalButtons: ButtonContent[] = [
+        {
+            text: "Confirm",
+            action: () => {
+                showModal = false;
+            }
+        },
+        {
+            text: "Cancel",
+            action: () => {
+                showModal = false;
+            }
+        }
+    ];
 </script>
 
 <main>
+  <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons}>
+      <div slot="body">
+          <input type="text" placeholder="Enter the row number" />
+      </div>
+  </Modal>
   <MainLayout>
     <Panel>
         <SolverLayout>
@@ -99,10 +122,7 @@
 <style>
     .add-button {
         width: 100%;
-        /*height: 100%;*/
         height: 3.5rem;
-        border: 1px solid var(--dark-border-color);
-        /*transition: color 0.2s, border 0.2s, background-color 0.2s;*/
     }
 
     .add-button:hover {
@@ -112,10 +132,6 @@
     }
 
     @media (prefers-color-scheme: light) {
-        .add-button {
-            border: 1px solid var(--light-border-color);
-        }
-
         .add-button:hover {
             color: #00c800;
             border: 1px solid #00c800;

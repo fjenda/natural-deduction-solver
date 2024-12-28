@@ -1,9 +1,11 @@
+import type {Operator} from "./Operator";
+
 export class Node {
     type: string;
-    value?: string;
+    value?: Operator;
     children: Array<Node>;
 
-    constructor(type: string, value?: string) {
+    constructor(type: string, value?: Operator) {
         this.type = type;
         this.value = value;
         this.children = [];
@@ -30,13 +32,6 @@ export class Node {
 
     print() {
         this.internalPrint(this, "", true);
-    }
-
-    removeNullChildren() {
-        this.children = this.children.filter(child => child !== null);
-        for (let child of this.children) {
-            child.removeNullChildren();
-        }
     }
 
     equals(other: Node): boolean {
@@ -74,8 +69,30 @@ export class Node {
             case 'Negation':
                 return `${node.value}${childrenStrings[0]}`;
 
+            case "ParenthesesBlock":
+                return;
+
             default:
                 return node.type;
         }
+    }
+
+    public getTopOperator(): string | null {
+        // no children means it's a variable or a constant
+        if (this.children.length === 0) {
+            return null;
+        }
+
+        // if it's a binary operation, return the operator
+        if (this.type === "BinaryOperation") {
+            return this.value!;
+        }
+
+        // if it's a parentheses block, return the top operator of the child
+        if (this.type === "ParenthesesBlock") {
+            return this.children[1].getTopOperator();
+        }
+
+        // TODO: anything else to handle?
     }
 }

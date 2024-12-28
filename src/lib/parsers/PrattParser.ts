@@ -53,7 +53,7 @@ export class PrattParser {
             return null;
         }
 
-        console.log(tree);
+        // console.log(tree);
         return tree;
     }
 
