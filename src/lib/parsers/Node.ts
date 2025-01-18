@@ -1,4 +1,5 @@
 import type {Operator} from "./Operator";
+import {Operator} from "./Operator";
 
 export class Node {
     type: string;
@@ -64,13 +65,13 @@ export class Node {
 
         switch (node.type) {
             case "BinaryOperation":
-                return `(${childrenStrings.join(` ${node.value} `)})`;
+                return `${childrenStrings.join(` ${node.value} `)}`;
 
             case 'Negation':
                 return `${node.value}${childrenStrings[0]}`;
 
             case "ParenthesesBlock":
-                return;
+                return `(${childrenStrings[1]})`;
 
             default:
                 return node.type;
@@ -94,5 +95,11 @@ export class Node {
         }
 
         // TODO: anything else to handle?
+    }
+
+    public parenthesize(): Node {
+        const par = new Node("ParenthesesBlock");
+        par.setChildren([new Node("Parenthesis", Operator.LPAR), this, new Node("Parenthesis", Operator.RPAR)]);
+        return par;
     }
 }

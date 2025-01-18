@@ -3,6 +3,7 @@
     import {FormulaParser} from "../parsers/FormulaParser";
     import Hint from "svelte-hint";
     import {parsedProof, selectedRow} from "../../../stores/solverStore";
+    import {solverContent} from "../../../stores/solverStore.js";
 
     export let formulas: string | null = "";
     export let highlight_rows: number[] = [];
@@ -92,13 +93,18 @@
                 // otherwise it was probably added using a rule
                 if (!$parsedProof[i] || $parsedProof[i].value !== lines[i]) {
                     console.log("reparse", lines[i]);
-                    $parsedProof[i] = FormulaParser.parseFormula(lines[i]);
+                    $parsedProof[i] = FormulaParser.parseFormula(lines[i], i + 1);
 
                     console.log($parsedProof[i]);
                 }
 
                 // console.log($parsedProof[i]);
                 newLineRules[i] = $parsedProof[i].rule;
+
+                // assumption
+                if ($solverContent.premises.includes($parsedProof[i].value)) {
+                    newLineRules[i] = "ASS";
+                }
             }
         }
 

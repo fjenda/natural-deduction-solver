@@ -1,9 +1,10 @@
 <script lang="ts">
     import type {DeductionRule} from "../../solver/parsers/DeductionRules";
     import {DeductionProcessor} from "../../parsers/DeductionProcessor";
-    import {highlightedRows, parsedProof} from "../../../stores/solverStore";
+    import {highlightedRows, parsedProof, selectedRow} from "../../../stores/solverStore";
 
     export let rule: DeductionRule;
+    export let onClick: () => void;
 
     function handleMouseOver() {
         let rows = DeductionProcessor.getUsableRows(rule.short);
@@ -21,7 +22,8 @@
         if (!result.applicable) return;
 
         highlightedRows.set(result.highlighted);
-        DeductionProcessor.applyRule(rule.short, $parsedProof[$highlightedRows[0] - 1]);
+        onClick();
+        // DeductionProcessor.applyRule(rule.short, $parsedProof[$selectedRow - 1], $parsedProof[$highlightedRows[0] - 1], $highlightedRows[0]);
         highlightedRows.set([]);
     }
 

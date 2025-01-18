@@ -5,13 +5,13 @@ import {get} from "svelte/store";
 import {parsedProof, selectedRow} from "../../../stores/solverStore";
 import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 export class FormulaParser {
-    static parseFormula(formula: string): TreeRuleType {
+    static parseFormula(formula: string, line: number): TreeRuleType {
         // syntax check
         let parser = new PrattParser();
         let res = parser.parse(formula);
 
         if (!res) {
-            return {tree: null, rule: DeductionRule.UNKNOWN.short, value: formula};
+            return {line: line, tree: null, rule: DeductionRule.UNKNOWN.short, value: formula};
         }
 
         // res.print();
@@ -62,6 +62,6 @@ export class FormulaParser {
 
 
         // Finally if the row is an assumption from the premises, return blank (no rule)
-        return {tree: res, rule: "", value: formula};
+        return {line: line, tree: res, rule: "", value: formula};
     }
 }

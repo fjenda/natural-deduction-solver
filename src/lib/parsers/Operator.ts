@@ -7,4 +7,6 @@ export enum Operator {
     NEGATION = "¬",
     UNIVERSAL = "∀",
     EXISTENTIAL = "∃",
+    LPAR = "(",
+    RPAR= ")",
 }
