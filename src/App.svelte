@@ -21,6 +21,8 @@
     import type {ButtonContent} from "./types/ButtonContent";
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
     import {get} from "svelte/store";
+    import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
+    import type {TableRow} from "./types/TableRow";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -28,8 +30,7 @@
 
     $solverContent.premises = ["(¬a ∧ ¬b)"];
     $solverContent.conclusion = "¬(a ∨ b)";
-    // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
-    $solverContent.proof = "a\nb\nc\nd";
+    $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -46,24 +47,17 @@
         return PremiseParser.parsePremise(premise);
     });
 
-    $: parsedContent = PremiseParser.parsePremise($solverContent.conclusion);
+    $: parsedConclusion = PremiseParser.parsePremise($solverContent.conclusion);
 
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
-
-        // if (parsedPremises[0] && parsedPremises[1]) {
-        //     const res = DeductionProcessor.introduceOperator(parsedPremises[0], parsedPremises[1], "&");
-        //     // console.log(DeductionProcessor.toString(res!));
-        //     res!.print();
-        // }
-
-        // solverContent.update((sc) => {
-        //     sc.addProof(DeductionRule.tokensToString(DeductionRule.applyEEX(parsedPremises[0]!)));
-        //     return sc;
-        // });
     }
 
-    let modalInputValue = "";
+    // function convertToTableRow(): TableRow[] {
+    //
+    // }
+
+    let modalInput: HTMLInputElement;
     let showModal = false;
     let modalContent = "Select the second row with which to execute the rule";
     let modalButtons: ButtonContent[] = [
@@ -92,16 +86,39 @@
         const selectedProof = proof[selected - 1];
 
         setConfirmButtonAction(() => {
-            const other = parseInt(modalInputValue);
+            const other = parseInt(modalInput.value);
+
+            if (isNaN(other) || other < 1 || other > proof.length) {
+                alert("Invalid row number");
+                return;
+            }
+
+            if (other === selected) {
+                alert("Cannot select the same row");
+                return;
+            }
+
             const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
             console.log(`values are: ${selected}, ${other}`);
 
-            DeductionProcessor.applyRule(rule.short, selectedProof, highlightedProof);
-            highlightedRows.set([]);
-            modalInputValue = "";
+            if (highlighted.includes(other))
+                DeductionProcessor.applyRule(rule.short, selectedProof, highlightedProof);
+
+            modalInput.value = "";
+            showModal = false;
         });
         showModal = true;
+        setTimeout(() => modalInput.focus(), 50);
     }
+
+    $: convertedRows = $solverContent.premises.map((line, i) => {
+        return {
+            line: i + 1,
+            formula: line,
+            rule: "ASS",
+            editable: false,
+        };
+    });
 </script>
 
 <main>
@@ -110,7 +127,7 @@
           <input
                   type="text"
                   placeholder="Enter the row number"
-                  bind:value={modalInputValue}
+                  bind:this={modalInput}
           />
       </div>
   </Modal>
@@ -125,9 +142,11 @@
 
             {#if $editState === EditState.SOLVER}
                 <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
-                <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedContent}" />
+                <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedConclusion}" />
             {/if}
-            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />
+<!--            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />-->
+
+            <SolverTable rows={convertedRows} />
         </SolverLayout>
     </Panel>
 
@@ -135,6 +154,11 @@
         <h2>Deduction Rules</h2>
         <RuleGridLayout>
             {#each DeductionRule.rules as rule}
+                <!--{#if rule === DeductionRule.ICON}-->
+
+                <!-- TODO: Some rules don't require a second row to be selected,
+                           so we don't need to show a modal for those.
+                 -->
                 <RuleSlot rule="{rule}"
                           onClick={() => { handleRuleClick(rule) }}
                 />

@@ -6,10 +6,11 @@
 
 <style>
     .wrapper {
-        width: 100%;
-        height: 100%;
+        display: flex;
+        flex-direction: column;
+        /*height: 100%;*/
+        overflow: hidden;
         background-color: rgba(42, 42, 42, 0.225);
-        /*background-color: rgba(0, 0, 0, 0.25);*/
         border-radius: 0.5rem;
         border: 1px solid var(--dark-border-color);
     }
@@ -22,14 +23,12 @@
     }
 
     .content {
-        width: 100%;
-        height: 100%;
-
         display: flex;
         flex-direction: column;
+        height: 100%;
         gap: 1rem;
+        flex: 1;
         align-items: center;
-
         border-radius: 0.5rem;
         padding: 1.5rem;
         text-align: center;

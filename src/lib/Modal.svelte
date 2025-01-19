@@ -1,10 +1,28 @@
 <script lang="ts">
     import type {ButtonContent} from "../types/ButtonContent";
 
-    export let show;
+    export let show: boolean;
     export let content = '';
     export let buttons: ButtonContent[] = [];
+
+    function handleKeyDown(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+            show = false;
+        }
+
+        switch (event.key) {
+            case 'Enter':
+                buttons[0].action();
+                break;
+            case 'Escape':
+                buttons[1].action();
+                break;
+        }
+    }
+
 </script>
+
+<svelte:body on:keydown={handleKeyDown} />
 
 <div class="modal" class:hidden={!show}>
     <div class="modal-content">

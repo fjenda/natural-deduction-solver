@@ -25,7 +25,7 @@
             </button>
         {/if}
         <button class="delete-button" aria-label="Delete Theorem" on:click={() => removeTheorem(index)}>
-            <i class="fas fa-xmark"></i>
+            <i class="fas fa-times"></i>
         </button>
     </div>
 </div>

@@ -16,14 +16,11 @@
     }
 
     function handleClick() {
-        // TODO: handle selecting a rule using a modal or something if there are multiple choices
-        //       for now just select the first one
         const result = DeductionProcessor.getUsableRows(rule.short);
         if (!result.applicable) return;
 
         highlightedRows.set(result.highlighted);
         onClick();
-        // DeductionProcessor.applyRule(rule.short, $parsedProof[$selectedRow - 1], $parsedProof[$highlightedRows[0] - 1], $highlightedRows[0]);
         highlightedRows.set([]);
     }
 
@@ -45,6 +42,7 @@
         align-items: center;
         font-size: 1.25rem;
 
+        max-width: 7.5rem;
         width: 100%;
         aspect-ratio: 1;
         /*padding: 1.5rem;*/

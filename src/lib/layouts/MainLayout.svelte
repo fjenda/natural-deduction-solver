@@ -11,14 +11,14 @@
         grid-gap: 1rem;
         width: 100%;
         height: 100vh;
-        /*height: 100%;*/
     }
 
-    @media screen and (max-width: 1000px) {
+    @media screen and (max-width: 1200px) {
     /*    switch to 3 rows instead of cols*/
         .grid-layout {
             grid-template-columns: none;
             grid-template-rows: repeat(2, 1fr);
+            height: 150vh;
         }
     }
 </style>

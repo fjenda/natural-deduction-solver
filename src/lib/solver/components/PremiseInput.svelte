@@ -12,7 +12,11 @@
         "Functions - [a-z](par1, par2)\n" +
         "Predicates - [A-Z]()\n";
 
-    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+    // Predicate Logic
+    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+
+    // Propositional Logic
+    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
 
     function insertOperator(operator: string) {
         // insert the operator at the current cursor position

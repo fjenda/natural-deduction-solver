@@ -58,9 +58,11 @@ export class DeductionRule {
         DeductionRule.MP,
         DeductionRule.IEQ,
         DeductionRule.EEQ,
-        DeductionRule.IALL,
-        DeductionRule.EALL,
-        DeductionRule.IEX,
-        DeductionRule.EEX,
+
+        // Predicate Logic
+        // DeductionRule.IALL,
+        // DeductionRule.EALL,
+        // DeductionRule.IEX,
+        // DeductionRule.EEX,
     ];
 }
