@@ -28,7 +28,6 @@
         // do not highlight
         if ($selectedRows.length === 2 && !highlighted) return;
 
-        console.log("Selecting row", line);
         // update the selected rows
         selectedRows.update(rows => {
             if (rows.includes(line)) {

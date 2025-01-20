@@ -30,16 +30,6 @@
 
 </script>
 
-<!--<div class="rule-slot"-->
-<!--     title="{rule.title}"-->
-<!--     class:disabled={setButtonDisabled}-->
-<!--     on:mouseover={handleMouseOver}-->
-<!--     on:mouseout={handleMouseOut}-->
-<!--     on:mousedown|preventDefault={handleClick}-->
-<!--&gt;-->
-<!--    {rule.short}-->
-<!--</div>-->
-
 <button
     class="rule-slot"
     title="{rule.title}"
