@@ -2,7 +2,7 @@ import {DeductionRule} from "./DeductionRules";
 import {PrattParser} from "../../parsers/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {parsedProof, selectedRow} from "../../../stores/solverStore";
+import {parsedProof} from "../../../stores/solverStore";
 import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 import {PrettySyntaxer} from "../PrettySyntaxer";
 import {FormulaComparer} from "../FormulaComparer";

@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {DeductionRule} from "../../solver/parsers/DeductionRules";
     import {DeductionProcessor} from "../../parsers/DeductionProcessor";
-    import {highlightedRows, parsedProof, selectedRow, selectedRows} from "../../../stores/solverStore";
+    import {highlightedRows, selectedRows} from "../../../stores/solverStore";
 
     export let rule: DeductionRule;
     export let onClick: () => void;

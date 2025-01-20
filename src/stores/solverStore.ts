@@ -49,5 +49,4 @@ export const solverBackup = function () {
 export const highlightedRows = writable<number[]>([]);
 
 export const parsedProof = writable<TreeRuleType[]>([]);
-export const selectedRow = writable<number>(-1);
 export const selectedRows = writable<number[]>([]);

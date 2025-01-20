@@ -3,7 +3,7 @@ import {Operator} from "./Operator";
 import {NDRule} from "../solver/parsers/DeductionRules";
 import type {TreeRuleType} from "../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {parsedProof, selectedRow, selectedRows, solverContent} from "../../stores/solverStore";
+import {parsedProof, selectedRows, solverContent} from "../../stores/solverStore";
 import {FormulaComparer} from "../solver/FormulaComparer";
 
 export class DeductionProcessor {
@@ -323,17 +323,7 @@ export class DeductionProcessor {
                 if (get(parsedProof).findIndex(row => row.value === resString) !== -1)
                     return;
 
-                solverContent.update(content => {
-                    content.addProof(resString);
-                    return content;
-                });
-
-                parsedProof.update(proof => {
-                    proof.push({ line: get(parsedProof).length + 1, tree: res, rule: `${NDRule.IIMP} ${selected.line},${other?.line}`, value: resString });
-                    return proof;
-                });
-
-                break;
+                return { line: get(parsedProof).length + 1, tree: res, rule: `${NDRule.IIMP} ${selected.line},${other?.line}`, value: resString };
             }
         }
     }

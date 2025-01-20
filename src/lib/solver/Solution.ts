@@ -8,18 +8,6 @@ export class Solution {
         this.name = name;
     }
 
-    addPremise(premise: string) {
-        this.premises.push(premise);
-    }
-
-    setConclusion(conclusion: string) {
-        this.conclusion = conclusion;
-    }
-
-    addProof(premise: string) {
-        this.proof += `\n${premise}`;
-    }
-
     toString() {
         return `${this.name}`;
     }

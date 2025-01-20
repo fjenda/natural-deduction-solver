@@ -1,5 +1,4 @@
 <script lang="ts">
-    import FormulaInput from "./lib/solver/components/FormulaInput.svelte";
     import PremiseInput from "./lib/solver/components/PremiseInput.svelte";
     import MainLayout from "./lib/layouts/MainLayout.svelte";
     import Panel from "./lib/Panel.svelte";
@@ -10,9 +9,7 @@
     import {theorems} from "./stores/theoremsStore";
     import {
         addPremise,
-        highlightedRows,
         parsedProof,
-        selectedRow,
         selectedRows,
         solverContent
     } from "./stores/solverStore";
@@ -157,7 +154,7 @@
 
 <main>
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons}>
-      <div slot="body" on:click|stopPropagation>
+      <div slot="body">
           <input
                   type="text"
                   placeholder="Enter the row number"
@@ -178,7 +175,6 @@
                 <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
                 <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedConclusion}" />
             {/if}
-<!--            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />-->
 
             <SolverTable rows={convertedRows} />
         </SolverLayout>

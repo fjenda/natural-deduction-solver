@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import {PrettySyntaxer} from "../../PrettySyntaxer";
-    import {highlightedRows, selectedRow, selectedRows} from "../../../../stores/solverStore";
+    import {highlightedRows, selectedRows} from "../../../../stores/solverStore";
 
     export let line: number = 1;
     export let formula: string = "A -> B";
