@@ -8,7 +8,7 @@
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
     import {theorems} from "./stores/theoremsStore";
     import {
-        addPremise,
+        addPremise, highlightedRows,
         // parsedProof,
         selectedRows,
         solverContent
@@ -79,63 +79,78 @@
         modalButtons[0].action = action;
     }
 
+    // TODO: decide if we want to keep the alerts, could be slowing the user down.
     function handleRuleClick(rule: DeductionRule) {
         const proof = get(solverContent).proof;
         const selected = get(selectedRows);
-        const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
-        console.log(result);
+        const highlighted = get(highlightedRows);
 
-        if (!result) return;
-
-        if (Array.isArray(result)) {
-            solverContent.update(sc => {
-                for (const res of result) {
-                    sc.proof[res.line - 1] = res;
-                }
-                return sc;
-            });
-        } else {
-            solverContent.update(sc => {
-                sc.proof[result.line - 1] = result;
-                return sc;
-            });
+        // make the user select at least one row
+        if (selected.length === 0) {
+            alert("Select at least one row");
+            return;
         }
 
-        console.log($solverContent.proof);
+        // if the user selected more rows than needed for the rule
+        if (selected.length > rule.inputSize) {
+            alert("Too many rows selected");
+            return;
+        }
+
+        // if the number of selected rows is not equal to the number of rows needed for the rule
+        // display modal and make the user select the row there
+        if (selected.length < rule.inputSize) {
+            setConfirmButtonAction(() => {
+                // get the value from the input
+                const other = parseInt(modalInput.value);
+
+                // check if the value is a number and if it is a valid row number
+                if (isNaN(other) || other < 1 || other > proof.length) {
+                    alert("Invalid row number");
+                    return;
+                }
+
+                // check if the user selected the same row
+                if (selected.includes(other)) {
+                    alert("Cannot select the same row");
+                    return;
+                }
+
+                const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
+
+                if (highlighted.includes(other))
+                    DeductionProcessor.applyRule(rule.short, proof[selected[0]], highlightedProof);
+
+                modalInput.value = "";
+                showModal = false;
+            });
+
+            showModal = true;
+            setTimeout(() => modalInput.focus(), 50);
+        } else {
+            // if the number of selected rows is equal to the number of rows needed for the rule
+            const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
+            console.log(result);
+
+            if (!result) return;
+
+            if (Array.isArray(result)) {
+                solverContent.update(sc => {
+                    for (const res of result) {
+                        sc.proof[res.line - 1] = res;
+                    }
+                    return sc;
+                });
+            } else {
+                solverContent.update(sc => {
+                    sc.proof[result.line - 1] = result;
+                    return sc;
+                });
+            }
+
+            console.log($solverContent.proof);
+        }
     }
-
-    // function handleRuleClick(rule: DeductionRule) {
-    //     const proof = get(parsedProof);
-    //     const selected = get(selectedRow);
-    //     const highlighted = get(highlightedRows);
-    //     const selectedProof = proof[selected - 1];
-    //
-    //     setConfirmButtonAction(() => {
-    //         const other = parseInt(modalInput.value);
-    //
-    //         if (isNaN(other) || other < 1 || other > proof.length) {
-    //             alert("Invalid row number");
-    //             return;
-    //         }
-    //
-    //         if (other === selected) {
-    //             alert("Cannot select the same row");
-    //             return;
-    //         }
-    //
-    //         const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
-    //         console.log(`values are: ${selected}, ${other}`);
-    //
-    //         if (highlighted.includes(other))
-    //             DeductionProcessor.applyRule(rule.short, selectedProof, highlightedProof);
-    //
-    //         modalInput.value = "";
-    //         showModal = false;
-    //     });
-    //     showModal = true;
-    //     setTimeout(() => modalInput.focus(), 50);
-    // }
-
 </script>
 
 <main>
@@ -170,10 +185,6 @@
         <h2>Deduction Rules</h2>
         <RuleGridLayout>
             {#each DeductionRule.rules as rule}
-                <!--
-                 TODO: after highlighting rows, if the number of highlighted is the same as needed for application
-                       then apply the rule, otherwise, show the modal to select the second row.
-                -->
                 <RuleSlot rule="{rule}"
                           onClick={() => { handleRuleClick(rule) }}
                 />

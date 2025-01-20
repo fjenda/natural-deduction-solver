@@ -18,6 +18,8 @@ export enum NDRule {
     EEX = 'E∃', // Elimination of Existential Quantifier
 
     UNKNOWN = 'x',
+    ASS = 'ASS',
+    CONC = 'CONC',
 }
 
 export class DeductionRule {
@@ -42,6 +44,8 @@ export class DeductionRule {
         this.outputSize = outputSize;
     }
 
+    static ASS = new DeductionRule(NDRule.ASS, 'Assumption');
+    static CONC = new DeductionRule(NDRule.CONC, 'Conclusion');
     static UNKNOWN = new DeductionRule(NDRule.UNKNOWN, 'Unknown');
     static ICON = new DeductionRule(
         NDRule.ICON,

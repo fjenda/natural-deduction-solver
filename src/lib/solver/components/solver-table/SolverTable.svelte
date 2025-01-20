@@ -4,6 +4,8 @@
     import type {TableRowData} from "../../../../types/TableRow";
     import {FormulaParser} from "../../parsers/FormulaParser";
     import type {TreeRuleType} from "../../../../types/TreeRuleType";
+    import {NDRule} from "../../parsers/DeductionRules";
+
     let container: HTMLDivElement;
 
     export let data: TreeRuleType[] = []
@@ -22,7 +24,7 @@
             {
                 line: rows.length + 1,
                 formula: "",
-                rule: "",
+                rule: { rule: NDRule.UNKNOWN },
                 editable: true,
             },
         ];
@@ -51,14 +53,7 @@
                 premise={i <= $solverContent.premises.length - 1}
                 editable={row.editable}
                 onSave={(content, rule) => {
-
-                    /*
-                    <!-- TODO: 1. read `rule` and determine which rule was used                -->
-                    <!--       2. apply the rule to the row numbers in the `rule`              -->
-                    <!--       3. if the results differ from the `formula`, alert the user     -->
-                    <!--       4. if the results are the same, update the `formula` and `rule` -->
-                    */
-
+                    console.log(rule);
                     $solverContent.proof[i] = FormulaParser.parseFormula(content, i + 1, rule);
                     console.log($solverContent.proof[i]);
 
@@ -67,7 +62,23 @@
                     row.editable = false;
                 }}
                 onEdit={() => row.editable = true}
-                onDelete={() => rows = rows.filter(r => r !== row)}
+                onDelete={() => {
+                    console.log("Deleting row", i);
+                    console.log($solverContent.proof);
+
+                    solverContent.update(content => {
+                        // remove the row from the proof
+                        $solverContent.proof.splice(i, 1);
+
+                        // update the line numbers
+                        for (let j = i; j < $solverContent.proof.length; j++) {
+                            $solverContent.proof[j].line = j + 1;
+                            $solverContent.proof[j].rule.lines = $solverContent.proof[j].rule.lines?.map(l => l - 1);
+                        }
+
+                        return content;
+                    });
+                }}
             />
         {/each}
 
@@ -88,6 +99,7 @@
         overflow: hidden auto;
         border-radius: 0.5rem;
         border: 1px solid var(--dark-border-color);
+        background-color: #121212;
         padding: 0.5rem;
     }
 
@@ -97,6 +109,10 @@
         flex-direction: column;
         gap: 0.5rem;
         max-height: 100%;
+    }
+
+    button {
+        height: 3.5rem;
     }
 
     button.disabled {

@@ -1,6 +1,8 @@
+import type {AppliedRule} from "./AppliedRule";
+
 export interface TableRowData {
     line: number;
     formula: string;
-    rule: string;
+    rule: AppliedRule;
     editable: boolean;
 }

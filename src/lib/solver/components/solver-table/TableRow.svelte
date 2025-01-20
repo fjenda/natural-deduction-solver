@@ -2,10 +2,11 @@
     import {onMount} from "svelte";
     import {PrettySyntaxer} from "../../PrettySyntaxer";
     import {highlightedRows, selectedRows} from "../../../../stores/solverStore";
+    import type {AppliedRule} from "../../../../types/AppliedRule";
 
-    export let line: number = 1;
-    export let formula: string = "A -> B";
-    export let rule: string = "MP";
+    export let line: number;
+    export let formula: string;
+    export let rule: AppliedRule;
     export let premise: boolean = false;
     export let editable: boolean = false;
     export let onSave: (content: string, rule: string) => void;
@@ -13,6 +14,7 @@
     export let onDelete: () => void;
     let highlighted: boolean = false;
     let formulaInput: HTMLInputElement;
+    let ruleText: string = "";
 
     function handleInputChange(s: string): string {
         return PrettySyntaxer.clean(s);
@@ -42,10 +44,10 @@
     }
 
     // Predicate Logic
-    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
 
     // Propositional Logic
-    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
+    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
 
     function insertOperator(operator: string) {
         // insert the operator at the current cursor position
@@ -76,7 +78,7 @@
     $: usable = $highlightedRows.includes(line);
 
     onMount(() => {
-        if (premise) onSave(formula, rule);
+        if (premise) onSave(formula, ruleText);
     })
 </script>
 
@@ -112,10 +114,10 @@
             <input
                 class="row-input"
                 type="text"
-                bind:value={rule}
+                bind:value={ruleText}
             />
         {:else}
-            {rule}
+            {rule.rule} {rule.lines ? `${rule.lines.join(",")}` : ""}
         {/if}
     </div>
 
@@ -125,7 +127,7 @@
         <button
             class="action-button check-button"
             aria-label="Save"
-            on:click|stopPropagation={() => onSave(formula, rule)}
+            on:click|stopPropagation={() => onSave(formula, ruleText)}
         >
             <i class="fas fa-check"></i>
         </button>

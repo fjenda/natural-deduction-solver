@@ -271,7 +271,9 @@ export class DeductionProcessor {
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON: {
-                const res = this.introduceOperator(selected.tree!, other?.tree!, Operator.CONJUNCTION);
+                if (!other) return;
+
+                const res = this.introduceOperator(selected.tree!, other.tree!, Operator.CONJUNCTION);
                 if (!res) return;
 
                 const resString = Node.generateString(res);
@@ -283,7 +285,12 @@ export class DeductionProcessor {
                     return;
                 }
 
-                return { line: get(solverContent).proof.length + 1, tree: res, rule: `${NDRule.ICON} ${selected.line},${other?.line}`, value: resString };
+                return {
+                    line: get(solverContent).proof.length + 1,
+                    tree: res,
+                    rule: { rule: NDRule.ICON, lines: [selected.line, other.line] },
+                    value: resString
+                };
             }
             case NDRule.ECON: {
                 // check if we are in parentheses
@@ -300,21 +307,29 @@ export class DeductionProcessor {
 
                 const result: TreeRuleType[] = [];
                 if (get(solverContent).proof.findIndex(row => row.value === leftString) === -1) {
-                    result.push({ line: get(solverContent).proof.length, tree: left, rule: `${NDRule.ECON} ${selected.line}`, value: leftString });
+                    result.push({
+                        line: get(solverContent).proof.length + 1,
+                        tree: left,
+                        rule: { rule: NDRule.ECON, lines: [selected.line] },
+                        value: leftString
+                    });
                 }
 
                 if (get(solverContent).proof.findIndex(row => row.value === rightString) === -1) {
-                    result.push({ line: get(solverContent).proof.length, tree: right, rule: `${NDRule.ECON} ${selected.line}`, value: rightString });
+                    result.push({
+                        line: get(solverContent).proof.length + 2,
+                        tree: right,
+                        rule: { rule: NDRule.ECON, lines: [selected.line] },
+                        value: rightString
+                    });
                 }
 
                 return result;
             }
             case NDRule.IIMP: {
-                let res;
-                if (other) {
-                    res = this.introduceOperator(selected.tree!, other.tree!, Operator.IMPLICATION);
-                }
+                if (!other) return;
 
+                let res = this.introduceOperator(selected.tree!, other.tree!, Operator.IMPLICATION);
                 if (!res) return;
 
                 const resString = Node.generateString(res);
@@ -323,7 +338,12 @@ export class DeductionProcessor {
                 if (get(solverContent).proof.findIndex(row => row.value === resString) !== -1)
                     return;
 
-                return { line: get(solverContent).proof.length + 1, tree: res, rule: `${NDRule.IIMP} ${selected.line},${other?.line}`, value: resString };
+                return {
+                    line: get(solverContent).proof.length + 1,
+                    tree: res,
+                    rule: { rule: NDRule.IIMP, lines: [selected.line, other.line] },
+                    value: resString
+                };
             }
         }
     }

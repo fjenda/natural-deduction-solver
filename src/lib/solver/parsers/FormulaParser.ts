@@ -1,4 +1,4 @@
-import {DeductionRule} from "./DeductionRules";
+import {DeductionRule, NDRule} from "./DeductionRules";
 import {PrattParser} from "../../parsers/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
@@ -6,6 +6,7 @@ import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 import {PrettySyntaxer} from "../PrettySyntaxer";
 import {FormulaComparer} from "../FormulaComparer";
 import {solverContent} from "../../../stores/solverStore";
+
 export class FormulaParser {
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
         // checks the syntax of the formula
@@ -14,7 +15,12 @@ export class FormulaParser {
 
         // if the formula is not valid, return the error
         if (!res) {
-            return {line: line, tree: null, rule: DeductionRule.UNKNOWN.short, value: formula};
+            return {
+                line: line,
+                tree: null,
+                rule: { rule: DeductionRule.UNKNOWN.short },
+                value: formula,
+            };
         }
 
         // clean the rule string
@@ -24,14 +30,29 @@ export class FormulaParser {
         // TODO: that might not actually be the case, check on this later
         //
         // TODO: handle the case when we are proving the negation of the conclusion
-        if (rule === "ASS" || rule === "CONC") {
-            return {line: line, tree: res, rule: rule, value: formula};
+        if (rule === "ASS") {
+            return {
+                line: line,
+                tree: res,
+                rule: { rule: NDRule.ASS },
+                value: formula
+            };
+        }
+
+        if (rule === "CONC") {
+            return {
+                line: line,
+                tree: res,
+                rule: { rule: NDRule.CONC },
+                value: formula
+            };
         }
 
         // split the rule into its parts
         const ruleParts = rule.split(" ");
         const ruleName = ruleParts[0];
         const lines = ruleParts[1].split(",");
+        const linesNumbers = lines.map(s => parseInt(s));
         const line1 = parseInt(lines[0]);
         const line2 = lines[1] ? parseInt(lines[1]) : null;
 
@@ -40,7 +61,12 @@ export class FormulaParser {
 
         // if the rule wasn't found, return the unknown rule
         if (usedRule === DeductionRule.UNKNOWN) {
-            return {line: line, tree: null, rule: usedRule.short, value: formula};
+            return {
+                line: line,
+                tree: null,
+                rule: { rule: NDRule.UNKNOWN },
+                value: formula
+            };
         }
 
         // if we found the rule, try to apply it and check if the results differ
@@ -55,25 +81,50 @@ export class FormulaParser {
 
         // if the result is null, the rule wasn't applied correctly
         if (!result) {
-            return {line: line, tree: res, rule: 'x', value: formula};
+            return {
+                line: line,
+                tree: res,
+                rule: { rule: NDRule.UNKNOWN },
+                value: formula
+            };
         }
 
         // some rules return an array of results, in that case we need to check if our result is in the array
         if (Array.isArray(result)) {
             if (!result.some((r) => FormulaComparer.compareFormulas(r.value, formula))) {
-                return {line: line, tree: res, rule: 'x', value: formula};
+                return {
+                    line: line,
+                    tree: res,
+                    rule: { rule: NDRule.UNKNOWN },
+                    value: formula
+                };
             }
 
             // the results are the same, return the rule
-            return {line: line, tree: res, rule: rule, value: formula};
+            return {
+                line: line,
+                tree: res,
+                rule: { rule: usedRule.short, lines: linesNumbers },
+                value: formula
+            };
         }
 
         // check if the results differ
         if (!FormulaComparer.compareFormulas(result.value, formula)) {
-            return {line: line, tree: res, rule: 'x', value: formula};
+            return {
+                line: line,
+                tree: res,
+                rule: { rule: NDRule.UNKNOWN },
+                value: formula
+            };
         }
 
         // the results are the same, return the rule
-        return {line: line, tree: res, rule: rule, value: formula};
+        return {
+            line: line,
+            tree: res,
+            rule: { rule: usedRule.short, lines: linesNumbers },
+            value: formula
+        };
     }
 }
