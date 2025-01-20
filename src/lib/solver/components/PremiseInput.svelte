@@ -1,5 +1,6 @@
 <script lang="ts">
     import Hint from "svelte-hint";
+    import {PrettySyntaxer} from "../PrettySyntaxer";
 
     export let placeholder: string;
     export let value: string | null = "";
@@ -46,7 +47,17 @@
 </script>
 
 <div class="wrapper">
-    <input type="text" placeholder={placeholder} bind:this={inputElement} bind:value={value} class:error={error} />
+    <input
+        type="text"
+        placeholder={placeholder}
+        bind:this={inputElement}
+        bind:value={value}
+        class:error={error}
+        on:change={() => {
+            value = PrettySyntaxer.clean(value ?? "");
+            console.log(value);
+        }}
+    />
     <div class="operator-input">
         {#each operators as operator}
             <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>

@@ -24,6 +24,13 @@
         // if the row is editable, do not highlight
         if (editable) return;
 
+        // if the row is not valid, do not highlight
+        if (!valid) {
+            alert("Cannot highlight invalid row.\n" +
+                  "Make sure the formula and rule are valid.");
+            return;
+        }
+
         // if we have 2 rows selected already, and we are trying to select a third
         // do not highlight
         if ($selectedRows.length === 2 && !highlighted) return;
@@ -71,6 +78,7 @@
 
     // a row is usable if its line number is inside the highlightedRows store
     $: usable = $highlightedRows.includes(line);
+    $: valid = formula.length > 0 && rule.rule !== "x";
 
     onMount(() => {
         if (premise) onSave(formula, ruleText);
@@ -130,7 +138,7 @@
         <button
             class="action-button edit-button"
             class:disabled={premise}
-            disabled={premise}
+            disabled={premise }
             aria-label="Edit"
             on:click|stopPropagation={onEdit}
         >

@@ -39,7 +39,8 @@
     }
 
     function canAddRow() {
-        return rows.filter(r => r.editable).length < 2;
+        return rows.filter(r => r.editable).length < 1;
+        // return rows.filter(r => r.editable).length < 2;
     }
 </script>
 

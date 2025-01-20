@@ -13,15 +13,16 @@ export class FormulaParser {
         let parser = new PrattParser();
         let res = parser.parse(formula);
 
-        // if the formula is not valid, return the error
-        if (!res) {
-            return {
-                line: line,
-                tree: null,
-                rule: { rule: DeductionRule.UNKNOWN.short },
-                value: formula,
-            };
+        const tmp: TreeRuleType = {
+            line: line,
+            tree: null,
+            rule: { rule: NDRule.UNKNOWN },
+            value: formula,
         }
+
+        // if the formula is not valid, return the error
+        if (!res) return tmp;
+        tmp.tree = res;
 
         // clean the rule string
         rule = PrettySyntaxer.cleanupRule(rule);
@@ -31,24 +32,17 @@ export class FormulaParser {
         //
         // TODO: handle the case when we are proving the negation of the conclusion
         if (rule === "ASS") {
-            return {
-                line: line,
-                tree: res,
-                rule: { rule: NDRule.ASS },
-                value: formula
-            };
+            tmp.rule = { rule: NDRule.ASS };
+            return tmp;
         }
 
         if (rule === "CONC") {
-            return {
-                line: line,
-                tree: res,
-                rule: { rule: NDRule.CONC },
-                value: formula
-            };
+            tmp.rule = { rule: NDRule.CONC };
+            return tmp;
         }
 
         // split the rule into its parts
+        if (!rule) return tmp;
         const ruleParts = rule.split(" ");
         const ruleName = ruleParts[0];
         const lines = ruleParts[1].split(",");
@@ -61,12 +55,8 @@ export class FormulaParser {
 
         // if the rule wasn't found, return the unknown rule
         if (usedRule === DeductionRule.UNKNOWN) {
-            return {
-                line: line,
-                tree: null,
-                rule: { rule: NDRule.UNKNOWN },
-                value: formula
-            };
+            tmp.rule = { rule: NDRule.UNKNOWN };
+            return tmp;
         }
 
         // if we found the rule, try to apply it and check if the results differ
@@ -77,54 +67,28 @@ export class FormulaParser {
         }
 
         const result = DeductionProcessor.applyRule(usedRule.short, first, second);
-        console.log(result);
 
         // if the result is null, the rule wasn't applied correctly
-        if (!result) {
-            return {
-                line: line,
-                tree: res,
-                rule: { rule: NDRule.UNKNOWN },
-                value: formula
-            };
-        }
+        if (!result) return tmp;
 
         // some rules return an array of results, in that case we need to check if our result is in the array
         if (Array.isArray(result)) {
-            if (!result.some((r) => FormulaComparer.compareFormulas(r.value, formula))) {
-                return {
-                    line: line,
-                    tree: res,
-                    rule: { rule: NDRule.UNKNOWN },
-                    value: formula
-                };
+            if (!result.some((r) => FormulaComparer.compare(r, tmp))) {
+                return tmp;
             }
 
             // the results are the same, return the rule
-            return {
-                line: line,
-                tree: res,
-                rule: { rule: usedRule.short, lines: linesNumbers },
-                value: formula
-            };
+            tmp.rule = { rule: usedRule.short, lines: linesNumbers };
+            return tmp;
         }
 
         // check if the results differ
-        if (!FormulaComparer.compareFormulas(result.value, formula)) {
-            return {
-                line: line,
-                tree: res,
-                rule: { rule: NDRule.UNKNOWN },
-                value: formula
-            };
+        if (!FormulaComparer.compare(result, tmp)) {
+            return tmp;
         }
 
         // the results are the same, return the rule
-        return {
-            line: line,
-            tree: res,
-            rule: { rule: usedRule.short, lines: linesNumbers },
-            value: formula
-        };
+        tmp.rule = { rule: usedRule.short, lines: linesNumbers };
+        return tmp;
     }
 }

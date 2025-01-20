@@ -271,26 +271,36 @@ export class DeductionProcessor {
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON: {
+                // if no other row is selected, return
                 if (!other) return;
 
+                // introduce the conjunction operator
                 const res = this.introduceOperator(selected.tree!, other.tree!, Operator.CONJUNCTION);
+
+                // if the result is null, return
                 if (!res) return;
 
+                // generate the string representation of the tree
                 const resString = Node.generateString(res);
+
+                // if the string is null, return
                 if (!resString) return;
 
-                // check if it already exists
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compareFormulas(row.value, resString)) !== -1) {
-                    alert("This formula already exists in the proof");
-                    return;
-                }
-
-                return {
+                // construct a tmp object
+                const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
                     tree: res,
                     rule: { rule: NDRule.ICON, lines: [selected.line, other.line] },
                     value: resString
                 };
+
+                // check if it already exists
+                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, tmp)) !== -1) {
+                    alert("This formula already exists in the proof");
+                    return;
+                }
+
+                return tmp;
             }
             case NDRule.ECON: {
                 // check if we are in parentheses

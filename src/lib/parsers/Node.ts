@@ -56,7 +56,7 @@ export class Node {
         );
     }
 
-    static generateString(node: Node) {
+    static generateString(node: Node): string {
         if (node.children.length === 0) {
             return node.value;
         }
@@ -101,5 +101,20 @@ export class Node {
         const par = new Node("ParenthesesBlock");
         par.setChildren([new Node("Parenthesis", Operator.LPAR), this, new Node("Parenthesis", Operator.RPAR)]);
         return par;
+    }
+
+    /**
+     * Simplifies the node by removing unnecessary parentheses blocks but keeping the structure
+     * @returns {Node} the simplified tree
+     */
+    public simplify(): Node {
+        // if the node is a ParenthesesBlock, replace it with its middle child
+        if (this.type === "ParenthesesBlock" && this.children.length === 3) {
+            return this.children[1].simplify();
+        }
+
+        // otherwise, simplify the children recursively
+        this.children = this.children.map(child => child.simplify());
+        return this;
     }
 }
