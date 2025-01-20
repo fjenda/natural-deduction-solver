@@ -1,9 +1,7 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
     import {FormulaParser} from "../parsers/FormulaParser";
-    import Hint from "svelte-hint";
     import {parsedProof, selectedRow} from "../../../stores/solverStore";
-    import {solverContent} from "../../../stores/solverStore.js";
 
     export let formulas: string | null = "";
     export let highlight_rows: number[] = [];
@@ -12,79 +10,14 @@
     let textarea: HTMLTextAreaElement;
     let lineNumbersEle: HTMLDivElement;
     let lineRulesEle: HTMLDivElement;
-    let lineNumbers: string[] = [];
-    let lineRules: string[] = [];
     let focused: boolean = false;
     let lastRows: string[] = [];
 
-    $: if (formulas && textarea) syncLineNumbers();
-
-    // returns the total number of lines a given string takes up in the text area
-    const calculateNumLines = (str: string): number => {
-        const width = textarea.clientWidth - 2 * parseFloat(getComputedStyle(textarea).padding);
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-
-        if (!context) return 0;
-
-        context.font = getComputedStyle(textarea).font;
-        const textWidth = context?.measureText(str).width;
-        return Math.ceil(textWidth / width);
-    }
-
-    // returns an array of line numbers
-    const calculateLineNumbers = (): string[] => {
-        // const lines = textarea.value.split('\n');
-        const lines = formulas?.split('\n') ?? [];
-        let lineNumbers: string[] = [];
-        let i = 1;
-
-        for (const line of lines) {
-            const numLines = calculateNumLines(line);
-            lineNumbers.push(String(i));
-
-            for (let j = 1; j < numLines; j++) {
-                lineNumbers.push('');
-            }
-
-            i++;
-        }
-
-        return lineNumbers;
-    }
-
-    // const getLineRules = (lineIndex?: number): string[] => {
-    //     const lines = textarea.value.split('\n');
-    //     let lineRules: string[] = [];
-    //     let i = 1;
-    //
-    //     for (const line of lines) {
-    //         const numLines = calculateNumLines(line);
-    //         lineRules.push(FormulaParser.parseFormula(line).rule);
-    //
-    //         for (let j = 1; j < numLines; j++) {
-    //             lineRules.push('');
-    //         }
-    //
-    //         i++;
-    //     }
-    //
-    //     return lineRules;
-    // }
 
     // displays the line numbers
     const syncLineNumbers = () => {
-        // const lines = textarea.value.split('\n');
         const lines = formulas?.split('\n') ?? [];
-        lineNumbers = calculateLineNumbers();
-        const newLineRules = [...lineRules];
 
-        // console.log(lines);
-
-        if (lines.length < lastRows.length) {
-            // remove the last rows
-            newLineRules.splice(lines.length, lastRows.length - lines.length);
-        }
 
         $parsedProof.forEach(p => console.log(p));
         for (let i = 0; i < lines.length; i++) {
@@ -97,14 +30,6 @@
 
                     console.log($parsedProof[i]);
                 }
-
-                // console.log($parsedProof[i]);
-                newLineRules[i] = $parsedProof[i].rule;
-
-                // assumption
-                if ($solverContent.premises.includes($parsedProof[i].value)) {
-                    newLineRules[i] = "ASS";
-                }
             }
         }
 
@@ -112,9 +37,6 @@
         if (lines.length < $parsedProof.length) {
             $parsedProof.splice(lines.length, $parsedProof.length - lines.length);
         }
-
-        lineRules = newLineRules;
-        lastRows = [...lines];
     }
 
     const handleCursorChange = () => {
@@ -216,20 +138,6 @@
 
 <!-- Input where the individual formulas will be written -->
 <div id="container" class="container" class:focused={focused}>
-    <div id="line-numbers"
-         class="formulas-line-numbers"
-         bind:this={lineNumbersEle}
-    >
-        {#each lineNumbers as number}
-            <div>{number ? `${number}.` : '\u00A0'}</div>
-        {/each}
-    </div>
-<!--    <div class="hint-wrapper">-->
-<!--        <Hint text="TODO!" placement="left">-->
-<!--            <i class="fa fa-info-circle"></i>-->
-<!--        </Hint>-->
-<!--    </div>-->
-
     <div class="text-area-wrapper">
         <div class="backdrop">
             <div class="highlight">
@@ -249,16 +157,6 @@
                 <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
             {/each}
         </div>
-    </div>
-
-
-    <div id="used-rules"
-         class="formulas-line-rules"
-         bind:this={lineRulesEle}
-    >
-        {#each lineRules as rule}
-            <div>{rule ? `${rule}` : '\u00A0'}</div>
-        {/each}
     </div>
 </div>
 
@@ -289,14 +187,6 @@
         --border-color: #f4f9ff;
     }
 
-    .hint-wrapper {
-        position: absolute;
-        top: 0;
-        right: 6.5rem;
-        z-index: 5;
-        transform: translate(-50%, 50%);
-    }
-
     .formulas-textarea {
         border: none;
         resize: none;
@@ -316,46 +206,6 @@
         padding: var(--padding);
     }
 
-    .formulas-line-numbers {
-        width: 4rem;
-        align-items: flex-end;
-    }
-
-    .formulas-line-rules {
-        width: 8rem;
-        /*align-items: flex-start;*/
-    }
-
-    .formulas-line-rules,
-    .formulas-line-numbers {
-        overflow: hidden;
-
-        white-space: pre-wrap;
-        text-overflow: ellipsis;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        max-height: 100%;
-        background: var(--dark-element-color);
-
-        /* Synchronize styles */
-        font-family: var(--font-family);
-        font-size: var(--font-size);
-        font-weight: var(--font-weight);
-        letter-spacing: var(--letter-spacing);
-        line-height: var(--line-height);
-        padding: var(--padding);
-    }
-
-    .formulas-line-rules {
-        border-left: 1px solid var(--border-color);
-    }
-
-    .formulas-line-numbers {
-        border-right: 1px solid var(--border-color);
-    }
-
     @media (prefers-color-scheme: light) {
         .container {
             --border-color: #d1d1d1;
@@ -363,11 +213,6 @@
 
         .container.focused {
             --border-color: #424242;
-        }
-
-        .formulas-line-rules,
-        .formulas-line-numbers {
-            background-color: var(--light-element-color);
         }
     }
 

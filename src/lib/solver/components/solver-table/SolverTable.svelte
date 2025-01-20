@@ -1,7 +1,8 @@
 <script lang="ts">
     import TableRow from "./TableRow.svelte";
-    import {solverContent} from "../../../../stores/solverStore";
+    import {parsedProof, solverContent} from "../../../../stores/solverStore";
     import type {TableRowData} from "../../../../types/TableRow";
+    import {FormulaParser} from "../../parsers/FormulaParser";
     let container: HTMLDivElement;
 
     export let rows: TableRowData[] = [];
@@ -48,6 +49,9 @@
                     <!--       3. if the results differ from the `formula`, alert the user     -->
                     <!--       4. if the results are the same, update the `formula` and `rule` -->
                     */
+
+                    $parsedProof[i] = FormulaParser.parseFormula(content, i + 1);
+                    console.log($parsedProof[i]);
 
                     row.formula = content;
                     row.rule = rule;

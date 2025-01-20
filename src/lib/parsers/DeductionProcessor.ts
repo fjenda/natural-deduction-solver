@@ -3,7 +3,7 @@ import {Operator} from "./Operator";
 import {NDRule} from "../solver/parsers/DeductionRules";
 import type {TreeRuleType} from "../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {parsedProof, selectedRow, solverContent} from "../../stores/solverStore";
+import {parsedProof, selectedRow, selectedRows, solverContent} from "../../stores/solverStore";
 
 export class DeductionProcessor {
     // depth first search to build the string
@@ -63,7 +63,8 @@ export class DeductionProcessor {
     public static getUsableRows(operation: NDRule): { highlighted: number[], applicable: boolean } {
         const rows = get(parsedProof);
 
-        if (get(selectedRow) === -1) return { highlighted: [], applicable: false };
+        const selected = get(selectedRows);
+        if (selected.length === 0) return { highlighted: [], applicable: false };
 
         const uniqueRowsMap = new Map<string, number>();
         switch (operation) {
@@ -76,9 +77,9 @@ export class DeductionProcessor {
             case NDRule.IIMP: {
                 // remove duplicates and retain row numbers
                 rows.forEach((row, index) => {
-                    if (index + 1 === get(selectedRow)) return;
+                    if (index + 1 === selected[0]) return;
 
-                    if (row.value === rows[get(selectedRow) - 1].value) return;
+                    if (row.value === rows[selected[0] - 1].value) return;
 
                     if (!uniqueRowsMap.has(row.value)) {
                         uniqueRowsMap.set(row.value, index + 1);
@@ -92,16 +93,16 @@ export class DeductionProcessor {
             // A AND B => A, B
             case NDRule.ECON: {
                 // check if the selected row has a conjunction operator
-                const row = rows[get(selectedRow) - 1];
+                const row = rows[selected[0] - 1];
                 if (row.tree?.value === Operator.CONJUNCTION) {
-                    return { highlighted: [get(selectedRow)], applicable: true };
+                    return { highlighted: [selected[0]], applicable: true };
                 }
 
                 // if it doesn't maybe its inside parentheses
                 if (row.tree?.type === "ParenthesesBlock") {
                     const inner = row.tree.children[1];
                     if (inner.value === Operator.CONJUNCTION) {
-                        return { highlighted: [get(selectedRow)], applicable: true };
+                        return { highlighted: [selected[0]], applicable: true };
                     }
                 }
 
@@ -119,7 +120,7 @@ export class DeductionProcessor {
                 let type = "disjunction";
 
                 // check if the selected row has a disjunction operator
-                const row = rows[get(selectedRow) - 1];
+                const row = rows[selected[0] - 1];
                 if (row.tree?.value !== Operator.DISJUNCTION) {
                     type = "basic";
                 }
@@ -157,7 +158,7 @@ export class DeductionProcessor {
                     // selected row is !A
                     case "basic": {
                         // check if the selected row is a negation
-                        const row = rows[get(selectedRow) - 1];
+                        const row = rows[selected[0] - 1];
                         if (row.tree?.value !== Operator.NEGATION) {
                             break;
                         }
@@ -176,7 +177,7 @@ export class DeductionProcessor {
                 let type = "implication";
 
                 // check if implication operator is present
-                const row = rows[get(selectedRow) - 1];
+                const row = rows[selected[0] - 1];
                 if (row.tree?.value !== Operator.IMPLICATION) {
                     type = "basic";
                 }
@@ -200,9 +201,9 @@ export class DeductionProcessor {
                     case "basic": {
                         // remove duplicates and retain row numbers
                         rows.forEach((row, index) => {
-                            if (index + 1 === get(selectedRow)) return;
+                            if (index + 1 === selected[0]) return;
 
-                            if (row.value === rows[get(selectedRow) - 1].value) return;
+                            if (row.value === rows[selected[0] - 1].value) return;
 
                             if (!uniqueRowsMap.has(row.value)) {
                                 uniqueRowsMap.set(row.value, index + 1);
@@ -227,7 +228,7 @@ export class DeductionProcessor {
             // A IMP B, B IMP A => A EQ B
             case NDRule.IEQ: {
                 // check if selected row has an implication operator
-                const row = rows[get(selectedRow) - 1];
+                const row = rows[selected[0] - 1];
                 if (row.tree?.value !== Operator.IMPLICATION) {
                     break;
                 }
@@ -251,7 +252,7 @@ export class DeductionProcessor {
             // A EQ B => A IMP B, B IMP A
             case NDRule.EEQ: {
                 // check if the selected row has an equivalence operator
-                const row = rows[get(selectedRow) - 1];
+                const row = rows[selected[0] - 1];
                 if (row.tree?.value !== Operator.EQUIVALENCE) {
                     break;
                 }

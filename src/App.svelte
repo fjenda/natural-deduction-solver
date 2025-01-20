@@ -22,7 +22,6 @@
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
     import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import type {TableRow} from "./types/TableRow";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -30,7 +29,8 @@
 
     $solverContent.premises = ["(¬a ∧ ¬b)"];
     $solverContent.conclusion = "¬(a ∨ b)";
-    $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
+    // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
+    $solverContent.proof = "a\nb\nc\nd";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -146,6 +146,7 @@
             {/if}
 <!--            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />-->
 
+            <!-- TODO: add the operator keyboard -->
             <SolverTable rows={convertedRows} />
         </SolverLayout>
     </Panel>
@@ -154,11 +155,10 @@
         <h2>Deduction Rules</h2>
         <RuleGridLayout>
             {#each DeductionRule.rules as rule}
-                <!--{#if rule === DeductionRule.ICON}-->
-
-                <!-- TODO: Some rules don't require a second row to be selected,
-                           so we don't need to show a modal for those.
-                 -->
+                <!--
+                 TODO: after highlighting rows, if the number of highlighted is the same as needed for application
+                       then apply the rule, otherwise, show the modal to select the second row.
+                -->
                 <RuleSlot rule="{rule}"
                           onClick={() => { handleRuleClick(rule) }}
                 />

@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onMount} from "svelte";
     import {SyntaxChecker} from "../../SyntaxChecker";
-    import {selectedRow} from "../../../../stores/solverStore";
+    import {highlightedRows, selectedRow, selectedRows} from "../../../../stores/solverStore";
 
     export let line: number = 1;
     export let formula: string = "A -> B";
@@ -13,30 +13,45 @@
     export let onDelete: () => void;
     let highlighted: boolean = false;
 
-    let inputContent: HTMLInputElement;
-    let inputRule: HTMLInputElement;
-
     function handleInputChange(s: string): string {
         return SyntaxChecker.clean(s);
     }
 
     function selectRow() {
+        // if the row is editable, do not highlight
         if (editable) return;
 
+        // if we have 2 rows selected already, and we are trying to select a third
+        // do not highlight
+        if ($selectedRows.length === 2 && !highlighted) return;
+
+        // toggle the highlighted state
         highlighted = !highlighted;
-        $selectedRow = highlighted ? line : -1;
+
+        // update the selected rows
+        selectedRows.update(rows => {
+            if (highlighted) {
+                rows.push(line);
+            } else {
+                return rows.filter(r => r !== line);
+            }
+
+            return rows;
+        });
     }
 
+    // a row is usable if its line number is inside the highlightedRows store
+    $: usable = $highlightedRows.includes(line);
+
     onMount(() => {
-        // if (editable) {
-        //     setTimeout(() => inputContent.focus(), 50);
-        // }
+        if (premise) onSave(formula, rule);
     })
 </script>
 
 <div
     class="row"
     class:highlighted={highlighted}
+    class:usable={usable}
     on:click={selectRow}
 >
     <div class="line-number">
@@ -48,7 +63,6 @@
                 class="row-input"
                 type="text"
                 bind:value={formula}
-                bind:this={inputContent}
                 on:change={() => formula = handleInputChange(formula)}
             />
         {:else}
@@ -61,7 +75,6 @@
                 class="row-input"
                 type="text"
                 bind:value={rule}
-                bind:this={inputRule}
             />
         {:else}
             {rule}
@@ -114,9 +127,15 @@
         font-size: 1.35em;
     }
 
+    .row.highlighted.usable,
     .row.highlighted {
         outline: 1px solid #00ff00;
         border-color: #00ff00;
+    }
+
+    .row.usable {
+        outline: 1px solid #ffcc00;
+        border-color: #ffcc00;
     }
 
     .used-rule,
@@ -206,6 +225,12 @@
 
         .row.highlighted {
             border-color: #00c800;
+            outline: 1px solid #00c800;
+        }
+
+        .row.usable {
+            border-color: #ffcc00;
+            outline: 1px solid #ffcc00;
         }
     }
 </style>
