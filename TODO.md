@@ -1,0 +1,26 @@
+- [x] Application of rules
+    - [x] Highlight by mouse
+    - [x] Select second row using modal
+- [ ] Solver
+  - [x] Solution proof and parsedProof should become one object
+  - [ ] Automatically add premisses to the solver table
+  - [x] Add operator keyboard
+  - [ ] Better sync the old system with the new one
+  - [x] TableRow should parse the formula, check the result, apply/delete the result
+  - [ ] Adding new premise rewrites the row (if it was added before)
+  - [ ] Rows should have an option to be 2 rows high (for some elimination rules)
+- [ ] Deduction Processor
+  - [ ] Refactor getUsableRows()
+  - [ ] Finish application of rules
+  - [ ] Add enums for better readability
+- [ ] SolverTable
+  - [ ] Better code for save/edit/delete actions (currently if more are editable and I save one all save)
+  - [x] After deleting a row, redo line numbering, and rule line numbering
+    - [ ] What to do with the rows that use the deleted row?
+- [x] Formula Parser
+  - [x] Refactor Formula Parser
+- [ ] QoL improvements
+  - [ ] Easier way to switch between propositional and predicate logic
+- [ ] UI Improvements
+  - [ ] Add a preview of the hovered rule
+  - [ ] Add a preview of the hovered theorem
