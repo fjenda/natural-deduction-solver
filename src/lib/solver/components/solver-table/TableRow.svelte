@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import {SyntaxChecker} from "../../SyntaxChecker";
+    import {PrettySyntaxer} from "../../PrettySyntaxer";
     import {highlightedRows, selectedRow, selectedRows} from "../../../../stores/solverStore";
 
     export let line: number = 1;
@@ -12,9 +12,10 @@
     export let onEdit: () => void;
     export let onDelete: () => void;
     let highlighted: boolean = false;
+    let formulaInput: HTMLInputElement;
 
     function handleInputChange(s: string): string {
-        return SyntaxChecker.clean(s);
+        return PrettySyntaxer.clean(s);
     }
 
     function selectRow() {
@@ -40,6 +41,37 @@
         });
     }
 
+    // Predicate Logic
+    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+
+    // Propositional Logic
+    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
+
+    function insertOperator(operator: string) {
+        // insert the operator at the current cursor position
+        const cursorPosition = formulaInput.selectionStart;
+
+        // get the text before and after the cursor
+        let textBefore = formula?.slice(0, cursorPosition!);
+        let textAfter = formula?.slice(cursorPosition!);
+
+        // replace undefined with empty string
+        if (!textBefore) textBefore = "";
+        if (!textAfter) textAfter = "";
+
+        // set the new value
+        formula = textBefore + operator + textAfter;
+
+        // keep the cursor at the same position
+        const newPosition = cursorPosition! + 1;
+        setTimeout(() => {
+            if (!formulaInput) return;
+
+            formulaInput.focus();
+            formulaInput.setSelectionRange(newPosition, newPosition);
+        }, 0);
+    }
+
     // a row is usable if its line number is inside the highlightedRows store
     $: usable = $highlightedRows.includes(line);
 
@@ -63,8 +95,14 @@
                 class="row-input"
                 type="text"
                 bind:value={formula}
+                bind:this={formulaInput}
                 on:change={() => formula = handleInputChange(formula)}
             />
+            <div class="operator-input">
+                {#each operators as operator}
+                    <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
+                {/each}
+            </div>
         {:else}
             {formula}
         {/if}
@@ -155,6 +193,7 @@
     }
 
     .line-content {
+        position: relative;
         text-align: left;
         flex-grow: 2;
     }
@@ -173,6 +212,7 @@
         padding: 0.25rem 0.5rem;
         border: 1px solid var(--dark-border-color);
         color: var(--dark-text-color);
+        height: auto;
     }
 
     .separator {
@@ -180,6 +220,9 @@
     }
 
     .action-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         background-color: transparent;
         border: none;
         padding: 0.5rem;
@@ -201,6 +244,45 @@
 
     .edit-button:hover:not(.disabled) {
         color: #ffcc00;
+    }
+
+    .operator-input {
+        display: none;
+        position: absolute;
+        max-width: 100%;
+        top: 100%;
+        right: 0;
+        z-index: 10;
+        color: black;
+        padding: 0.15rem;
+        border-radius: 0 0 0.5rem 0.5rem;
+        border: 1px solid var(--dark-border-color);
+        border-top: 0;
+        background-color: var(--dark-bg-color);
+    }
+
+    .operator-input button {
+        aspect-ratio: 1;
+        padding: 0.225em 0.7em;
+        font-size: 0.9em;
+        font-family: monospace;
+        margin: 0.15rem;
+        background-color: var(--dark-element-color);
+        color: var(--dark-text-color);
+    }
+
+    .operator-input button:hover {
+        outline: none;
+        border: 1px solid var(--light-border-color);
+    }
+
+    .line-content:focus-within .operator-input {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .line-content:focus-within .row-input {
+        border-radius: 0.5rem 0.5rem 0 0.5rem;
     }
 
     @media screen and (prefers-color-scheme: light) {

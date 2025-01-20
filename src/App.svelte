@@ -8,7 +8,14 @@
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
     import {theorems} from "./stores/theoremsStore";
-    import {addPremise, highlightedRows, parsedProof, selectedRow, solverContent} from "./stores/solverStore";
+    import {
+        addPremise,
+        highlightedRows,
+        parsedProof,
+        selectedRow,
+        selectedRows,
+        solverContent
+    } from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
     import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
@@ -27,10 +34,10 @@
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
     // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
-    $solverContent.premises = ["(¬a ∧ ¬b)"];
+    $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
     $solverContent.conclusion = "¬(a ∨ b)";
     // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
-    $solverContent.proof = "a\nb\nc\nd";
+    $solverContent.proof = "a\nb";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -81,44 +88,71 @@
 
     function handleRuleClick(rule: DeductionRule) {
         const proof = get(parsedProof);
-        const selected = get(selectedRow);
-        const highlighted = get(highlightedRows);
-        const selectedProof = proof[selected - 1];
+        const selected = get(selectedRows);
+        const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
+        console.log(result);
 
-        setConfirmButtonAction(() => {
-            const other = parseInt(modalInput.value);
+        if (!result) return;
 
-            if (isNaN(other) || other < 1 || other > proof.length) {
-                alert("Invalid row number");
-                return;
-            }
+        if (Array.isArray(result)) {
+            parsedProof.update(proof => {
+                for (const res of result) {
+                    proof[res.line - 1] = res;
+                }
+                return proof;
+            });
+        } else {
+            parsedProof.update(proof => {
+                proof[result.line - 1] = result;
+                return proof;
+            });
+        }
 
-            if (other === selected) {
-                alert("Cannot select the same row");
-                return;
-            }
-
-            const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
-            console.log(`values are: ${selected}, ${other}`);
-
-            if (highlighted.includes(other))
-                DeductionProcessor.applyRule(rule.short, selectedProof, highlightedProof);
-
-            modalInput.value = "";
-            showModal = false;
-        });
-        showModal = true;
-        setTimeout(() => modalInput.focus(), 50);
+        console.log($parsedProof);
     }
 
-    $: convertedRows = $solverContent.premises.map((line, i) => {
-        return {
-            line: i + 1,
-            formula: line,
-            rule: "ASS",
-            editable: false,
-        };
-    });
+    // function handleRuleClick(rule: DeductionRule) {
+    //     const proof = get(parsedProof);
+    //     const selected = get(selectedRow);
+    //     const highlighted = get(highlightedRows);
+    //     const selectedProof = proof[selected - 1];
+    //
+    //     setConfirmButtonAction(() => {
+    //         const other = parseInt(modalInput.value);
+    //
+    //         if (isNaN(other) || other < 1 || other > proof.length) {
+    //             alert("Invalid row number");
+    //             return;
+    //         }
+    //
+    //         if (other === selected) {
+    //             alert("Cannot select the same row");
+    //             return;
+    //         }
+    //
+    //         const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
+    //         console.log(`values are: ${selected}, ${other}`);
+    //
+    //         if (highlighted.includes(other))
+    //             DeductionProcessor.applyRule(rule.short, selectedProof, highlightedProof);
+    //
+    //         modalInput.value = "";
+    //         showModal = false;
+    //     });
+    //     showModal = true;
+    //     setTimeout(() => modalInput.focus(), 50);
+    // }
+
+    $: convertedRows = [
+        ...$parsedProof.map((p, i) => {
+            return {
+                line: i + 1,
+                formula: p.value,
+                rule: p.rule,
+                editable: false,
+            };
+        })
+    ];
 </script>
 
 <main>
@@ -146,7 +180,6 @@
             {/if}
 <!--            <FormulaInput bind:formulas="{$solverContent.proof}" highlight_rows="{$highlightedRows}" />-->
 
-            <!-- TODO: add the operator keyboard -->
             <SolverTable rows={convertedRows} />
         </SolverLayout>
     </Panel>

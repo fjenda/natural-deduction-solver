@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {DeductionRule} from "../../solver/parsers/DeductionRules";
     import {DeductionProcessor} from "../../parsers/DeductionProcessor";
-    import {highlightedRows, parsedProof, selectedRow} from "../../../stores/solverStore";
+    import {highlightedRows, parsedProof, selectedRow, selectedRows} from "../../../stores/solverStore";
 
     export let rule: DeductionRule;
     export let onClick: () => void;
@@ -24,16 +24,32 @@
         highlightedRows.set([]);
     }
 
+    function setButtonDisabled() {
+        return $selectedRows.length !== rule.inputSize;
+    }
+
 </script>
 
-<div class="rule-slot"
-     title="{rule.title}"
-     on:mouseover={handleMouseOver}
-     on:mouseout={handleMouseOut}
-     on:mousedown|preventDefault={handleClick}
+<!--<div class="rule-slot"-->
+<!--     title="{rule.title}"-->
+<!--     class:disabled={setButtonDisabled}-->
+<!--     on:mouseover={handleMouseOver}-->
+<!--     on:mouseout={handleMouseOut}-->
+<!--     on:mousedown|preventDefault={handleClick}-->
+<!--&gt;-->
+<!--    {rule.short}-->
+<!--</div>-->
+
+<button
+    class="rule-slot"
+    title="{rule.title}"
+    class:disabled={setButtonDisabled}
+    on:mouseover={handleMouseOver}
+    on:mouseout={handleMouseOut}
+    on:mousedown|preventDefault={handleClick}
 >
     {rule.short}
-</div>
+</button>
 
 <style>
     .rule-slot {
@@ -41,7 +57,6 @@
         justify-content: center;
         align-items: center;
         font-size: 1.25rem;
-
         max-width: 7.5rem;
         width: 100%;
         aspect-ratio: 1;

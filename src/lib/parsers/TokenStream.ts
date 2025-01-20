@@ -35,8 +35,4 @@ export class TokenStream {
     restore(savedIndex: number): void {
         this.index = savedIndex;
     }
-
-    getIndex(): number {
-        return this.index;
-    }
 }

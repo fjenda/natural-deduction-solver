@@ -12,7 +12,6 @@
         max-height: 300px;
         padding: 1rem;
         overflow-y: auto;
-        background-color: var(--dark-background-color);
         border: 1px solid var(--dark-border-color);
         border-radius: 0.5rem;
     }

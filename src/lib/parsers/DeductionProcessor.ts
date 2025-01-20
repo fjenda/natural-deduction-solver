@@ -4,6 +4,7 @@ import {NDRule} from "../solver/parsers/DeductionRules";
 import type {TreeRuleType} from "../../types/TreeRuleType";
 import {get} from "svelte/store";
 import {parsedProof, selectedRow, selectedRows, solverContent} from "../../stores/solverStore";
+import {FormulaComparer} from "../solver/FormulaComparer";
 
 export class DeductionProcessor {
     // depth first search to build the string
@@ -266,7 +267,7 @@ export class DeductionProcessor {
         return { highlighted: [], applicable: false };
     }
 
-    public static applyRule(operation: NDRule, selected: TreeRuleType, other: TreeRuleType | null) {
+    public static applyRule(operation: NDRule, selected: TreeRuleType, other: TreeRuleType | null): TreeRuleType | TreeRuleType[] | null {
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON: {
@@ -274,24 +275,15 @@ export class DeductionProcessor {
                 if (!res) return;
 
                 const resString = Node.generateString(res);
-                console.log(resString);
                 if (!resString) return;
 
                 // check if it already exists
-                if (get(parsedProof).findIndex(row => row.value === resString) !== -1)
+                if (get(parsedProof).findIndex(row => FormulaComparer.compareFormulas(row.value, resString)) !== -1) {
+                    alert("This formula already exists in the proof");
                     return;
+                }
 
-                solverContent.update(content => {
-                    content.addProof(resString);
-                    return content;
-                });
-
-                parsedProof.update(proof => {
-                    proof.push({ line: get(parsedProof).length + 1, tree: res, rule: `${NDRule.ICON} ${selected.line},${other?.line}`, value: resString });
-                    return proof;
-                })
-
-                break;
+                return { line: get(parsedProof).length + 1, tree: res, rule: `${NDRule.ICON} ${selected.line},${other?.line}`, value: resString };
             }
             case NDRule.ECON: {
                 // check if we are in parentheses
@@ -306,31 +298,16 @@ export class DeductionProcessor {
                 const rightString = Node.generateString(right);
                 if (!leftString || !rightString) return;
 
+                const result: TreeRuleType[] = [];
                 if (get(parsedProof).findIndex(row => row.value === leftString) === -1) {
-                    solverContent.update(content => {
-                        content.addProof(leftString);
-                        return content;
-                    });
-
-                    parsedProof.update(proof => {
-                        proof.push({ line: get(parsedProof).length + 1, tree: left, rule: `${NDRule.ECON} ${selected.line}`, value: leftString });
-                        return proof;
-                    });
+                    result.push({ line: get(parsedProof).length, tree: left, rule: `${NDRule.ECON} ${selected.line}`, value: leftString });
                 }
 
                 if (get(parsedProof).findIndex(row => row.value === rightString) === -1) {
-                    solverContent.update(content => {
-                        content.addProof(rightString);
-                        return content;
-                    });
-
-                    parsedProof.update(proof => {
-                        proof.push({ line: get(parsedProof).length + 1, tree: right, rule: `${NDRule.ECON} ${selected.line}`, value: rightString });
-                        return proof;
-                    });
+                    result.push({ line: get(parsedProof).length, tree: right, rule: `${NDRule.ECON} ${selected.line}`, value: rightString });
                 }
 
-                break;
+                return result;
             }
             case NDRule.IIMP: {
                 let res;

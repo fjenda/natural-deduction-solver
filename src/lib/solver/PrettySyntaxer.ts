@@ -1,7 +1,7 @@
 /**
  * This file contains the SyntaxChecker class, which is used to prettify the formula string.
  */
-export class SyntaxChecker {
+export class PrettySyntaxer {
     /**
      * This method takes a formula string and cleans it by
      *  1. replacing the alternative symbols with the standard symbols
@@ -9,8 +9,8 @@ export class SyntaxChecker {
      * @param f
      */
     public static clean(f: string): string {
-        f = SyntaxChecker.replaceAlternatives(f);
-        f = SyntaxChecker.prettyString(f);
+        f = PrettySyntaxer.replaceAlternatives(f);
+        f = PrettySyntaxer.prettyString(f);
         return f;
     }
 
@@ -44,5 +44,20 @@ export class SyntaxChecker {
         f = f.replace(/<->/g, "≡");
         f = f.replace(/=/g, "≡");
         return f;
+    }
+
+    /**
+     * This method takes a rule string and cleans it by
+     * 1. removing extra spaces
+     * 2. replacing spaces around commas with just commas
+     * @param r The rule string to clean
+     * @returns The cleaned rule string
+     */
+    public static cleanupRule(r: string): string {
+        // rule should be in a format `ruleName line1?,line2?`
+        r = r.trim();
+        r = r.replace(/\s+/g, " ");
+        r = r.replace(/\s*,\s*/g, ",");
+        return r;
     }
 }

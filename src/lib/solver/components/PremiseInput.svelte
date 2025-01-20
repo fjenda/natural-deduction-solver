@@ -57,8 +57,6 @@
 <style>
     input {
         height: 3.5rem;
-        /*flex-grow: 1;*/
-        /*transition: background-color 0.2s;*/
         text-decoration: none;
     }
 

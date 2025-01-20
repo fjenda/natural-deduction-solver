@@ -158,4 +158,8 @@ export class DeductionRule {
         // DeductionRule.IEX,
         // DeductionRule.EEX,
     ];
+
+    public static getRule(short: string): DeductionRule {
+        return DeductionRule.rules.find((rule) => rule.short === short) || DeductionRule.UNKNOWN;
+    }
 }

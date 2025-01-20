@@ -18,10 +18,6 @@ export class PremiseParser {
 
 
         return res;
-        // TODO: check if all variables are declared
-        //       get tokens from premise
-        //       initialize variable table
-        //       come up with a smart way to represent the tokens so its easy to apply the deduction rules
     }
 }
 

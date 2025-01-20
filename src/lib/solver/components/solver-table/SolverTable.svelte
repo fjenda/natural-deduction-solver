@@ -50,11 +50,11 @@
                     <!--       4. if the results are the same, update the `formula` and `rule` -->
                     */
 
-                    $parsedProof[i] = FormulaParser.parseFormula(content, i + 1);
+                    $parsedProof[i] = FormulaParser.parseFormula(content, i + 1, rule);
                     console.log($parsedProof[i]);
 
-                    row.formula = content;
-                    row.rule = rule;
+                    row.formula = $parsedProof[i].value;
+                    row.rule = $parsedProof[i].rule;
                     row.editable = false;
                 }}
                 onEdit={() => row.editable = true}
