@@ -12,7 +12,6 @@
     export let onSave: (content: string, rule: string) => void;
     export let onEdit: () => void;
     export let onDelete: () => void;
-    let highlighted: boolean = false;
     let formulaInput: HTMLInputElement;
     let ruleText: string = "";
 
@@ -20,6 +19,7 @@
         return PrettySyntaxer.clean(s);
     }
 
+    $: highlighted = $selectedRows.includes(line);
     function selectRow() {
         // if the row is editable, do not highlight
         if (editable) return;
@@ -28,18 +28,14 @@
         // do not highlight
         if ($selectedRows.length === 2 && !highlighted) return;
 
-        // toggle the highlighted state
-        highlighted = !highlighted;
-
+        console.log("Selecting row", line);
         // update the selected rows
         selectedRows.update(rows => {
-            if (highlighted) {
-                rows.push(line);
-            } else {
+            if (rows.includes(line)) {
                 return rows.filter(r => r !== line);
+            } else {
+                return [...rows, line];
             }
-
-            return rows;
         });
     }
 
@@ -156,7 +152,7 @@
 <style>
     .row {
         display: flex;
-        gap: 1rem;
+        gap: 0.5rem;
         justify-content: center;
         align-items: center;
         padding: 0.5rem;
@@ -218,6 +214,7 @@
     }
 
     .separator {
+        width: 1px;
         border-right: 1px solid var(--dark-border-color);
     }
 

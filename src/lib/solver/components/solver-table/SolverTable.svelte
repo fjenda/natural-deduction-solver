@@ -53,9 +53,7 @@
                 premise={i <= $solverContent.premises.length - 1}
                 editable={row.editable}
                 onSave={(content, rule) => {
-                    console.log(rule);
                     $solverContent.proof[i] = FormulaParser.parseFormula(content, i + 1, rule);
-                    console.log($solverContent.proof[i]);
 
                     row.formula = $solverContent.proof[i].value;
                     row.rule = $solverContent.proof[i].rule;
@@ -63,9 +61,6 @@
                 }}
                 onEdit={() => row.editable = true}
                 onDelete={() => {
-                    console.log("Deleting row", i);
-                    console.log($solverContent.proof);
-
                     solverContent.update(content => {
                         // remove the row from the proof
                         $solverContent.proof.splice(i, 1);

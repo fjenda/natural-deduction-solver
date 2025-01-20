@@ -31,7 +31,8 @@
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
     // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
-    $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
+    // $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
+    $solverContent.premises = ["(¬a ∧ ¬b)"];
     $solverContent.conclusion = "¬(a ∨ b)";
     // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
     // $solverContent.proof = "(¬a ∧ ¬b)\na\nb";
@@ -117,12 +118,26 @@
                 }
 
                 const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
+                if (highlighted.includes(other)) {
+                    const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
+                    if (!result) return;
 
-                if (highlighted.includes(other))
-                    DeductionProcessor.applyRule(rule.short, proof[selected[0]], highlightedProof);
+                    solverContent.update(sc => {
+                        if (Array.isArray(result)) {
+                            for (const res of result) {
+                                sc.proof[res.line - 1] = res;
+                            }
+                        } else {
+                            sc.proof[result.line - 1] = result;
+                        }
+
+                        return sc;
+                    });
+                }
 
                 modalInput.value = "";
                 showModal = false;
+                selectedRows.set([]);
             });
 
             showModal = true;
@@ -130,24 +145,21 @@
         } else {
             // if the number of selected rows is equal to the number of rows needed for the rule
             const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
-            console.log(result);
-
             if (!result) return;
 
-            if (Array.isArray(result)) {
-                solverContent.update(sc => {
+            solverContent.update(sc => {
+                if (Array.isArray(result)) {
                     for (const res of result) {
                         sc.proof[res.line - 1] = res;
                     }
-                    return sc;
-                });
-            } else {
-                solverContent.update(sc => {
+                } else {
                     sc.proof[result.line - 1] = result;
-                    return sc;
-                });
-            }
+                }
 
+                return sc;
+            });
+
+            selectedRows.set([]);
             console.log($solverContent.proof);
         }
     }
