@@ -1,11 +1,20 @@
 <script lang="ts">
     import TableRow from "./TableRow.svelte";
-    import {parsedProof, solverContent} from "../../../../stores/solverStore";
+    import {solverContent} from "../../../../stores/solverStore";
     import type {TableRowData} from "../../../../types/TableRow";
     import {FormulaParser} from "../../parsers/FormulaParser";
+    import type {TreeRuleType} from "../../../../types/TreeRuleType";
     let container: HTMLDivElement;
 
-    export let rows: TableRowData[] = [];
+    export let data: TreeRuleType[] = []
+    let rows: TableRowData[] = [];
+
+    $: rows = data.map((d) => ({
+        line: d.line,
+        formula: d.value,
+        rule: d.rule,
+        editable: false,
+    }));
 
     function addRow() {
         rows = [
@@ -50,11 +59,11 @@
                     <!--       4. if the results are the same, update the `formula` and `rule` -->
                     */
 
-                    $parsedProof[i] = FormulaParser.parseFormula(content, i + 1, rule);
-                    console.log($parsedProof[i]);
+                    $solverContent.proof[i] = FormulaParser.parseFormula(content, i + 1, rule);
+                    console.log($solverContent.proof[i]);
 
-                    row.formula = $parsedProof[i].value;
-                    row.rule = $parsedProof[i].rule;
+                    row.formula = $solverContent.proof[i].value;
+                    row.rule = $solverContent.proof[i].rule;
                     row.editable = false;
                 }}
                 onEdit={() => row.editable = true}

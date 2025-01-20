@@ -1,8 +1,10 @@
+import type {TreeRuleType} from "../../types/TreeRuleType";
+
 export class Solution {
     name: string = "";
     premises: string[] = [""];
     conclusion: string | null = null;
-    proof: string | null = "";
+    proof: TreeRuleType[] = [];
 
     constructor(name: string) {
         this.name = name;

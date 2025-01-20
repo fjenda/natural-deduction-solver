@@ -2,10 +2,10 @@ import {DeductionRule} from "./DeductionRules";
 import {PrattParser} from "../../parsers/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {parsedProof} from "../../../stores/solverStore";
 import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 import {PrettySyntaxer} from "../PrettySyntaxer";
 import {FormulaComparer} from "../FormulaComparer";
+import {solverContent} from "../../../stores/solverStore";
 export class FormulaParser {
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
         // checks the syntax of the formula
@@ -45,9 +45,9 @@ export class FormulaParser {
 
         // if we found the rule, try to apply it and check if the results differ
         let first, second = null;
-        first = get(parsedProof)[line1 - 1];
+        first = get(solverContent).proof[line1 - 1];
         if (line2) {
-            second = get(parsedProof)[line2 - 1];
+            second = get(solverContent).proof[line2 - 1];
         }
 
         const result = DeductionProcessor.applyRule(usedRule.short, first, second);

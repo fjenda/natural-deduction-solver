@@ -9,7 +9,7 @@
     import {theorems} from "./stores/theoremsStore";
     import {
         addPremise,
-        parsedProof,
+        // parsedProof,
         selectedRows,
         solverContent
     } from "./stores/solverStore";
@@ -34,7 +34,7 @@
     $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
     $solverContent.conclusion = "¬(a ∨ b)";
     // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
-    $solverContent.proof = "a\nb";
+    // $solverContent.proof = "(¬a ∧ ¬b)\na\nb";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -56,10 +56,6 @@
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
     }
-
-    // function convertToTableRow(): TableRow[] {
-    //
-    // }
 
     let modalInput: HTMLInputElement;
     let showModal = false;
@@ -84,7 +80,7 @@
     }
 
     function handleRuleClick(rule: DeductionRule) {
-        const proof = get(parsedProof);
+        const proof = get(solverContent).proof;
         const selected = get(selectedRows);
         const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
         console.log(result);
@@ -92,20 +88,20 @@
         if (!result) return;
 
         if (Array.isArray(result)) {
-            parsedProof.update(proof => {
+            solverContent.update(sc => {
                 for (const res of result) {
-                    proof[res.line - 1] = res;
+                    sc.proof[res.line - 1] = res;
                 }
-                return proof;
+                return sc;
             });
         } else {
-            parsedProof.update(proof => {
-                proof[result.line - 1] = result;
-                return proof;
+            solverContent.update(sc => {
+                sc.proof[result.line - 1] = result;
+                return sc;
             });
         }
 
-        console.log($parsedProof);
+        console.log($solverContent.proof);
     }
 
     // function handleRuleClick(rule: DeductionRule) {
@@ -140,16 +136,6 @@
     //     setTimeout(() => modalInput.focus(), 50);
     // }
 
-    $: convertedRows = [
-        ...$parsedProof.map((p, i) => {
-            return {
-                line: i + 1,
-                formula: p.value,
-                rule: p.rule,
-                editable: false,
-            };
-        })
-    ];
 </script>
 
 <main>
@@ -176,7 +162,7 @@
                 <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedConclusion}" />
             {/if}
 
-            <SolverTable rows={convertedRows} />
+            <SolverTable data={$solverContent.proof} />
         </SolverLayout>
     </Panel>
 
