@@ -7,17 +7,12 @@
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
     import {theorems} from "./stores/theoremsStore";
-    import {
-        addPremise, highlightedRows,
-        // parsedProof,
-        selectedRows,
-        solverContent
-    } from "./stores/solverStore";
+    import {addPremise, highlightedRows, selectedRows, solverContent} from "./stores/solverStore";
     import {Solution} from "./lib/solver/Solution";
     import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
-    import {DeductionRule} from "./lib/solver/parsers/DeductionRules";
+    import {DeductionRule, NDRule} from "./lib/solver/parsers/DeductionRules";
     import Separator from "./lib/Separator.svelte";
     import {EditState} from "./types/EditState";
     import {editState} from "./stores/stateStore";
@@ -48,11 +43,22 @@
     // $solverContent.conclusion = "f(a) ⊃ g(x)";
     // $solverContent.conclusion = "∀x [f(x) ⊃ b]";
 
-    $: parsedPremises = $solverContent.premises.map(premise => {
-        return PremiseParser.parsePremise(premise);
-    });
+    // reactive statement if $solverContent.premises or $solverContent.conclusion change
+    $: if ($solverContent.premises || $solverContent.conclusion) {
+        // add premises to the proof
+        $solverContent.premises.forEach((premise, i) => {
+            // parse the premise into a TreeRuleType object
+            const res = PremiseParser.parsePremise(premise, i + 1, { rule: NDRule.ASS });
 
-    $: parsedConclusion = PremiseParser.parsePremise($solverContent.conclusion);
+            // if it wasn't successful, then return
+            if (!res.tree) return;
+
+            // otherwise add it to proof
+            $solverContent.proof[i] = res;
+        });
+    }
+
+    $: parsedConclusion = PremiseParser.parsePremise($solverContent.conclusion, -1, { rule: NDRule.UNKNOWN });
 
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
@@ -163,6 +169,16 @@
             console.log($solverContent.proof);
         }
     }
+
+    let solving: boolean = false;
+    function startSolver() {
+        solving = true;
+        $solverContent.proof = [];
+    }
+
+    function checkProof() {
+        alert("Checking proof");
+    }
 </script>
 
 <main>
@@ -180,16 +196,60 @@
         <SolverLayout>
             {#each Array.from($solverContent.premises) as _, i}
                 <PremiseInputRow index="{i}">
-                    <PremiseInput placeholder="Premise {i + 1}" bind:value="{$solverContent.premises[i]}" error="{!parsedPremises[i]}" />
+                    <PremiseInput
+                        placeholder="Premise {i + 1}"
+                        bind:value="{$solverContent.premises[i]}"
+                        error="{!$solverContent.proof[i]}"
+                        disabled={solving}
+                    />
                 </PremiseInputRow>
             {/each}
 
             {#if $editState === EditState.SOLVER}
-                <button class="add-button" on:click={() => addPremise()}>Add Premise</button>
-                <PremiseInput placeholder="Conclusion" bind:value="{$solverContent.conclusion}" error="{!parsedConclusion}" />
+                <button
+                    class="add-button"
+                    disabled={solving}
+                    on:click={() => addPremise()}
+                >
+                    Add Premise
+                </button>
+
+                <PremiseInput
+                    placeholder="Conclusion"
+                    bind:value="{$solverContent.conclusion}"
+                    error="{!parsedConclusion.tree}"
+                    disabled={solving}
+                />
             {/if}
 
-            <SolverTable data={$solverContent.proof} />
+            <div class="button-wrapper">
+                {#if solving}
+                    <button
+                            class="add-button"
+                            on:click={checkProof}
+                    >
+                        Check Proof
+                    </button>
+                {:else}
+                    <button
+                        class="add-button"
+                        on:click={startSolver}
+                    >
+                        Create Problem
+                    </button>
+                {/if}
+                <button
+                    class="add-button reset"
+                    on:click={() => solving = false}
+                    disabled={!solving}
+                >
+                    Reset
+                </button>
+            </div>
+
+            {#if solving}
+                <SolverTable data={$solverContent.proof} />
+            {/if}
         </SolverLayout>
     </Panel>
 
@@ -226,10 +286,22 @@
         height: 3.5rem;
     }
 
+    .add-button.reset:hover[disabled],
+    .add-button:hover[disabled] {
+        cursor: not-allowed;
+        color: #ffffff4d;
+        border: 1px solid var(--dark-border-color);
+    }
+
     .add-button:hover {
         color: #00ff00;
         border: 1px solid #00ff00;
         outline: none;
+    }
+
+    .add-button.reset:hover {
+        color: #ff0000;
+        border: 1px solid #ff0000;
     }
 
     @media (prefers-color-scheme: light) {
@@ -241,5 +313,10 @@
 
     [slot="body"] {
         pointer-events: auto;
+    }
+
+    .button-wrapper {
+        display: flex;
+        gap: 1rem;
     }
 </style>

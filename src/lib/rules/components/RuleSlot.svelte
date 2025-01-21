@@ -43,14 +43,14 @@
 
 <style>
     .rule-slot {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        /*display: flex;*/
+        /*justify-content: center;*/
+        /*align-items: center;*/
         font-size: 1.25rem;
         max-width: 7.5rem;
-        width: 100%;
+        width: calc(25% - 1rem);
         aspect-ratio: 1;
-        /*padding: 1.5rem;*/
+        padding: 1rem;
         cursor: pointer;
         border-radius: 0.5rem;
         border: 1px solid var(--dark-border-color);
@@ -71,4 +71,16 @@
             border: 1px solid var(--dark-border-color);
         }
     }
+
+    @media screen and (max-width: 1200px) {
+        .rule-slot {
+            width: calc(33% - 1rem);
+        }
+    }
+
+    /*@media screen and (max-width: 950px) {*/
+    /*    .rule-slot {*/
+    /*        width: calc(50% - 1rem);*/
+    /*    }*/
+    /*}*/
 </style>

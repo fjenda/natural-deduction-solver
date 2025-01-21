@@ -1,9 +1,20 @@
 import {PrattParser} from "../../parsers/PrattParser";
+import type {TreeRuleType} from "../../../types/TreeRuleType";
+import type {AppliedRule} from "../../../types/AppliedRule";
 
 export class PremiseParser {
-    static parsePremise(premise: string | null) {
-        if (premise === null || premise === '') {
-            return false;
+    static parsePremise(premise: string, line: number, rule: AppliedRule): TreeRuleType {
+        // construct the return object
+        const tmp: TreeRuleType = {
+            line: line,
+            tree: null,
+            rule: rule,
+            value: premise,
+        }
+
+        // if the premise is empty, return the object
+        if (premise === '') {
+            return tmp;
         }
 
         // remove all whitespaces
@@ -13,11 +24,13 @@ export class PremiseParser {
         let pratt = new PrattParser();
         let res = pratt.parse(premise);
 
-        if (!res) return false;
-        res.print();
+        // if the formula is not valid, return the error
+        if (!res) return tmp;
+        // res.print();
 
-
-        return res;
+        // set the tree
+        tmp.tree = res;
+        return tmp;
     }
 }
 

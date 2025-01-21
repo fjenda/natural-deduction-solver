@@ -65,13 +65,6 @@
                     solverContent.update(content => {
                         // remove the row from the proof
                         $solverContent.proof.splice(i, 1);
-
-                        // update the line numbers
-                        for (let j = i; j < $solverContent.proof.length; j++) {
-                            $solverContent.proof[j].line = j + 1;
-                            $solverContent.proof[j].rule.lines = $solverContent.proof[j].rule.lines?.map(l => l - 1);
-                        }
-
                         return content;
                     });
                 }}

@@ -20,6 +20,9 @@ export class PrettySyntaxer {
      * @returns The prettified formula string
      */
     private static prettyString(f: string): string {
+        // trim the string
+        f = f.trim();
+
         // Negation should not have a space after it
         f = f.replace(/\s*¬\s*/g, "¬");
 

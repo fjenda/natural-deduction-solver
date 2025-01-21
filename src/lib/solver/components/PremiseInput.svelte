@@ -5,6 +5,7 @@
     export let placeholder: string;
     export let value: string | null = "";
     export let error: boolean = false;
+    export let disabled: boolean = false;
     let inputElement: HTMLInputElement;
 
     let hint: string = "" +
@@ -50,12 +51,12 @@
     <input
         type="text"
         placeholder={placeholder}
+        disabled={disabled}
         bind:this={inputElement}
         bind:value={value}
         class:error={error}
         on:change={() => {
             value = PrettySyntaxer.clean(value ?? "");
-            console.log(value);
         }}
     />
     <div class="operator-input">

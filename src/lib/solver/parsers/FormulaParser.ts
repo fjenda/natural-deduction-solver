@@ -66,6 +66,7 @@ export class FormulaParser {
             second = get(solverContent).proof[line2 - 1];
         }
 
+        // apply the rule
         const result = DeductionProcessor.applyRule(usedRule.short, first, second);
 
         // if the result is null, the rule wasn't applied correctly
