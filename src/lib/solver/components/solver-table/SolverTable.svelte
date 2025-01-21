@@ -115,6 +115,7 @@
     @media screen and (prefers-color-scheme: light) {
         .table-wrapper {
             border: 1px solid var(--light-border-color);
+            background: #efefef4d;
         }
     }
 </style>

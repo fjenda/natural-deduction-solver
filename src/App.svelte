@@ -27,7 +27,10 @@
     // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
     // $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
-    $solverContent.premises = ["(¬a ∧ ¬b)"];
+
+    // $solverContent.premises = ["a ≡ b", "a ⊃ b", "a ∨ b", "a ∧ b", "¬a"];
+    // $solverContent.premises = ["((b) ⊃ (a))", "a ⊃ b"];
+    $solverContent.premises = ["((a ⊃ b) ≡ (b ⊃ a))"];
     $solverContent.conclusion = "¬(a ∨ b)";
     // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
     // $solverContent.proof = "(¬a ∧ ¬b)\na\nb";
@@ -51,7 +54,7 @@
             const res = PremiseParser.parsePremise(premise, i + 1, { rule: NDRule.ASS });
 
             // if it wasn't successful, then return
-            if (!res.tree) return;
+            // if (!res.tree) return;
 
             // otherwise add it to proof
             $solverContent.proof[i] = res;
@@ -153,6 +156,8 @@
             const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
             if (!result) return;
 
+            console.log(result);
+
             solverContent.update(sc => {
                 if (Array.isArray(result)) {
                     for (const res of result) {
@@ -172,7 +177,18 @@
 
     let solving: boolean = false;
     function startSolver() {
+        // check if premises in proof are all valid
+        for (let i = 0; i < $solverContent.premises.length; i++) {
+            if (!$solverContent.proof[i].tree) {
+                alert(`Premise ${i + 1} is not valid`);
+                return;
+            }
+        }
+
+        // start the solver
         solving = true;
+
+        // empty previous proof
         $solverContent.proof = [];
     }
 
@@ -187,6 +203,7 @@
           <input
                   type="text"
                   placeholder="Enter the row number"
+                  name="modal-input"
                   bind:this={modalInput}
           />
       </div>
@@ -194,32 +211,33 @@
   <MainLayout>
     <Panel>
         <SolverLayout>
-            {#each Array.from($solverContent.premises) as _, i}
-                <PremiseInputRow index="{i}">
+            {#if !solving}
+                {#each Array.from($solverContent.premises) as _, i}
+                    <PremiseInputRow index="{i}">
+                        <PremiseInput
+                            placeholder="Premise {i + 1}"
+                            bind:value="{$solverContent.premises[i]}"
+                            error="{!$solverContent.proof[i]}"
+                            index={i}
+                        />
+                    </PremiseInputRow>
+                {/each}
+
+                {#if $editState === EditState.SOLVER}
+                    <button
+                        class="add-button"
+                        on:click={() => addPremise()}
+                    >
+                        Add Premise
+                    </button>
+
                     <PremiseInput
-                        placeholder="Premise {i + 1}"
-                        bind:value="{$solverContent.premises[i]}"
-                        error="{!$solverContent.proof[i]}"
-                        disabled={solving}
+                        placeholder="Conclusion"
+                        bind:value="{$solverContent.conclusion}"
+                        error="{!parsedConclusion.tree}"
+                        index={-1}
                     />
-                </PremiseInputRow>
-            {/each}
-
-            {#if $editState === EditState.SOLVER}
-                <button
-                    class="add-button"
-                    disabled={solving}
-                    on:click={() => addPremise()}
-                >
-                    Add Premise
-                </button>
-
-                <PremiseInput
-                    placeholder="Conclusion"
-                    bind:value="{$solverContent.conclusion}"
-                    error="{!parsedConclusion.tree}"
-                    disabled={solving}
-                />
+                {/if}
             {/if}
 
             <div class="button-wrapper">

@@ -1,13 +1,11 @@
 - [x] Application of rules
     - [x] Highlight by mouse
     - [x] Select second row using modal
-- [ ] Solver
+- [x] Solver
   - [x] Solution proof and parsedProof should become one object
   - [x] Automatically add premisses to the solver table
   - [x] Add operator keyboard
-  - [ ] Better sync the old system with the new one
   - [x] TableRow should parse the formula, check the result, apply/delete the result
-  - [ ] Adding new premise rewrites the row (if it was added before)
 - [ ] Deduction Processor
   - [ ] Refactor getUsableRows()
   - [ ] Finish application of rules

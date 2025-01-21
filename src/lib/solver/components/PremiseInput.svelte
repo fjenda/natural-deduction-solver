@@ -1,11 +1,10 @@
 <script lang="ts">
-    import Hint from "svelte-hint";
     import {PrettySyntaxer} from "../PrettySyntaxer";
 
     export let placeholder: string;
     export let value: string | null = "";
     export let error: boolean = false;
-    export let disabled: boolean = false;
+    export let index: number;
     let inputElement: HTMLInputElement;
 
     let hint: string = "" +
@@ -51,7 +50,7 @@
     <input
         type="text"
         placeholder={placeholder}
-        disabled={disabled}
+        name="formula-{index}"
         bind:this={inputElement}
         bind:value={value}
         class:error={error}

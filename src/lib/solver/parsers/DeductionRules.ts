@@ -67,7 +67,7 @@ export class DeductionRule {
         NDRule.IDIS,
         'Introduction of Disjunction',
         Operator.DISJUNCTION,
-        1,
+        2,
         1
     );
 
@@ -83,7 +83,7 @@ export class DeductionRule {
         NDRule.IIMP,
         'Introduction of Implication',
         Operator.IMPLICATION,
-        1,
+        2,
         1
     );
 
