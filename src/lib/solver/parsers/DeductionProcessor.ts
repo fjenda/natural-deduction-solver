@@ -7,39 +7,6 @@ import {selectedRows, solverContent} from "../../../stores/solverStore";
 import {FormulaComparer} from "../FormulaComparer";
 
 export class DeductionProcessor {
-    // depth first search to build the string
-    /**
-     * Converts the tree to a string using a depth-first search
-     * @param tree - The tree to convert
-     * @returns The string representation of the tree
-     */
-    static toString(tree: Node): string {
-        let stack = [tree];
-        let result = "";
-
-        // depth first search
-        while (stack.length > 0) {
-            let node = stack.pop();
-            if (!node) continue;
-
-            // if the node has children, add them to the stack
-            if (node.children.length > 0) {
-                stack.push(...[...node.children].reverse());
-            }
-
-            if (!node.value) continue;
-
-            // if the node is a logical operator, add spacing around it
-            if (node.type === "LogicalOp") {
-                result += ` ${node.value} `;
-            } else {
-                result += node.value;
-            }
-        }
-
-        return result;
-    }
-
     static introduceOperator(first: Node, second: Node, operator: Operator): Node | null {
         if (!first || !second) return null;
 
@@ -90,7 +57,6 @@ export class DeductionProcessor {
             // A, B => A AND B
             case NDRule.ICON:
             // A => A OR B || B => A OR B
-            // TODO: handle the second case where the selected row is the part of the disjunction
             case NDRule.IDIS:
             // B => A IMP B
             case NDRule.IIMP: {
@@ -101,7 +67,7 @@ export class DeductionProcessor {
             // A AND B => A, B
             case NDRule.ECON: {
                 // check if the selected row has a conjunction operator
-                if (rowTreeSimple?.value === Operator.CONJUNCTION) {
+                if (rowTreeSimple.value === Operator.CONJUNCTION) {
                     return { highlighted: [selected[0]], applicable: true };
                 }
 
@@ -119,7 +85,7 @@ export class DeductionProcessor {
                 let type = "disjunction";
 
                 // check if the selected row has a disjunction operator
-                if (rowTreeSimple?.value !== Operator.DISJUNCTION) {
+                if (rowTreeSimple.value !== Operator.DISJUNCTION) {
                     type = "basic";
                 }
 
@@ -157,7 +123,7 @@ export class DeductionProcessor {
                     // selected row is !A
                     case "basic": {
                         // check if the selected row is a negation
-                        if (rowTreeSimple?.value !== Operator.NEGATION) {
+                        if (rowTreeSimple.value !== Operator.NEGATION) {
                             break;
                         }
 
@@ -184,7 +150,7 @@ export class DeductionProcessor {
             // A IMP B, A => B
             case NDRule.MP: {
                 // check if implication operator is present
-                const hasImplication: boolean = rowTreeSimple?.value === Operator.IMPLICATION;
+                const hasImplication: boolean = rowTreeSimple.value === Operator.IMPLICATION;
 
                 uniqueRowsMap.forEach((index, value) => {
                     const tmp = rows[index - 1].tree?.simplify();
@@ -209,7 +175,7 @@ export class DeductionProcessor {
             // A IMP B, B IMP A => A EQ B
             case NDRule.IEQ: {
                 // check if selected row has an implication operator
-                if (rowTreeSimple?.value !== Operator.IMPLICATION) break;
+                if (rowTreeSimple.value !== Operator.IMPLICATION) break;
 
                 // get the left and right part of the implication
                 const [left, right] = this.splitTree(rowTreeSimple);
@@ -230,7 +196,7 @@ export class DeductionProcessor {
             // A EQ B => A IMP B, B IMP A
             case NDRule.EEQ: {
                 // check if the selected row has an equivalence operator
-                if (rowTreeSimple?.value !== Operator.EQUIVALENCE) {
+                if (rowTreeSimple.value !== Operator.EQUIVALENCE) {
                     break;
                 }
 
@@ -244,7 +210,8 @@ export class DeductionProcessor {
 
     public static applyRule(operation: NDRule, selected: TreeRuleType, other: TreeRuleType | null): TreeRuleType | TreeRuleType[] | null {
         // simpler tree structure without parentheses
-        const rowTreeSimple: Node = selected.tree?.simplify();
+        const rowTreeSimple = selected.tree?.simplify();
+        if (!rowTreeSimple) return;
 
         switch (operation) {
             // A, B => A AND B
@@ -274,7 +241,7 @@ export class DeductionProcessor {
                 return tmp;
             }
             case NDRule.ECON: {
-                let [left, right] = this.splitTree(rowTreeSimple!);
+                let [left, right] = this.splitTree(rowTreeSimple);
                 left = left.parenthesize();
                 right = right.parenthesize();
 
@@ -335,7 +302,7 @@ export class DeductionProcessor {
                 //       for now the first is used since the way usableRows are acquired
                 console.log(selected, other);
                 // check if we are in parentheses
-                let [left, right] = this.splitTree(rowTreeSimple!);
+                let [left, right] = this.splitTree(rowTreeSimple);
 
                 left = left.parenthesize();
                 right = right.parenthesize();
@@ -380,8 +347,8 @@ export class DeductionProcessor {
                 let leftSelected, rightSelected: Node | null = null;
                 let leftOther, rightOther: Node | null = null;
 
-                if (rowTreeSimple?.value === Operator.IMPLICATION) {
-                    [leftSelected, rightSelected] = this.splitTree(rowTreeSimple!);
+                if (rowTreeSimple.value === Operator.IMPLICATION) {
+                    [leftSelected, rightSelected] = this.splitTree(rowTreeSimple);
                 }
 
                 if (otherTreeSimple?.value === Operator.IMPLICATION) {
@@ -418,7 +385,7 @@ export class DeductionProcessor {
                 if (!other) return;
 
                 // replace the top operator
-                const [left, right] = this.splitTree(rowTreeSimple!);
+                const [left, right] = this.splitTree(rowTreeSimple);
                 const res = this.introduceOperator(left, right, Operator.EQUIVALENCE);
                 if (!res) return;
 
@@ -437,7 +404,7 @@ export class DeductionProcessor {
                 return tmp;
             }
             case NDRule.EEQ: {
-                const [left, right] = this.splitTree(rowTreeSimple!);
+                const [left, right] = this.splitTree(rowTreeSimple);
 
                 let res1 = this.introduceOperator(left, right, Operator.IMPLICATION);
                 let res2 = this.introduceOperator(right, left, Operator.IMPLICATION);

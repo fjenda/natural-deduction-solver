@@ -187,6 +187,15 @@
         solving = true;
     }
 
+    function resetSolving() {
+        solving = false;
+        lastPremises = [];
+        solverContent.update(sc => {
+            sc.proof = [];
+            return sc;
+        });
+    }
+
     function checkProof() {
         // check if proof contains a valid row with the conclusion
         const proof = get(solverContent).proof;
@@ -264,7 +273,7 @@
                 {/if}
                 <button
                     class="add-button reset"
-                    on:click={() => solving = false}
+                    on:click={resetSolving}
                     disabled={!solving}
                 >
                     Reset

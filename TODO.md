@@ -36,7 +36,7 @@
     - [x] Insert premises first and confirm with a button, then hide them and start solving
     - [x] Let the user reset the solving and update the premises
     - [x] They can always reset the solving, or create a new problem to solve
-    - [ ] Button to check the final solution
+    - [x] Button to check the final solution
     - [ ] Button to solve the problem automatically
   - [ ] Theorems
     - [ ] Add theorems to the solver
