@@ -9,7 +9,7 @@
   - [x] TableRow should parse the formula, check the result, apply/delete the result
   - [x] Don't let user add an already existing row
 - [ ] Deduction Processor
-  - [ ] Refactor getUsableRows()
+  - [x] Refactor getUsableRows()
   - [ ] Finish application of rules
     - [x] Introduction Rules
       - [x] Conjunction
@@ -29,11 +29,11 @@
 - [ ] QoL improvements
   - [ ] Easier way to switch between propositional and predicate logic
 - [ ] UI Improvements
-  - [ ] Add a preview of the hovered rule
+  - [x] Add a preview of the hovered rule
   - [ ] Add a preview of the hovered theorem
 - [ ] Modification of Solver
   - [ ] Implement a new way of solving
-    - [x] Insert premises first and confirm with a button, then lock them and start solving
+    - [x] Insert premises first and confirm with a button, then hide them and start solving
     - [x] Let the user reset the solving and update the premises
     - [x] They can always reset the solving, or create a new problem to solve
     - [ ] Button to check the final solution

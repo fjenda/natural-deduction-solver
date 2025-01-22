@@ -1,12 +1,14 @@
 <script lang="ts">
-    import type {DeductionRule} from "../../solver/parsers/DeductionRules";
-    import {DeductionProcessor} from "../../parsers/DeductionProcessor";
-    import {highlightedRows, selectedRows} from "../../../stores/solverStore";
+    import type { DeductionRule } from "../../solver/parsers/DeductionRules";
+    import { DeductionProcessor } from "../../parsers/DeductionProcessor";
+    import { highlightedRows, selectedRows } from "../../../stores/solverStore";
+    import Tooltip from "../../Tooltip.svelte";
 
     export let rule: DeductionRule;
     export let onClick: () => void;
     export let onMouseOver: () => void;
     export let onMouseOut: () => void;
+    let showTooltip: boolean = false;
 
     function handleClick() {
         const result = DeductionProcessor.getUsableRows(rule.short);
@@ -23,25 +25,33 @@
 
 </script>
 
-<button
-    class="rule-slot"
-    title="{rule.title}"
-    class:disabled={setButtonDisabled}
-    on:mouseover={onMouseOver}
-    on:mouseout={onMouseOut}
-    on:mousedown|preventDefault={handleClick}
->
-    {rule.short}
-</button>
+<div class="wrapper">
+    <Tooltip content={rule.detail} position="bottom" show={showTooltip} />
+    <button
+            class="rule-slot"
+            title="{rule.title}"
+            class:disabled={setButtonDisabled}
+            on:mouseover={() => { onMouseOver(); showTooltip = true; }}
+            on:mouseout={() => { onMouseOut(); showTooltip = false; }}
+            on:mousedown|preventDefault={handleClick}
+    >
+        {rule.short}
+    </button>
+</div>
 
 <style>
+    .wrapper {
+        width: 25%;
+        max-width: 7.5rem;
+        position: relative;
+    }
+
     .rule-slot {
         /*display: flex;*/
         /*justify-content: center;*/
         /*align-items: center;*/
         font-size: 1.25rem;
-        max-width: 7.5rem;
-        width: calc(25% - 1rem);
+        width: 100%;
         aspect-ratio: 1;
         padding: 1rem;
         cursor: pointer;
@@ -66,14 +76,12 @@
     }
 
     @media screen and (max-width: 1200px) {
-        .rule-slot {
-            width: calc(33% - 1rem);
+        .wrapper {
+            width: 33%;
         }
     }
 
-    /*@media screen and (max-width: 950px) {*/
-    /*    .rule-slot {*/
-    /*        width: calc(50% - 1rem);*/
-    /*    }*/
-    /*}*/
+    :global(.tooltip.custom-tooltip) {
+        text-wrap: none;
+    }
 </style>
