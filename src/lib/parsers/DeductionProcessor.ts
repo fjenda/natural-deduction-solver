@@ -71,6 +71,7 @@ export class DeductionProcessor {
 
         const rows = get(solverContent).proof;
         const rowTreeSimple = rows[selected[0] - 1].tree?.simplify();
+        if (!rowTreeSimple) return;
         let indices: number[] = [];
 
         // remove duplicates and retain row numbers
@@ -208,9 +209,7 @@ export class DeductionProcessor {
             // A IMP B, B IMP A => A EQ B
             case NDRule.IEQ: {
                 // check if selected row has an implication operator
-                if (rowTreeSimple?.value !== Operator.IMPLICATION) {
-                    break;
-                }
+                if (rowTreeSimple?.value !== Operator.IMPLICATION) break;
 
                 // get the left and right part of the implication
                 const [left, right] = this.splitTree(rowTreeSimple);
@@ -235,7 +234,6 @@ export class DeductionProcessor {
                     break;
                 }
 
-                // TODO: should anything happen after? I don't think so
                 return { highlighted: [], applicable: true };
             }
         }

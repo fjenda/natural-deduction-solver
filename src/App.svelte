@@ -60,11 +60,17 @@
             if (!tree) return;
 
             res.tree = tree;
-            res.value = Node.generateString(tree)
+            res.value = Node.generateString(tree);
 
             $solverContent.proof[i] = res;
             lastPremises[i] = premise;
         });
+
+        // remove the rest
+        const from = $solverContent.premises.length;
+        const amount = lastPremises.length - from;
+        lastPremises.splice(from - 1, amount);
+        $solverContent.proof.splice(from - 1, amount);
     }
 
     $: parsedConclusion = PremiseParser.parsePremise($solverContent.conclusion, -1, { rule: NDRule.UNKNOWN });
@@ -191,9 +197,6 @@
 
         // start the solver
         solving = true;
-
-        // empty previous proof
-        // $solverContent.proof = [];
     }
 
     function checkProof() {
@@ -205,10 +208,10 @@
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons}>
       <div slot="body">
           <input
-                  type="text"
-                  placeholder="Enter the row number"
-                  name="modal-input"
-                  bind:this={modalInput}
+              type="text"
+              placeholder="Enter the row number"
+              name="modal-input"
+              bind:this={modalInput}
           />
       </div>
   </Modal>

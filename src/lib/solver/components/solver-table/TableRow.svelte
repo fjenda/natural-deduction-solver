@@ -81,7 +81,7 @@
     $: valid = formula.length > 0 && rule.rule !== "x";
 
     onMount(() => {
-        if (premise) onSave(formula, ruleText);
+        // if (premise) onSave(formula, ruleText);
     })
 </script>
 
@@ -90,6 +90,7 @@
     class:highlighted={highlighted}
     class:usable={usable}
     on:click={selectRow}
+    role="button"
 >
     <div class="line-number">
         {line}.

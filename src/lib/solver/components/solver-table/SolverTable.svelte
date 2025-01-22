@@ -59,7 +59,7 @@
 
                     // check if the formula already exist in any other row
                     const formulaExists = $solverContent.proof
-                        .filter((p, index) => index !== i)
+                        .filter((_, index) => index !== i)
                         .some(p => FormulaComparer.compare(p, res));
 
                     if (formulaExists) {
