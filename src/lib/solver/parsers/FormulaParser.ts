@@ -25,7 +25,7 @@ export class FormulaParser {
         if (!res) return tmp;
 
         // parenthesize the formula and value
-        tmp.tree = res.parenthesize();
+        tmp.tree = res.simplify().parenthesize();
         tmp.value = Node.generateString(tmp.tree);
 
         // clean the rule string

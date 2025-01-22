@@ -4,6 +4,7 @@
 - [x] Solver
   - [x] Solution proof and parsedProof should become one object
   - [x] Automatically add premisses to the solver table
+    - [x] After adding parenthesize them
   - [x] Add operator keyboard
   - [x] TableRow should parse the formula, check the result, apply/delete the result
   - [x] Don't let user add an already existing row

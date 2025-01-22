@@ -47,14 +47,23 @@
     // $solverContent.conclusion = "f(a) ⊃ g(x)";
     // $solverContent.conclusion = "∀x [f(x) ⊃ b]";
 
-    // reactive statement if $solverContent.premises or $solverContent.conclusion change
-    $: if ($solverContent.premises || $solverContent.conclusion) {
+    // reactive statement if $solverContent.premises change
+    let lastPremises: string[] = [];
+    $: if ($solverContent.premises) {
         // add premises to the proof
         $solverContent.premises.forEach((premise, i) => {
-            // parse the premise into a TreeRuleType object
+            if (lastPremises[i] === premise) return;
 
-            // otherwise add it to proof
-            $solverContent.proof[i] = PremiseParser.parsePremise(premise, i + 1, {rule: NDRule.ASS});
+            // parse the premise into a TreeRuleType object
+            const res = PremiseParser.parsePremise(premise, i + 1, {rule: NDRule.ASS});
+            const tree = res.tree?.simplify().parenthesize();
+            if (!tree) return;
+
+            res.tree = tree;
+            res.value = Node.generateString(tree)
+
+            $solverContent.proof[i] = res;
+            lastPremises[i] = premise;
         });
     }
 
@@ -184,7 +193,7 @@
         solving = true;
 
         // empty previous proof
-        $solverContent.proof = [];
+        // $solverContent.proof = [];
     }
 
     function checkProof() {
