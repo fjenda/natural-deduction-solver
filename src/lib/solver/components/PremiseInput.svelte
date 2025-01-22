@@ -5,6 +5,7 @@
     export let value: string | null = "";
     export let error: boolean = false;
     export let index: number;
+    export let disabled: boolean = false;
     let inputElement: HTMLInputElement;
 
     let hint: string = "" +
@@ -51,6 +52,7 @@
         type="text"
         placeholder={placeholder}
         name="formula-{index}"
+        disabled={disabled}
         bind:this={inputElement}
         bind:value={value}
         class:error={error}

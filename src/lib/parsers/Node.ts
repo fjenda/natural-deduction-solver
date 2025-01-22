@@ -58,7 +58,7 @@ export class Node {
 
     static generateString(node: Node): string {
         if (node.children.length === 0) {
-            return node.value;
+            return node.value ? `${node.value}` : `${node.type}`;
         }
 
         const childrenStrings = node.children.map(child => this.generateString(child));
@@ -97,9 +97,24 @@ export class Node {
         // TODO: anything else to handle?
     }
 
+    /**
+     * Recursive function that applies parentheses around the node
+     * @returns {Node} the node with parentheses
+     */
     public parenthesize(): Node {
+        // parenthesize the children recrusively
+        this.children = this.children.map(child => child.parenthesize());
+
+        // don't wrap the node if it's one of the following types:
+        // - variable, constant, negation block, parentheses block
+        if (this.children.length === 0 || this.type === "ParenthesesBlock" || this.type === "Negation") {
+            return this;
+        }
+
+        // parenthesize the node
         const par = new Node("ParenthesesBlock");
         par.setChildren([new Node("Parenthesis", Operator.LPAR), this, new Node("Parenthesis", Operator.RPAR)]);
+
         return par;
     }
 

@@ -5,15 +5,8 @@
 
     export let rule: DeductionRule;
     export let onClick: () => void;
-
-    function handleMouseOver() {
-        let rows = DeductionProcessor.getUsableRows(rule.short);
-        highlightedRows.set(rows.highlighted);
-    }
-
-    function handleMouseOut() {
-        highlightedRows.set([]);
-    }
+    export let onMouseOver: () => void;
+    export let onMouseOut: () => void;
 
     function handleClick() {
         const result = DeductionProcessor.getUsableRows(rule.short);
@@ -34,8 +27,8 @@
     class="rule-slot"
     title="{rule.title}"
     class:disabled={setButtonDisabled}
-    on:mouseover={handleMouseOver}
-    on:mouseout={handleMouseOut}
+    on:mouseover={onMouseOver}
+    on:mouseout={onMouseOut}
     on:mousedown|preventDefault={handleClick}
 >
     {rule.short}

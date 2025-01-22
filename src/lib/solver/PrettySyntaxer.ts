@@ -46,6 +46,9 @@ export class PrettySyntaxer {
         f = f.replace(/->/g, "⊃");
         f = f.replace(/<->/g, "≡");
         f = f.replace(/=/g, "≡");
+        f = f.replace(/!/g, "¬");
+        f = f.replace(/-/g, "¬");
+
         return f;
     }
 

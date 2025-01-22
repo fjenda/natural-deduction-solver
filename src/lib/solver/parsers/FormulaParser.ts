@@ -6,6 +6,7 @@ import {DeductionProcessor} from "../../parsers/DeductionProcessor";
 import {PrettySyntaxer} from "../PrettySyntaxer";
 import {FormulaComparer} from "../FormulaComparer";
 import {solverContent} from "../../../stores/solverStore";
+import {Node} from "../../parsers/Node";
 
 export class FormulaParser {
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
@@ -22,13 +23,15 @@ export class FormulaParser {
 
         // if the formula is not valid, return the error
         if (!res) return tmp;
-        tmp.tree = res;
+
+        // parenthesize the formula and value
+        tmp.tree = res.parenthesize();
+        tmp.value = Node.generateString(tmp.tree);
 
         // clean the rule string
         rule = PrettySyntaxer.cleanupRule(rule);
 
-        // if the rule is `ASS` or `CONC`, return the rule (no need to check it was added automatically)
-        // TODO: that might not actually be the case, check on this later
+        // TODO: assumptions will get added automatically, conclusion i don't know yet
         //
         // TODO: handle the case when we are proving the negation of the conclusion
         if (rule === "ASS") {

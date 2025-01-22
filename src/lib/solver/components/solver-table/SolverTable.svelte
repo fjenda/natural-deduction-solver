@@ -5,6 +5,7 @@
     import {FormulaParser} from "../../parsers/FormulaParser";
     import type {TreeRuleType} from "../../../../types/TreeRuleType";
     import {NDRule} from "../../parsers/DeductionRules";
+    import {FormulaComparer} from "../../FormulaComparer";
 
     let container: HTMLDivElement;
 
@@ -54,7 +55,19 @@
                 premise={i <= $solverContent.premises.length - 1}
                 editable={row.editable}
                 onSave={(content, rule) => {
-                    $solverContent.proof[i] = FormulaParser.parseFormula(content, i + 1, rule);
+                    const res = FormulaParser.parseFormula(content, i + 1, rule);
+
+                    // check if the formula already exist in any other row
+                    const formulaExists = $solverContent.proof
+                        .filter((p, index) => index !== i)
+                        .some(p => FormulaComparer.compare(p, res));
+
+                    if (formulaExists) {
+                        alert("Formula already exists in the proof.");
+                        return;
+                    }
+
+                    $solverContent.proof[i] = res;
 
                     row.formula = $solverContent.proof[i].value;
                     row.rule = $solverContent.proof[i].rule;

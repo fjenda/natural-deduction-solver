@@ -6,9 +6,20 @@
   - [x] Automatically add premisses to the solver table
   - [x] Add operator keyboard
   - [x] TableRow should parse the formula, check the result, apply/delete the result
+  - [x] Don't let user add an already existing row
 - [ ] Deduction Processor
   - [ ] Refactor getUsableRows()
   - [ ] Finish application of rules
+    - [x] Introduction Rules
+      - [x] Conjunction
+      - [x] Disjunction
+      - [x] Implication
+      - [x] Equivalence
+    - [ ] Elimination Rules
+      - [x] Conjunction
+      - [ ] Disjunction
+      - [x] Implication
+      - [x] Equivalence
   - [ ] Add enums for better readability
 - [ ] SolverTable
   - [ ] Better code for save/edit/delete actions (currently if more are editable and I save one all save)

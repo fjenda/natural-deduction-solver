@@ -21,6 +21,7 @@
     import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
     import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
+    import {Node} from "./lib/parsers/Node";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -30,7 +31,7 @@
 
     // $solverContent.premises = ["a ≡ b", "a ⊃ b", "a ∨ b", "a ∧ b", "¬a"];
     // $solverContent.premises = ["((b) ⊃ (a))", "a ⊃ b"];
-    $solverContent.premises = ["((a ⊃ b) ≡ (b ⊃ a))"];
+    $solverContent.premises = ["((a ⊃ b) ≡ (b ⊃ a))", "a ⊃ b", "a"];
     $solverContent.conclusion = "¬(a ∨ b)";
     // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
     // $solverContent.proof = "(¬a ∧ ¬b)\na\nb";
@@ -51,13 +52,9 @@
         // add premises to the proof
         $solverContent.premises.forEach((premise, i) => {
             // parse the premise into a TreeRuleType object
-            const res = PremiseParser.parsePremise(premise, i + 1, { rule: NDRule.ASS });
-
-            // if it wasn't successful, then return
-            // if (!res.tree) return;
 
             // otherwise add it to proof
-            $solverContent.proof[i] = res;
+            $solverContent.proof[i] = PremiseParser.parsePremise(premise, i + 1, {rule: NDRule.ASS});
         });
     }
 
@@ -156,8 +153,6 @@
             const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
             if (!result) return;
 
-            console.log(result);
-
             solverContent.update(sc => {
                 if (Array.isArray(result)) {
                     for (const res of result) {
@@ -171,7 +166,7 @@
             });
 
             selectedRows.set([]);
-            console.log($solverContent.proof);
+            // console.log($solverContent.proof);
         }
     }
 
@@ -230,14 +225,16 @@
                     >
                         Add Premise
                     </button>
-
-                    <PremiseInput
-                        placeholder="Conclusion"
-                        bind:value="{$solverContent.conclusion}"
-                        error="{!parsedConclusion.tree}"
-                        index={-1}
-                    />
                 {/if}
+            {/if}
+            {#if $editState === EditState.SOLVER}
+                <PremiseInput
+                    placeholder="Conclusion"
+                    bind:value="{$solverContent.conclusion}"
+                    error="{!parsedConclusion.tree}"
+                    index={-1}
+                    disabled={solving}
+                />
             {/if}
 
             <div class="button-wrapper">
@@ -277,6 +274,16 @@
             {#each DeductionRule.rules as rule}
                 <RuleSlot rule="{rule}"
                           onClick={() => { handleRuleClick(rule) }}
+                          onMouseOver={() => {
+                              if (!solving) return;
+                              if (get(selectedRows).length === rule.inputSize) return;
+                              const rows = DeductionProcessor.getUsableRows(rule.short);
+                              highlightedRows.set(rows.highlighted);
+                          }}
+                          onMouseOut={() => {
+                              if (!solving) return;
+                              highlightedRows.set([]);
+                          }}
                 />
             {/each}
         </RuleGridLayout>

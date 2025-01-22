@@ -43,8 +43,11 @@ export class DeductionProcessor {
     static introduceOperator(first: Node, second: Node, operator: Operator): Node | null {
         if (!first || !second) return null;
 
-        first = first.parenthesize();
-        second = second.parenthesize();
+        first = first.simplify();
+        second = second.simplify();
+
+        // first = first.parenthesize();
+        // second = second.parenthesize();
 
         const op = new Node("BinaryOperation", operator);
         op.setChildren([first, second]);
@@ -63,12 +66,25 @@ export class DeductionProcessor {
     }
 
     public static getUsableRows(operation: NDRule): { highlighted: number[], applicable: boolean } {
-        const rows = get(solverContent).proof;
-
         const selected = get(selectedRows);
         if (selected.length === 0) return { highlighted: [], applicable: false };
 
+        const rows = get(solverContent).proof;
+        const rowTreeSimple = rows[selected[0] - 1].tree?.simplify();
+        let indices: number[] = [];
+
+        // remove duplicates and retain row numbers
         const uniqueRowsMap = new Map<string, number>();
+        rows.forEach((row, index) => {
+            if (index + 1 === selected[0]) return;
+
+            if (FormulaComparer.compare(row, rows[selected[0] - 1])) return;
+
+            if (!uniqueRowsMap.has(row.value)) {
+                uniqueRowsMap.set(row.value, index + 1);
+            }
+        });
+
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON:
@@ -77,17 +93,6 @@ export class DeductionProcessor {
             case NDRule.IDIS:
             // B => A IMP B
             case NDRule.IIMP: {
-                // remove duplicates and retain row numbers
-                rows.forEach((row, index) => {
-                    if (index + 1 === selected[0]) return;
-
-                    if (row.value === rows[selected[0] - 1].value) return;
-
-                    if (!uniqueRowsMap.has(row.value)) {
-                        uniqueRowsMap.set(row.value, index + 1);
-                    }
-                });
-
                 // return the row_numbers of unique rows
                 return { highlighted: Array.from(uniqueRowsMap.values()), applicable: true };
             }
@@ -95,9 +100,7 @@ export class DeductionProcessor {
             // A AND B => A, B
             case NDRule.ECON: {
                 // check if the selected row has a conjunction operator
-                const row = rows[selected[0] - 1];
-                const rowTreeSimplified = row.tree?.simplify();
-                if (rowTreeSimplified?.value === Operator.CONJUNCTION) {
+                if (rowTreeSimple?.value === Operator.CONJUNCTION) {
                     return { highlighted: [selected[0]], applicable: true };
                 }
 
@@ -115,8 +118,7 @@ export class DeductionProcessor {
                 let type = "disjunction";
 
                 // check if the selected row has a disjunction operator
-                const row = rows[selected[0] - 1];
-                if (row.tree?.value !== Operator.DISJUNCTION) {
+                if (rowTreeSimple?.value !== Operator.DISJUNCTION) {
                     type = "basic";
                 }
 
@@ -124,7 +126,7 @@ export class DeductionProcessor {
                     // selected row is A OR B
                     case "disjunction": {
                         // get the left and the right part
-                        const [left, right] = this.splitTree(row.tree!);
+                        const [left, right] = this.splitTree(rowTreeSimple);
 
                         let negatedLeft = new Node("Negation", Operator.NEGATION);
                         negatedLeft.setChildren([left]);
@@ -140,7 +142,6 @@ export class DeductionProcessor {
                         // check if the negated right part exists in the rules
                         const rightIndex = rows.findIndex(r => r.tree?.simplify().equals(negatedRightSimple));
 
-                        let indices: number[] = [];
                         if (leftIndex !== -1) {
                             indices.push(leftIndex + 1);
                         }
@@ -155,17 +156,17 @@ export class DeductionProcessor {
                     // selected row is !A
                     case "basic": {
                         // check if the selected row is a negation
-                        const row = rows[selected[0] - 1];
-                        if (row.tree?.value !== Operator.NEGATION) {
+                        if (rowTreeSimple?.value !== Operator.NEGATION) {
                             break;
                         }
 
                         // find all rows that have disjunction as the top operator
-                        let indices: number[] = [];
+
                         rows.forEach((r, index) => {
-                            if (r.tree?.value === Operator.DISJUNCTION) {
+                            const rTreeSimple = r.tree?.simplify();
+                            if (rTreeSimple?.value === Operator.DISJUNCTION) {
                                 // split the tree into left and right parts
-                                const [left, right] = this.splitTree(r.tree!);
+                                const [left, right] = this.splitTree(rTreeSimple!);
 
                                 // check if the left or right part is the same as the selected row
                                 // TODO: finish this
@@ -181,80 +182,42 @@ export class DeductionProcessor {
 
             // A IMP B, A => B
             case NDRule.MP: {
-                // there are two cases, either the selected row has an implication or it's the "A"
-                // TODO: replace with enum
-                let type = "implication";
-
                 // check if implication operator is present
-                const row = rows[selected[0] - 1];
-                const rowTreeSimplified = row.tree?.simplify();
-                if (rowTreeSimplified?.value !== Operator.IMPLICATION) {
-                    type = "basic";
-                }
+                const hasImplication: boolean = rowTreeSimple?.value === Operator.IMPLICATION;
 
-                switch (type) {
-                    // selected row is A IMP B
-                    case "implication": {
-                        // get the left and right part of the implication
-                        const [left, right] = this.splitTree(rowTreeSimplified!);
-
-                        // check if the left part is present in the rules
-                        const leftIndex = rows.findIndex(r => r.tree?.simplify().equals(left));
-
-                        // if not found, return an empty array
-                        if (leftIndex === -1) return { highlighted: [], applicable: false };
-
-                        return { highlighted: [leftIndex + 1], applicable: true };
-                    }
+                uniqueRowsMap.forEach((index, value) => {
+                    const tmp = rows[index - 1].tree?.simplify();
 
                     // selected row is A
-                    case "basic": {
-                        // remove duplicates and retain row numbers
-                        rows.forEach((row, index) => {
-                            if (index + 1 === selected[0]) return;
-
-                            if (row.value === rows[selected[0] - 1].value) return;
-
-                            if (!uniqueRowsMap.has(row.value)) {
-                                uniqueRowsMap.set(row.value, index + 1);
-                            }
-                        });
-
-                        // get rules that have implication operators
-                        // and have the selected row as the left part of the implication
-                        let indices: number[] = [];
-                        const rowTreeSimplified = row.tree?.simplify();
-                        uniqueRowsMap.forEach((index, value) => {
-                            const tmp = rows[index - 1].tree?.simplify();
-                            if (tmp?.value === Operator.IMPLICATION && tmp?.children[0].equals(rowTreeSimplified)) {
-                                indices.push(index);
-                            }
-                        });
-
-                        return { highlighted: indices, applicable: true };
+                    if (tmp?.value === Operator.IMPLICATION && tmp.children[0].equals(rowTreeSimple)) {
+                        indices.push(index);
                     }
-                }
 
-                break;
+                    if (!hasImplication) return;
+
+                    // selected row is A IMP B
+                    const [left, _] = this.splitTree(rowTreeSimple);
+                    if (tmp?.equals(left)) {
+                        indices.push(index);
+                    }
+                });
+
+                return { highlighted: indices, applicable: true };
             }
 
             // A IMP B, B IMP A => A EQ B
             case NDRule.IEQ: {
                 // check if selected row has an implication operator
-                const row = rows[selected[0] - 1];
-                const rowTreeSimplified = row.tree?.simplify();
-
-                if (rowTreeSimplified?.value !== Operator.IMPLICATION) {
+                if (rowTreeSimple?.value !== Operator.IMPLICATION) {
                     break;
                 }
 
                 // get the left and right part of the implication
-                const [left, right] = this.splitTree(rowTreeSimplified);
+                const [left, right] = this.splitTree(rowTreeSimple);
 
                 // reorganize the implication into "right IMP left"
                 const reorganized = new Node("BinaryOperation", Operator.IMPLICATION);
                 reorganized.setChildren([right, left]);
-
 
                 // check if the reorganized implication exists in the rules
                 const reorganizedIndex = rows.findIndex(r => r.tree?.simplify().equals(reorganized));
@@ -268,9 +231,7 @@ export class DeductionProcessor {
             // A EQ B => A IMP B, B IMP A
             case NDRule.EEQ: {
                 // check if the selected row has an equivalence operator
-                const row = rows[selected[0] - 1];
-                const rowTreeSimplified = row.tree?.simplify();
-                if (rowTreeSimplified?.value !== Operator.EQUIVALENCE) {
+                if (rowTreeSimple?.value !== Operator.EQUIVALENCE) {
                     break;
                 }
 
@@ -284,6 +245,9 @@ export class DeductionProcessor {
     }
 
     public static applyRule(operation: NDRule, selected: TreeRuleType, other: TreeRuleType | null): TreeRuleType | TreeRuleType[] | null {
+        // simpler tree structure without parentheses
+        const rowTreeSimple: Node = selected.tree?.simplify();
+
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON: {
@@ -292,14 +256,10 @@ export class DeductionProcessor {
 
                 // introduce the conjunction operator
                 const res = this.introduceOperator(selected.tree!, other.tree!, Operator.CONJUNCTION);
-
-                // if the result is null, return
                 if (!res) return;
 
                 // generate the string representation of the tree
                 const resString = Node.generateString(res);
-
-                // if the string is null, return
                 if (!resString) return;
 
                 // construct a tmp object
@@ -310,22 +270,15 @@ export class DeductionProcessor {
                     value: resString
                 };
 
-                // check if it already exists
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, tmp)) !== -1) {
-                    alert("This formula already exists in the proof");
-                    return;
-                }
+                // check if it already exists in the proof
+                if (this.existsInProof(tmp)) return;
 
                 return tmp;
             }
             case NDRule.ECON: {
-                // check if we are in parentheses
-                let left: Node, right: Node;
-                if (selected.tree?.type === "ParenthesesBlock") {
-                    [left, right] = this.splitTree(selected.tree.children[1]);
-                } else {
-                    [left, right] = this.splitTree(selected.tree!);
-                }
+                let [left, right] = this.splitTree(rowTreeSimple!);
+                left = left.parenthesize();
+                right = right.parenthesize();
 
                 const leftString = Node.generateString(left);
                 const rightString = Node.generateString(right);
@@ -339,7 +292,7 @@ export class DeductionProcessor {
                     rule: { rule: NDRule.ECON, lines: [selected.line] },
                     value: leftString
                 };
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, leftTmp)) === -1) {
+                if (!this.existsInProof(leftTmp)) {
                     result.push(leftTmp);
                     lineOffset++;
                 }
@@ -350,7 +303,8 @@ export class DeductionProcessor {
                     rule: { rule: NDRule.ECON, lines: [selected.line] },
                     value: rightString
                 };
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, rightTmp)) === -1) {
+
+                if (!this.existsInProof(rightTmp)) {
                     result.push(rightTmp);
                 }
 
@@ -372,58 +326,28 @@ export class DeductionProcessor {
                     value: resString
                 };
 
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, tmp)) !== -1)
-                    return;
+                if (this.existsInProof(tmp)) return;
 
                 return tmp;
             }
             case NDRule.EDIS: {
+                if (!other) return;
                 // TODO: determine which tree to use as the first argument
                 //       it could be `A v B` or `!A`, we need get the left side of the first tree
                 //       for now the first is used since the way usableRows are acquired
                 console.log(selected, other);
                 // check if we are in parentheses
-                let left: Node, right: Node;
-                if (selected.tree?.type === "ParenthesesBlock") {
-                    [left, right] = this.splitTree(selected.tree.children[1]);
-                } else {
-                    [left, right] = this.splitTree(selected.tree!);
-                }
+                let [left, right] = this.splitTree(rowTreeSimple!);
+
+                left = left.parenthesize();
+                right = right.parenthesize();
 
                 const leftString = Node.generateString(left);
                 const rightString = Node.generateString(right);
                 if (!leftString || !rightString) return;
 
                 // determine if the other row is the negated left or right part of the disjunction
-
-
                 return;
-
-                //
-                // let left: Node, right: Node;
-                // if (selected.tree?.type === "ParenthesesBlock") {
-                //     [left, right] = this.splitTree(selected.tree.children[1]);
-                // } else {
-                //     [left, right] = this.splitTree(selected.tree!);
-                // }
-                //
-                // let res = this.introduceOperator(left, other.tree!, Operator.IMPLICATION);
-                // if (!res) return;
-                //
-                // const resString = Node.generateString(res);
-                // if (!resString) return;
-                //
-                // const tmp: TreeRuleType = {
-                //     line: get(solverContent).proof.length + 1,
-                //     tree: res,
-                //     rule: { rule: NDRule.EDIS, lines: [selected.line, other.line] },
-                //     value: resString
-                // };
-                //
-                // if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, tmp)) !== -1)
-                //     return;
-                //
-                // return tmp;
             }
             case NDRule.IIMP: {
                 if (!other) return;
@@ -434,8 +358,14 @@ export class DeductionProcessor {
                 const resString = Node.generateString(res);
                 if (!resString) return;
 
-                if (get(solverContent).proof.findIndex(row => row.value === resString) !== -1)
-                    return;
+                const tmp: TreeRuleType = {
+                    line: get(solverContent).proof.length + 1,
+                    tree: res,
+                    rule: { rule: NDRule.IIMP, lines: [selected.line, other.line] },
+                    value: resString
+                };
+
+                if (this.existsInProof(tmp)) return;
 
                 return {
                     line: get(solverContent).proof.length + 1,
@@ -446,14 +376,52 @@ export class DeductionProcessor {
             }
             case NDRule.MP: {
                 if (!other) return;
-                // TODO: determine which tree to use as the first argument
-                //       it could be `A -> B` or `A`, we need get the left side of the first tree
-                return;
+
+                // get the implication part
+                const otherTreeSimple: Node = other.tree!.simplify();
+                let leftSelected, rightSelected: Node | null = null;
+                let leftOther, rightOther: Node | null = null;
+
+                if (rowTreeSimple?.value === Operator.IMPLICATION) {
+                    [leftSelected, rightSelected] = this.splitTree(rowTreeSimple!);
+                }
+
+                if (otherTreeSimple?.value === Operator.IMPLICATION) {
+                    [leftOther, rightOther] = this.splitTree(otherTreeSimple!);
+                }
+
+                let res: Node | null = null;
+                if (leftSelected?.equals(otherTreeSimple)) {
+                    res = rightSelected;
+                }
+
+                if (leftOther?.equals(rowTreeSimple)) {
+                    res = rightOther;
+                }
+
+                if (!res) return;
+                res = res.parenthesize();
+
+                const resString = Node.generateString(res);
+                if (!resString) return;
+
+                const tmp: TreeRuleType = {
+                    line: get(solverContent).proof.length + 1,
+                    tree: res,
+                    rule: { rule: NDRule.MP, lines: [selected.line, other.line ] },
+                    value: resString
+                }
+
+                if (this.existsInProof(tmp)) return;
+
+                return tmp;
             }
             case NDRule.IEQ: {
                 if (!other) return;
 
-                let res = this.introduceOperator(selected.tree!, other.tree!, Operator.EQUIVALENCE);
+                // replace the top operator
+                const [left, right] = this.splitTree(rowTreeSimple!);
+                const res = this.introduceOperator(left, right, Operator.EQUIVALENCE);
                 if (!res) return;
 
                 const resString = Node.generateString(res);
@@ -466,14 +434,12 @@ export class DeductionProcessor {
                     value: resString
                 };
 
-                if (get(solverContent).proof.findIndex(row => FormulaComparer.compare(row, tmp)) !== -1)
-                    return;
+                if (this.existsInProof(tmp)) return;
 
                 return tmp;
             }
             case NDRule.EEQ: {
-                const rowTreeSimplified = selected.tree?.simplify();
-                const [left, right] = this.splitTree(rowTreeSimplified!);
+                const [left, right] = this.splitTree(rowTreeSimple!);
 
                 let res1 = this.introduceOperator(left, right, Operator.IMPLICATION);
                 let res2 = this.introduceOperator(right, left, Operator.IMPLICATION);
@@ -491,7 +457,8 @@ export class DeductionProcessor {
                     rule: { rule: NDRule.EEQ, lines: [selected.line] },
                     value: resString1
                 };
-                if (get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, tmp1)) === -1) {
+
+                if (!this.existsInProof(tmp1)) {
                     result.push(tmp1);
                     lineOffset++;
                 }
@@ -502,7 +469,8 @@ export class DeductionProcessor {
                     rule: { rule: NDRule.EEQ, lines: [selected.line] },
                     value: resString2
                 };
-                if (get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, tmp2)) === -1) {
+
+                if (!this.existsInProof(tmp2)) {
                     result.push(tmp2);
                 }
 
@@ -511,13 +479,7 @@ export class DeductionProcessor {
         }
     }
 
-    public static getUsableRowsFromOperation(operator: string, elimination: boolean = false) {
-        switch (operator) {
-            case "∧": return this.getUsableRows(elimination ? NDRule.ECON : NDRule.ICON);
-            case "∨": return this.getUsableRows(elimination ? NDRule.EDIS : NDRule.IDIS);
-            case "⊃": return this.getUsableRows(elimination ? NDRule.MP : NDRule.IIMP);
-            case "≡": return this.getUsableRows(elimination ? NDRule.EEQ : NDRule.IEQ);
-            case "¬": break;
-        }
+    private static existsInProof(formula: TreeRuleType): boolean {
+        return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
     }
 }
