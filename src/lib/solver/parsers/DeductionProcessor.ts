@@ -1,10 +1,10 @@
-import {Node} from "./Node";
-import {Operator} from "./Operator";
-import {NDRule} from "../solver/parsers/DeductionRules";
-import type {TreeRuleType} from "../../types/TreeRuleType";
+import {Node} from "../../parsers/Node";
+import {Operator} from "../../parsers/Operator";
+import {NDRule} from "./DeductionRules";
+import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
-import {selectedRows, solverContent} from "../../stores/solverStore";
-import {FormulaComparer} from "../solver/FormulaComparer";
+import {selectedRows, solverContent} from "../../../stores/solverStore";
+import {FormulaComparer} from "../FormulaComparer";
 
 export class DeductionProcessor {
     // depth first search to build the string

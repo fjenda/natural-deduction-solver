@@ -18,34 +18,22 @@
     import {editState} from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
     import type {ButtonContent} from "./types/ButtonContent";
-    import {DeductionProcessor} from "./lib/parsers/DeductionProcessor";
+    import {DeductionProcessor} from "./lib/solver/parsers/DeductionProcessor";
     import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import {Node} from "./lib/parsers/Node";
+    import {FormulaComparer} from "./lib/solver/FormulaComparer";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
     // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
-    // $solverContent.premises = ["(¬a ∧ ¬b)", "a", "b"];
-
-    // $solverContent.premises = ["a ≡ b", "a ⊃ b", "a ∨ b", "a ∧ b", "¬a"];
-    // $solverContent.premises = ["((b) ⊃ (a))", "a ⊃ b"];
-    $solverContent.premises = ["((a ⊃ b) ≡ (b ⊃ a))", "a ⊃ b", "a"];
-    $solverContent.conclusion = "¬(a ∨ b)";
-    // $solverContent.proof = "(¬a ∧ ¬b)\na ∨ b";
-    // $solverContent.proof = "(¬a ∧ ¬b)\na\nb";
+    $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
+    $solverContent.conclusion = "P(a) ∧ ¬S(a)";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
-    // $solverContent.premises = ["(a ⊃ b ∨ c) ∧ (d ≡ e ⊃ f ∨ g)"];
-    // $solverContent.premises = ["a ⊃ b ∨ ¬c ∧ d ≡ e ⊃ f ∨ g"];
-    // $solverContent.proof = "a\nb";
-    // $solverContent.premises = ["a", "b"];
-    // $solverContent.conclusion = "a";
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
-    // $solverContent.conclusion = "f(a) ⊃ g(x)";
-    // $solverContent.conclusion = "∀x [f(x) ⊃ b]";
 
     // reactive statement if $solverContent.premises change
     let lastPremises: string[] = [];
@@ -56,7 +44,7 @@
 
             // parse the premise into a TreeRuleType object
             const res = PremiseParser.parsePremise(premise, i + 1, {rule: NDRule.ASS});
-            const tree = res.tree?.simplify().parenthesize();
+            const tree = res.tree?.simplify()?.parenthesize();
             if (!tree) return;
 
             res.tree = tree;
@@ -200,7 +188,16 @@
     }
 
     function checkProof() {
-        alert("Checking proof");
+        // check if proof contains a valid row with the conclusion
+        const proof = get(solverContent).proof;
+        const exists = proof.filter(p => p.tree && p.rule.rule !== NDRule.UNKNOWN).findIndex(p => FormulaComparer.compare(p, parsedConclusion)) !== -1;
+
+        if (!exists) {
+            alert("Proof does not contain a valid row with the conclusion");
+            return;
+        }
+
+        alert("Proof is correct");
     }
 </script>
 

@@ -1,4 +1,3 @@
-import type {Operator} from "./Operator";
 import {Operator} from "./Operator";
 
 export class Node {
@@ -73,28 +72,15 @@ export class Node {
             case "ParenthesesBlock":
                 return `(${childrenStrings[1]})`;
 
+            case "Predicate":
+                return `${node.value}(${childrenStrings.join(", ")})`;
+
+            case "TermList":
+                return childrenStrings.join(", ");
+
             default:
-                return node.type;
+                return node.value ? `${node.value}` : `${node.type}`;
         }
-    }
-
-    public getTopOperator(): string | null {
-        // no children means it's a variable or a constant
-        if (this.children.length === 0) {
-            return null;
-        }
-
-        // if it's a binary operation, return the operator
-        if (this.type === "BinaryOperation") {
-            return this.value!;
-        }
-
-        // if it's a parentheses block, return the top operator of the child
-        if (this.type === "ParenthesesBlock") {
-            return this.children[1].getTopOperator();
-        }
-
-        // TODO: anything else to handle?
     }
 
     /**
@@ -107,7 +93,7 @@ export class Node {
 
         // don't wrap the node if it's one of the following types:
         // - variable, constant, negation block, parentheses block
-        if (this.children.length === 0 || this.type === "ParenthesesBlock" || this.type === "Negation") {
+        if (this.children.length === 0 || ["ParenthesesBlock", "Negation", "TermList", "Predicate"].includes(this.type)) {
             return this;
         }
 

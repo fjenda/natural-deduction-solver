@@ -1,6 +1,6 @@
 import type {TreeRuleType} from "../../types/TreeRuleType";
 import {Operator} from "../parsers/Operator";
-import {DeductionProcessor} from "../parsers/DeductionProcessor";
+import {DeductionProcessor} from "./parsers/DeductionProcessor";
 
 export class FormulaComparer {
     public static compare(f1: TreeRuleType, f2: TreeRuleType): boolean {

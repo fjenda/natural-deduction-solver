@@ -111,7 +111,7 @@ export class DeductionRule {
         Operator.EQUIVALENCE,
         2,
         1,
-        "A ⊃ B, B ⊃ A ⊢ A ≡ B",
+        "<p>A ⊃ B, B ⊃ A ⊢ A ≡ B</p>",
     );
 
     static EEQ = new DeductionRule(

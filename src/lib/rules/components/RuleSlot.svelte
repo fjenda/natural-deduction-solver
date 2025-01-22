@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { DeductionRule } from "../../solver/parsers/DeductionRules";
-    import { DeductionProcessor } from "../../parsers/DeductionProcessor";
+    import { DeductionProcessor } from "../../solver/parsers/DeductionProcessor";
     import { highlightedRows, selectedRows } from "../../../stores/solverStore";
     import Tooltip from "../../Tooltip.svelte";
 
@@ -18,11 +18,6 @@
         onClick();
         highlightedRows.set([]);
     }
-
-    function setButtonDisabled() {
-        return $selectedRows.length !== rule.inputSize;
-    }
-
 </script>
 
 <div class="wrapper">
@@ -30,7 +25,6 @@
     <button
             class="rule-slot"
             title="{rule.title}"
-            class:disabled={setButtonDisabled}
             on:mouseover={() => { onMouseOver(); showTooltip = true; }}
             on:mouseout={() => { onMouseOut(); showTooltip = false; }}
             on:mousedown|preventDefault={handleClick}
@@ -79,9 +73,5 @@
         .wrapper {
             width: 33%;
         }
-    }
-
-    :global(.tooltip.custom-tooltip) {
-        text-wrap: none;
     }
 </style>
