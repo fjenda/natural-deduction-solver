@@ -32,12 +32,8 @@ export class FormulaParser {
         rule = PrettySyntaxer.cleanupRule(rule);
 
         // TODO: assumptions will get added automatically, conclusion i don't know yet
-        //
         // TODO: handle the case when we are proving the negation of the conclusion
-        if (rule === "ASS") {
-            tmp.rule = { rule: NDRule.ASS };
-            return tmp;
-        }
+        if (rule === "ASS") return tmp;
 
         if (rule === "CONC") {
             tmp.rule = { rule: NDRule.CONC };
@@ -52,6 +48,17 @@ export class FormulaParser {
         const linesNumbers = lines.map(s => parseInt(s));
         const line1 = parseInt(lines[0]);
         const line2 = lines[1] ? parseInt(lines[1]) : null;
+
+        // check if the lines mentioned exist
+        if (line1 > get(solverContent).proof.length) {
+            alert(`Row ${line1} doesn't exist`);
+            return tmp;
+        }
+
+        if (line2 && line2 > get(solverContent).proof.length) {
+            alert(`Row ${line2} doesn't exist`);
+            return tmp;
+        }
 
         // now that we have the name of the rule and the rows it was used with, check if a rule like this exists
         const usedRule = DeductionRule.getRule(ruleName);

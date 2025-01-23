@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {onMount} from "svelte";
     import {PrettySyntaxer} from "../../PrettySyntaxer";
     import {highlightedRows, selectedRows} from "../../../../stores/solverStore";
     import type {AppliedRule} from "../../../../types/AppliedRule";
+    import {NDRule} from "../../parsers/DeductionRules";
 
     export let line: number;
     export let formula: string;
@@ -24,8 +24,8 @@
         // if the row is editable, do not highlight
         if (editable) return;
 
-        // if the row is not valid, do not highlight
-        if (!valid) {
+        // if the row is invalid, do not highlight
+        if (invalid) {
             alert("Cannot highlight invalid row.\n" +
                   "Make sure the formula and rule are valid.");
             return;
@@ -78,19 +78,17 @@
 
     // a row is usable if its line number is inside the highlightedRows store
     $: usable = $highlightedRows.includes(line);
-    $: valid = formula.length > 0 && rule.rule !== "x";
 
-    onMount(() => {
-        // if (premise) onSave(formula, ruleText);
-    })
+    // a row is invalid if the rule is unknown and it's not editable
+    $: invalid = (rule.rule === NDRule.UNKNOWN && !editable);
 </script>
 
 <div
     class="row"
     class:highlighted={highlighted}
     class:usable={usable}
+    class:invalid={invalid}
     on:click={selectRow}
-    role="button"
 >
     <div class="line-number">
         {line}.
@@ -180,6 +178,11 @@
     .row.usable {
         outline: 1px solid #ffcc00;
         border-color: #ffcc00;
+    }
+
+    .row.invalid {
+        outline: 1px solid #ff0000;
+        border-color: #ff0000;
     }
 
     .used-rule,

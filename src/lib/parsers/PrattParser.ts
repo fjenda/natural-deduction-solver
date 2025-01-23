@@ -84,7 +84,6 @@ export class PrattParser {
             // function or constant
             if (this.tokenStream.match("(")) {
                 const termList = this.parseTermList();
-                console.log(this.tokenStream);
                 if (!this.tokenStream.match(")")) {
                     if (THROW_ERRORS) {
                         throw new Error("Expected ) after term list in function call");
@@ -114,6 +113,14 @@ export class PrattParser {
                 if (!this.tokenStream.match(")")) {
                     if (THROW_ERRORS) {
                         throw new Error("Expected ) after term list in predicate call");
+                    }
+
+                    return null;
+                }
+
+                if (!termList) {
+                    if (THROW_ERRORS) {
+                        throw new Error("Expected term list in predicate call");
                     }
 
                     return null;
@@ -244,6 +251,7 @@ export class PrattParser {
         const node = new Node("TermList");
 
         const term = this.parseExpression(0);
+
         if (!term) {
             if (THROW_ERRORS) {
                 throw new Error("Expected at least one term in TermList");
