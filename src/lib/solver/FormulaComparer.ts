@@ -1,6 +1,7 @@
 import type {TreeRuleType} from "../../types/TreeRuleType";
-import {Operator} from "../parsers/Operator";
+import {Operator} from "../syntax-checker/Operator";
 import {DeductionProcessor} from "./parsers/DeductionProcessor";
+import {NodeType} from "../syntax-checker/NodeType";
 
 export class FormulaComparer {
     public static compare(f1: TreeRuleType, f2: TreeRuleType): boolean {
@@ -24,7 +25,7 @@ export class FormulaComparer {
 
         // equivalence is commutative, so we check if the trees are equal
         // when we swap the children of the equivalence operator
-        if (tree1.type === 'BinaryOperation' && tree1.value === Operator.EQUIVALENCE) {
+        if (tree1.type === NodeType.BINARY_OPERATION && tree1.value === Operator.EQUIVALENCE) {
             const [left1, right1] = tree1.children;
             const swapped1 = DeductionProcessor.introduceOperator(right1, left1, Operator.EQUIVALENCE)?.simplify();
             if (swapped1?.equals(tree2)) {

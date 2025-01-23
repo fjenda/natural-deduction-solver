@@ -19,8 +19,10 @@
 // Large -> [A-Z]
 // Small -> [a-z]
 
-import { TokenStream} from "./TokenStream";
-import { Node } from "./Node"
+import {TokenStream} from "./TokenStream";
+import {Node} from "./Node"
+import {NodeType} from "./NodeType";
+import {Operator} from "./Operator";
 
 
 const PRECEDENCE: { [key: string]: number } = {
@@ -75,12 +77,12 @@ export class PrattParser {
         const token = this.tokenStream.current();
         const beforeToken = this.tokenStream.save();
         this.tokenStream.advance();
-        let savedIndex = this.tokenStream.save();
+        // let savedIndex = this.tokenStream.save();
 
         if (!token) return null;
 
         // small character
-        if (token.match(/[a-z]/)) {
+        if (/[a-z]/.test(token)) {
             // function or constant
             if (this.tokenStream.match("(")) {
                 const termList = this.parseTermList();
@@ -94,17 +96,17 @@ export class PrattParser {
 
                 // empty termlist -> constant
                 if (!termList) {
-                    return new Node("Constant", token);
+                    return new Node(NodeType.CONSTANT, token);
                 }
 
                 // function
-                const node = new Node("Function", token);
+                const node = new Node(NodeType.FUNCTION, token);
                 node.children.push(termList);
                 return node;
             }
 
             // variable
-            return new Node("Variable", token);
+            return new Node(NodeType.VARIABLE, token);
         }
 
         if (token.match(/[A-Z]/)) {
@@ -126,13 +128,12 @@ export class PrattParser {
                     return null;
                 }
 
-                const node = new Node("Predicate", token);
+                const node = new Node(NodeType.PREDICATE, token);
                 node.children.push(termList!);
 
                 return node;
             }
 
-            // return new Node("Large", token);
             if (THROW_ERRORS) {
                 throw new Error("Expected '(' after predicate " + token);
             }
@@ -140,17 +141,9 @@ export class PrattParser {
             return null;
         }
 
-        // if (token.match(/[a-g]/)) {
-        //     return new Node("Constant", token);
-        // }
-
-        // if (token.match(/[a-z]/)) {
-        //     return new Node("Variable", token);
-        // }
-
         if (["@", "?", "∀", "∃"].includes(token)) {
-            const node = new Node("Quantifier");
-            node.children.push(new Node("QuantifierOperator", token));
+            const node = new Node(NodeType.QUANTIFIER);
+            node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, token));
 
             const variable = this.parseVariable();
             if (!variable) {
@@ -177,7 +170,7 @@ export class PrattParser {
 
         if (["!", "¬"].includes(token)) {
             const right = this.parseExpression(PRECEDENCE[token]);
-            const node = new Node("Negation", token);
+            const node = new Node(NodeType.NEGATION, token);
             node.children.push(right!);
 
             return node;
@@ -193,8 +186,8 @@ export class PrattParser {
                 return null;
             }
 
-            const parenNode = new Node("ParenthesesBlock");
-            parenNode.children.push(new Node("Parenthesis", "("), inner!, new Node("Parenthesis", ")"));
+            const parenNode = new Node(NodeType.PARENTHESES_BLOCK);
+            parenNode.children.push(new Node(NodeType.PARENTHESIS, Operator.LPAR), inner!, new Node(NodeType.PARENTHESIS, Operator.RPAR));
 
             return parenNode;
         }
@@ -209,8 +202,8 @@ export class PrattParser {
                 return null;
             }
 
-            const bracketNode = new Node("BracketsBlock");
-            bracketNode.children.push(new Node("Bracket", "["), inner!, new Node("Bracket", "]"));
+            const bracketNode = new Node(NodeType.BRACKETS_BLOCK);
+            bracketNode.children.push(new Node(NodeType.BRACKET, Operator.LBRACKET), inner!, new Node(NodeType.BRACKET, Operator.RBRACKET));
 
             return bracketNode;
         }
@@ -223,7 +216,7 @@ export class PrattParser {
     private parseLed(operator: string, left: Node): Node | null {
         const precedence = PRECEDENCE[operator] || 0;
 
-        if (operator.match(/[&|>=∧∨⊃≡]/)) {
+        if (operator.match(/[∧∨⊃≡]/)) {
             const right = this.parseExpression(precedence);
 
             if (!right) {
@@ -234,7 +227,7 @@ export class PrattParser {
                 return null;
             }
 
-            const node = new Node("BinaryOperation", operator);
+            const node = new Node(NodeType.BINARY_OPERATION, operator);
             node.children.push(left, right);
 
             return node;
@@ -248,7 +241,7 @@ export class PrattParser {
     }
 
     private parseTermList(): Node | null {
-        const node = new Node("TermList");
+        const node = new Node(NodeType.TERM_LIST);
 
         const term = this.parseExpression(0);
 
@@ -281,7 +274,7 @@ export class PrattParser {
 
         if (token && token.match(/[a-z]/)) {
             this.tokenStream.advance();
-            return new Node("Variable", token);
+            return new Node(NodeType.VARIABLE, token);
         }
 
         return null;

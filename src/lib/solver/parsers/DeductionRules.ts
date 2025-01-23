@@ -1,4 +1,4 @@
-import {Operator} from "../../parsers/Operator";
+import {Operator} from "../../syntax-checker/Operator";
 
 export enum NDRule {
     // Propositional Logic

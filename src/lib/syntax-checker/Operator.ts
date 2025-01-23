@@ -8,5 +8,7 @@ export enum Operator {
     UNIVERSAL = "∀",
     EXISTENTIAL = "∃",
     LPAR = "(",
-    RPAR= ")",
+    RPAR = ")",
+    LBRACKET = "[",
+    RBRACKET = "]",
 }

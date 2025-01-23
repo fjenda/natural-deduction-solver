@@ -59,6 +59,7 @@
         on:change={() => {
             value = PrettySyntaxer.clean(value ?? "");
         }}
+        tabindex="{index + 1}"
     />
     <div class="operator-input">
         {#each operators as operator}

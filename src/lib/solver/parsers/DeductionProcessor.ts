@@ -1,10 +1,11 @@
-import {Node} from "../../parsers/Node";
-import {Operator} from "../../parsers/Operator";
+import {Node} from "../../syntax-checker/Node";
+import {Operator} from "../../syntax-checker/Operator";
 import {NDRule} from "./DeductionRules";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
 import {selectedRows, solverContent} from "../../../stores/solverStore";
 import {FormulaComparer} from "../FormulaComparer";
+import {NodeType} from "../../syntax-checker/NodeType";
 
 export class DeductionProcessor {
     static introduceOperator(first: Node, second: Node, operator: Operator): Node | null {
@@ -16,7 +17,7 @@ export class DeductionProcessor {
         // first = first.parenthesize();
         // second = second.parenthesize();
 
-        const op = new Node("BinaryOperation", operator);
+        const op = new Node(NodeType.BINARY_OPERATION, operator);
         op.setChildren([first, second]);
         return op.parenthesize();
     }
@@ -95,11 +96,11 @@ export class DeductionProcessor {
                         // get the left and the right part
                         const [left, right] = this.splitTree(rowTreeSimple);
 
-                        let negatedLeft = new Node("Negation", Operator.NEGATION);
+                        let negatedLeft = new Node(NodeType.NEGATION, Operator.NEGATION);
                         negatedLeft.setChildren([left]);
                         const negatedLeftSimple = negatedLeft.simplify();
 
-                        let negatedRight = new Node("Negation", Operator.NEGATION);
+                        let negatedRight = new Node(NodeType.NEGATION, Operator.NEGATION);
                         negatedRight.setChildren([right]);
                         const negatedRightSimple = negatedRight.simplify();
 
@@ -181,7 +182,7 @@ export class DeductionProcessor {
                 const [left, right] = this.splitTree(rowTreeSimple);
 
                 // reorganize the implication into "right IMP left"
-                const reorganized = new Node("BinaryOperation", Operator.IMPLICATION);
+                const reorganized = new Node(NodeType.BINARY_OPERATION, Operator.IMPLICATION);
                 reorganized.setChildren([right, left]);
 
                 // check if the reorganized implication exists in the rules
@@ -236,7 +237,10 @@ export class DeductionProcessor {
                 };
 
                 // check if it already exists in the proof
-                if (this.existsInProof(tmp)) return;
+                if (this.existsInProof(tmp)) {
+                    alert("The resulting formula already exists in the proof");
+                    return;
+                }
 
                 return tmp;
             }

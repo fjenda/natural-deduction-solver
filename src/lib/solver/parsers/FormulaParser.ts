@@ -1,12 +1,12 @@
 import {DeductionRule, NDRule} from "./DeductionRules";
-import {PrattParser} from "../../parsers/PrattParser";
+import {PrattParser} from "../../syntax-checker/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import {get} from "svelte/store";
 import {DeductionProcessor} from "./DeductionProcessor";
 import {PrettySyntaxer} from "../PrettySyntaxer";
 import {FormulaComparer} from "../FormulaComparer";
 import {solverContent} from "../../../stores/solverStore";
-import {Node} from "../../parsers/Node";
+import {Node} from "../../syntax-checker/Node";
 
 export class FormulaParser {
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {

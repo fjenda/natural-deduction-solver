@@ -1,4 +1,4 @@
-import {PrattParser} from "../../parsers/PrattParser";
+import {PrattParser} from "../../syntax-checker/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import type {AppliedRule} from "../../../types/AppliedRule";
 

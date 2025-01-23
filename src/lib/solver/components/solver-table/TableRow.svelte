@@ -83,12 +83,13 @@
     $: invalid = (rule.rule === NDRule.UNKNOWN && !editable);
 </script>
 
-<div
+<a
     class="row"
     class:highlighted={highlighted}
     class:usable={usable}
     class:invalid={invalid}
     on:click={selectRow}
+    role="button"
 >
     <div class="line-number">
         {line}.
@@ -153,7 +154,7 @@
             <i class="fas fa-times"></i>
         </button>
     {/if}
-</div>
+</a>
 
 <style>
     .row {
@@ -167,6 +168,13 @@
         background: var(--dark-element-color);
         font-family: monospace;
         font-size: 1.35em;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .row:hover {
+        background: var(--dark-bg-color);
     }
 
     .row.highlighted.usable,

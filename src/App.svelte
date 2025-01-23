@@ -21,7 +21,7 @@
     import {DeductionProcessor} from "./lib/solver/parsers/DeductionProcessor";
     import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import {Node} from "./lib/parsers/Node";
+    import {Node} from "./lib/syntax-checker/Node";
     import {FormulaComparer} from "./lib/solver/FormulaComparer";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -43,7 +43,7 @@
             if (lastPremises[i] === premise) return;
 
             // parse the premise into a TreeRuleType object
-            const res = PremiseParser.parsePremise(premise, i + 1, {rule: NDRule.ASS});
+            const res = PremiseParser.parsePremise(premise, i + 1, { rule: NDRule.ASS });
             const tree = res.tree?.simplify()?.parenthesize();
             if (!tree) return;
 
@@ -240,6 +240,7 @@
                     <button
                         class="add-button"
                         on:click={() => addPremise()}
+                        tabindex={$solverContent.premises.length}
                     >
                         Add Premise
                     </button>
@@ -250,7 +251,7 @@
                     placeholder="Conclusion"
                     bind:value="{$solverContent.conclusion}"
                     error="{!parsedConclusion.tree}"
-                    index={-1}
+                    index={$solverContent.premises.length + 1}
                     disabled={solving}
                 />
             {/if}
@@ -260,6 +261,7 @@
                     <button
                             class="add-button"
                             on:click={checkProof}
+                            tabindex={$solverContent.premises.length + 2}
                     >
                         Check Proof
                     </button>
@@ -267,6 +269,7 @@
                     <button
                         class="add-button"
                         on:click={startSolver}
+                        tabindex={$solverContent.premises.length + 2}
                     >
                         Create Problem
                     </button>
@@ -275,6 +278,7 @@
                     class="add-button reset"
                     on:click={resetSolving}
                     disabled={!solving}
+                    tabindex={$solverContent.premises.length + 3}
                 >
                     Reset
                 </button>
@@ -329,6 +333,7 @@
         height: 3.5rem;
     }
 
+    .add-button:focus[disabled],
     .add-button.reset:hover[disabled],
     .add-button:hover[disabled] {
         cursor: not-allowed;
@@ -336,6 +341,7 @@
         border: 1px solid var(--dark-border-color);
     }
 
+    .add-button:focus,
     .add-button:hover {
         color: #00ff00;
         border: 1px solid #00ff00;

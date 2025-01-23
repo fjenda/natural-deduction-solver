@@ -21,9 +21,9 @@
       - [ ] Disjunction
       - [x] Implication
       - [x] Equivalence
-  - [ ] Add enums for better readability
-- [ ] SolverTable
-  - [ ] Better code for save/edit/delete actions (currently if more are editable and I save one all save)
+- [x] SolverTable
+  - [x] Better code for save/edit/delete actions (currently if more are editable and I save one all save)
+    - [x] Solved by allowing to add only one editable row
 - [x] Formula Parser
   - [x] Refactor Formula Parser
 - [ ] QoL improvements
@@ -31,14 +31,13 @@
 - [ ] UI Improvements
   - [x] Add a preview of the hovered rule
   - [ ] Add a preview of the hovered theorem
-- [ ] Modification of Solver
-  - [ ] Implement a new way of solving
+- [x] Modification of Solver
+  - [x] Implement a new way of solving
     - [x] Insert premises first and confirm with a button, then hide them and start solving
     - [x] Let the user reset the solving and update the premises
     - [x] They can always reset the solving, or create a new problem to solve
     - [x] Button to check the final solution
-    - [ ] Button to solve the problem automatically
-  - [ ] Theorems
-    - [ ] Add theorems to the solver
-    - [ ] Add a way to select theorems
-    - [ ] Add a way to save theorems
+- [ ] Theorems
+  - [ ] Add theorems to the solver
+  - [ ] Add a way to select theorems
+  - [ ] Add a way to save theorems

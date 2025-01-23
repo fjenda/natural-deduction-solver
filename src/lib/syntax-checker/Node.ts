@@ -1,11 +1,16 @@
 import {Operator} from "./Operator";
+import {NodeType} from "./NodeType";
 
+/**
+ * Node class that represents a node in the abstract syntax tree
+ *
+ */
 export class Node {
-    type: string;
-    value?: Operator;
+    type: NodeType;
+    value?: Operator | string;
     children: Array<Node>;
 
-    constructor(type: string, value?: Operator) {
+    constructor(type: NodeType, value?: Operator | string) {
         this.type = type;
         this.value = value;
         this.children = [];
@@ -63,19 +68,19 @@ export class Node {
         const childrenStrings = node.children.map(child => this.generateString(child));
 
         switch (node.type) {
-            case "BinaryOperation":
+            case NodeType.BINARY_OPERATION:
                 return `${childrenStrings.join(` ${node.value} `)}`;
 
-            case 'Negation':
+            case NodeType.NEGATION:
                 return `${node.value}${childrenStrings[0]}`;
 
-            case "ParenthesesBlock":
+            case NodeType.PARENTHESES_BLOCK:
                 return `(${childrenStrings[1]})`;
 
-            case "Predicate":
+            case NodeType.PREDICATE:
                 return `${node.value}(${childrenStrings.join(", ")})`;
 
-            case "TermList":
+            case NodeType.TERM_LIST:
                 return childrenStrings.join(", ");
 
             default:
@@ -93,13 +98,18 @@ export class Node {
 
         // don't wrap the node if it's one of the following types:
         // - variable, constant, negation block, parentheses block
-        if (this.children.length === 0 || ["ParenthesesBlock", "Negation", "TermList", "Predicate"].includes(this.type)) {
+        if (this.children.length === 0
+            || this.type === NodeType.PARENTHESES_BLOCK
+            || this.type === NodeType.NEGATION
+            || this.type === NodeType.TERM_LIST
+            || this.type === NodeType.PREDICATE
+        ) {
             return this;
         }
 
         // parenthesize the node
-        const par = new Node("ParenthesesBlock");
-        par.setChildren([new Node("Parenthesis", Operator.LPAR), this, new Node("Parenthesis", Operator.RPAR)]);
+        const par = new Node(NodeType.PARENTHESES_BLOCK);
+        par.setChildren([new Node(NodeType.PARENTHESIS, Operator.LPAR), this, new Node(NodeType.PARENTHESIS, Operator.RPAR)]);
 
         return par;
     }
@@ -110,7 +120,7 @@ export class Node {
      */
     public simplify(): Node {
         // if the node is a ParenthesesBlock, replace it with its middle child
-        if (this.type === "ParenthesesBlock" && this.children.length === 3) {
+        if (this.type === NodeType.PARENTHESES_BLOCK && this.children.length === 3) {
             return this.children[1].simplify();
         }
 

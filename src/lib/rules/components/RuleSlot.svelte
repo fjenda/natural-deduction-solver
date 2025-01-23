@@ -18,6 +18,16 @@
         onClick();
         highlightedRows.set([]);
     }
+
+    function handleMouseOver() {
+        onMouseOver();
+        showTooltip = true;
+    }
+
+    function handleMouseOut() {
+        onMouseOut();
+        showTooltip = false;
+    }
 </script>
 
 <div class="wrapper">
@@ -25,8 +35,10 @@
     <button
             class="rule-slot"
             title="{rule.title}"
-            on:mouseover={() => { onMouseOver(); showTooltip = true; }}
-            on:mouseout={() => { onMouseOut(); showTooltip = false; }}
+            on:mouseover={handleMouseOver}
+            on:focus={handleMouseOver}
+            on:mouseout={handleMouseOut}
+            on:blur={handleMouseOut}
             on:mousedown|preventDefault={handleClick}
     >
         {rule.short}
