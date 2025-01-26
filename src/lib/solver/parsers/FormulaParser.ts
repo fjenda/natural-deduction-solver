@@ -44,6 +44,10 @@ export class FormulaParser {
         if (!rule) return tmp;
         const ruleParts = rule.split(" ");
         const ruleName = ruleParts[0];
+
+        // no lines specified
+        if (!ruleParts[1]) return tmp;
+
         const lines = ruleParts[1].split(",");
         const linesNumbers = lines.map(s => parseInt(s));
         const line1 = parseInt(lines[0]);
@@ -82,6 +86,7 @@ export class FormulaParser {
         // if the result is null, the rule wasn't applied correctly
         if (!result) return tmp;
 
+        tmp.rule = { rule: usedRule.short, lines: linesNumbers };
         // some rules return an array of results, in that case we need to check if our result is in the array
         if (Array.isArray(result)) {
             if (!result.some((r) => FormulaComparer.compare(r, tmp))) {

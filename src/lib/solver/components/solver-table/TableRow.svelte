@@ -138,7 +138,7 @@
         <button
             class="action-button edit-button"
             class:disabled={premise}
-            disabled={premise }
+            disabled={premise}
             aria-label="Edit"
             on:click|stopPropagation={onEdit}
         >

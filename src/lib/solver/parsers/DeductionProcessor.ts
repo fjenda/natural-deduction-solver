@@ -374,8 +374,9 @@ export class DeductionProcessor {
                 const resString = Node.generateString(res);
                 if (!resString) return;
 
+                const newLine = get(solverContent).proof.length + 1;
                 const tmp: TreeRuleType = {
-                    line: get(solverContent).proof.length + 1,
+                    line: newLine,
                     tree: res,
                     rule: { rule: NDRule.MP, lines: [selected.line, other.line ] },
                     value: resString
@@ -448,6 +449,11 @@ export class DeductionProcessor {
         }
     }
 
+    /**
+     * Checks if the formula already exists in the proof
+     * @param formula The formula to check
+     * @private
+     */
     private static existsInProof(formula: TreeRuleType): boolean {
         return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
     }

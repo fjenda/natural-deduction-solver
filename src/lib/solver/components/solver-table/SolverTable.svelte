@@ -73,7 +73,11 @@
                     row.rule = $solverContent.proof[i].rule;
                     row.editable = false;
                 }}
-                onEdit={() => row.editable = true}
+                onEdit={() => {
+                    // remove the row from the proof
+                    $solverContent.proof.splice(i, 1);
+                    row.editable = true;
+                }}
                 onDelete={() => {
                     solverContent.update(content => {
                         // remove the row from the proof
