@@ -81,7 +81,12 @@ export class FormulaParser {
         }
 
         // apply the rule
-        const result = DeductionProcessor.applyRule(usedRule.short, first, second);
+        let result = null;
+        if (usedRule === DeductionRule.IDIS) {
+            result = DeductionProcessor.applyRule(usedRule.short, tmp, null);
+        } else {
+            result = DeductionProcessor.applyRule(usedRule.short, first, second);
+        }
 
         // if the result is null, the rule wasn't applied correctly
         if (!result) return tmp;

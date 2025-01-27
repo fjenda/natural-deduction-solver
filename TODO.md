@@ -32,6 +32,9 @@
   - [x] Add a preview of the hovered rule
   - [ ] Add a preview of the hovered theorem
 - [x] Modification of Solver
+  - [x] Fix Disjunction 
+    - [x] Introduction
+    - [x] Elimination
   - [x] Implement a new way of solving
     - [x] Insert premises first and confirm with a button, then hide them and start solving
     - [x] Let the user reset the solving and update the premises

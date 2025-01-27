@@ -57,12 +57,16 @@ export class DeductionProcessor {
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON:
-            // A => A OR B || B => A OR B
-            case NDRule.IDIS:
             // B => A IMP B
             case NDRule.IIMP: {
                 // return the row_numbers of unique rows
                 return { highlighted: Array.from(uniqueRowsMap.values()), applicable: true };
+            }
+
+            // A => A OR B || B => A OR B
+            case NDRule.IDIS: {
+                // this rule can have anything as the other row
+                return { highlighted: [], applicable: true };
             }
 
             // A AND B => A, B
@@ -95,20 +99,14 @@ export class DeductionProcessor {
                     case "disjunction": {
                         // get the left and the right part
                         const [left, right] = this.splitTree(rowTreeSimple);
-
-                        let negatedLeft = new Node(NodeType.NEGATION, Operator.NEGATION);
-                        negatedLeft.setChildren([left]);
-                        const negatedLeftSimple = negatedLeft.simplify();
-
-                        let negatedRight = new Node(NodeType.NEGATION, Operator.NEGATION);
-                        negatedRight.setChildren([right]);
-                        const negatedRightSimple = negatedRight.simplify();
+                        const leftSimple = left.simplify();
+                        const rightSimple = right.simplify();
 
                         // check if the negated left part exists in the rules
-                        const leftIndex = rows.findIndex(r => r.tree?.simplify().equals(negatedLeftSimple));
+                        const leftIndex = rows.findIndex(r => r.tree?.simplify().isNegationOf(leftSimple));
 
                         // check if the negated right part exists in the rules
-                        const rightIndex = rows.findIndex(r => r.tree?.simplify().equals(negatedRightSimple));
+                        const rightIndex = rows.findIndex(r => r.tree?.simplify().isNegationOf(rightSimple));
 
                         if (leftIndex !== -1) {
                             indices.push(leftIndex + 1);
@@ -129,19 +127,20 @@ export class DeductionProcessor {
                         }
 
                         // find all rows that have disjunction as the top operator
-
                         rows.forEach((r, index) => {
                             const rTreeSimple = r.tree?.simplify();
                             if (rTreeSimple?.value === Operator.DISJUNCTION) {
                                 // split the tree into left and right parts
                                 const [left, right] = this.splitTree(rTreeSimple!);
 
-                                // check if the left or right part is the same as the selected row
-                                // TODO: finish this
-
-                                indices.push(index + 1);
+                                // check if the left or right part is the negation of the selected row
+                                if (rowTreeSimple.isNegationOf(left) || rowTreeSimple.isNegationOf(right)) {
+                                    indices.push(index + 1);
+                                }
                             }
                         });
+
+                        return { highlighted: indices, applicable: true };
                     }
                 }
 
@@ -280,10 +279,95 @@ export class DeductionProcessor {
                 return result;
             }
             case NDRule.IDIS: {
+                // if there is no other the rule was input manually,
+                // we need to split the tree into 2 parts and have them as selected and other
+                if (!other) {
+                    // check if top operator is disjunction
+                    if (rowTreeSimple.value !== Operator.DISJUNCTION) return;
+
+                    const [left, right] = this.splitTree(rowTreeSimple);
+                    selected.tree = left;
+                    other = {
+                        line: selected.line,
+                        tree: right,
+                        rule: { rule: NDRule.IDIS, lines: [selected.line] },
+                        value: Node.generateString(right)
+                    };
+                }
+
+                let res1 = this.introduceOperator(selected.tree!, other.tree!, Operator.DISJUNCTION);
+                let res2 = this.introduceOperator(other.tree!, selected.tree!, Operator.DISJUNCTION);
+                if (!res1 || !res2) return;
+
+                const resString1 = Node.generateString(res1);
+                const resString2 = Node.generateString(res2);
+                if (!resString1 || !resString2) return;
+
+                const result: TreeRuleType[] = [];
+                let lineOffset = 1;
+                const tmp1: TreeRuleType = {
+                    line: get(solverContent).proof.length + lineOffset,
+                    tree: res1,
+                    rule: { rule: NDRule.IDIS, lines: [selected.line] },
+                    value: resString1
+                };
+
+                if (!this.existsInProof(tmp1)) {
+                    result.push(tmp1);
+                    lineOffset++;
+                }
+
+                const tmp2: TreeRuleType = {
+                    line: get(solverContent).proof.length + lineOffset,
+                    tree: res2,
+                    rule: { rule: NDRule.IDIS, lines: [selected.line] },
+                    value: resString2
+                };
+
+                if (!this.existsInProof(tmp2)) {
+                    result.push(tmp2);
+                }
+
+                return result;
+            }
+            case NDRule.EDIS: {
                 if (!other) return;
 
-                let res = this.introduceOperator(selected.tree!, other.tree!, Operator.DISJUNCTION);
+                // get the disjunction part
+                const otherTreeSimple: Node = other.tree!.simplify();
+                let leftSelected, rightSelected = null;
+                let leftOther, rightOther = null;
+                let selectedSplit, otherSplit: boolean = false;
+
+                if (rowTreeSimple.value === Operator.DISJUNCTION) {
+                    [leftSelected, rightSelected] = this.splitTree(rowTreeSimple);
+                    selectedSplit = true
+                }
+
+                if (otherTreeSimple?.value === Operator.DISJUNCTION) {
+                    [leftOther, rightOther] = this.splitTree(otherTreeSimple!);
+                    otherSplit = true;
+                }
+
+                let res: Node | null = null;
+                if (selectedSplit && otherTreeSimple.isNegationOf(leftSelected)) {
+                    res = rightSelected;
+                }
+
+                if (selectedSplit && otherTreeSimple.isNegationOf(rightSelected)) {
+                    res = leftSelected;
+                }
+
+                if (otherSplit && rowTreeSimple.isNegationOf(leftOther)) {
+                    res = rightOther;
+                }
+
+                if (otherSplit && rowTreeSimple.isNegationOf(rightOther)) {
+                    res = leftOther;
+                }
+
                 if (!res) return;
+                res = res.parenthesize();
 
                 const resString = Node.generateString(res);
                 if (!resString) return;
@@ -291,32 +375,14 @@ export class DeductionProcessor {
                 const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
                     tree: res,
-                    rule: { rule: NDRule.IDIS, lines: [selected.line, other.line] },
+                    rule: { rule: NDRule.EDIS, lines: [selected.line, other.line] },
                     value: resString
-                };
+                }
 
                 if (this.existsInProof(tmp)) return;
 
                 return tmp;
-            }
-            case NDRule.EDIS: {
-                if (!other) return;
-                // TODO: determine which tree to use as the first argument
-                //       it could be `A v B` or `!A`, we need get the left side of the first tree
-                //       for now the first is used since the way usableRows are acquired
-                console.log(selected, other);
-                // check if we are in parentheses
-                let [left, right] = this.splitTree(rowTreeSimple);
 
-                left = left.parenthesize();
-                right = right.parenthesize();
-
-                const leftString = Node.generateString(left);
-                const rightString = Node.generateString(right);
-                if (!leftString || !rightString) return;
-
-                // determine if the other row is the negated left or right part of the disjunction
-                return;
             }
             case NDRule.IIMP: {
                 if (!other) return;
@@ -336,12 +402,7 @@ export class DeductionProcessor {
 
                 if (this.existsInProof(tmp)) return;
 
-                return {
-                    line: get(solverContent).proof.length + 1,
-                    tree: res,
-                    rule: { rule: NDRule.IIMP, lines: [selected.line, other.line] },
-                    value: resString
-                };
+                return tmp;
             }
             case NDRule.MP: {
                 if (!other) return;
@@ -374,9 +435,8 @@ export class DeductionProcessor {
                 const resString = Node.generateString(res);
                 if (!resString) return;
 
-                const newLine = get(solverContent).proof.length + 1;
                 const tmp: TreeRuleType = {
-                    line: newLine,
+                    line: get(solverContent).proof.length + 1,
                     tree: res,
                     rule: { rule: NDRule.MP, lines: [selected.line, other.line ] },
                     value: resString

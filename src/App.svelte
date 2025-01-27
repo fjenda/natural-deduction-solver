@@ -28,8 +28,11 @@
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
     // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
-    $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
-    $solverContent.conclusion = "P(a) ∧ ¬S(a)";
+    // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
+    // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
+
+    $solverContent.premises = ["a", "¬a"];
+    $solverContent.conclusion = "b";
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -109,7 +112,41 @@
 
         // if the number of selected rows is not equal to the number of rows needed for the rule
         // display modal and make the user select the row there
-        if (selected.length < rule.inputSize) {
+        if (rule.short === NDRule.IDIS && selected.length < rule.inputSize) {
+            setConfirmButtonAction(() => {
+                // parse the input formula
+                const formula = PremiseParser.parsePremise(modalInput.value, -1, { rule: NDRule.UNKNOWN });
+                if (!formula.tree) {
+                    alert("Invalid formula");
+                    return;
+                }
+
+                const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], formula);
+                if (!result) return;
+
+                solverContent.update(sc => {
+                    if (Array.isArray(result)) {
+                        // sc.proof[result[0].line - 1] = result[0];
+                        for (const res of result) {
+                            sc.proof[res.line - 1] = res;
+                        }
+                    } else {
+                        sc.proof[result.line - 1] = result;
+                    }
+
+                    return sc;
+                });
+
+                modalInput.value = "";
+                showModal = false;
+                selectedRows.set([]);
+            });
+
+            modalContent = "Write the formula to insert into the disjunction";
+            modalInput.placeholder = "Enter the formula";
+            showModal = true;
+            setTimeout(() => modalInput.focus(), 50);
+        } else if (selected.length < rule.inputSize) {
             setConfirmButtonAction(() => {
                 // get the value from the input
                 const other = parseInt(modalInput.value);
@@ -149,6 +186,7 @@
                 selectedRows.set([]);
             });
 
+            modalContent = "Select the second row with which to execute the rule";
             showModal = true;
             setTimeout(() => modalInput.focus(), 50);
         } else {

@@ -128,4 +128,18 @@ export class Node {
         this.children = this.children.map(child => child.simplify());
         return this;
     }
+
+    /**
+     * Checks if the node is the negation of another node
+     * @param {Node} other the other node
+     * @returns {boolean} true if the node is the negation of the other node
+     */
+    public isNegationOf(other: Node): boolean {
+        // TODO: do i need to make this better? for example:
+        // -(A -> B) = -A v B
+        // -(A v B) = -A & -B
+        return this.type === NodeType.NEGATION
+            && this.children.length === 1
+            && this.children[0].equals(other);
+    }
 }

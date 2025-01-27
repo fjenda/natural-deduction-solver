@@ -30,12 +30,12 @@
             <h2>Modal Header</h2>
         </div>
         <div class="modal-body">
-            {content}
+            {@html content}
             <slot name="body" />
         </div>
         <div class="modal-footer">
             {#each buttons as button}
-                <button on:click={button.action}>{button.text}</button>
+                <button class="button-footer" on:click={button.action}>{button.text}</button>
             {/each}
         </div>
     </div>
@@ -83,8 +83,11 @@
     .modal-footer {
         padding: 0.25rem 0.5rem;
         display: flex;
-        justify-content: center;
-        gap: 0.5rem;
+        gap: 1rem;
+    }
+
+    .button-footer {
+        width: 100%;
     }
 
     @media screen and (prefers-color-scheme: light) {

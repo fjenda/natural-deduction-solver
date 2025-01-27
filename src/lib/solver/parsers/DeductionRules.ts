@@ -73,7 +73,7 @@ export class DeductionRule {
         NDRule.IDIS,
         'Introduction of Disjunction',
         Operator.DISJUNCTION,
-        2,
+        2, // the input is actually 1, the second part can be any valid formula
         1,
         "<p>A ⊢ A ∨ B</p><p>B ⊢ A ∨ B</p>",
     );
