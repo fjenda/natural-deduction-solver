@@ -8,17 +8,17 @@
   - [x] Add operator keyboard
   - [x] TableRow should parse the formula, check the result, apply/delete the result
   - [x] Don't let user add an already existing row
-- [ ] Deduction Processor
+- [x] Deduction Processor
   - [x] Refactor getUsableRows()
-  - [ ] Finish application of rules
+  - [x] Finish application of rules
     - [x] Introduction Rules
       - [x] Conjunction
       - [x] Disjunction
       - [x] Implication
       - [x] Equivalence
-    - [ ] Elimination Rules
+    - [x] Elimination Rules
       - [x] Conjunction
-      - [ ] Disjunction
+      - [x] Disjunction
       - [x] Implication
       - [x] Equivalence
 - [x] SolverTable
@@ -44,3 +44,7 @@
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
   - [ ] Add a way to save theorems
+- [ ] Documentation
+  - [x] Add a README.md
+  - [ ] Add a LICENSE
+  - [ ] Comment the code 

@@ -1,3 +1,7 @@
+/**
+ * NodeType enum
+ * This enum is used to define the type of a node in the syntax tree.
+ */
 export enum NodeType {
     CONSTANT = "CONSTANT",
     VARIABLE = "VARIABLE",

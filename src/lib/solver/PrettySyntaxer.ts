@@ -6,7 +6,8 @@ export class PrettySyntaxer {
      * This method takes a formula string and cleans it by
      *  1. replacing the alternative symbols with the standard symbols
      *  2. adding spaces around the operators.
-     * @param f
+     * @param f - The formula string to clean
+     * @returns The cleaned formula string
      */
     public static clean(f: string): string {
         f = PrettySyntaxer.replaceAlternatives(f);
@@ -15,7 +16,7 @@ export class PrettySyntaxer {
     }
 
     /**
-     * This method takes a formula string and prettifies it by adding spaces around the operators.
+     * Takes a formula string and prettifies it by adding spaces around the operators.
      * @param f The formula string to prettify
      * @returns The prettified formula string
      */
@@ -35,7 +36,7 @@ export class PrettySyntaxer {
     }
 
     /**
-     * This method takes a formula string and replaces the alternative symbols with the standard symbols.
+     * Takes a formula string and replaces the alternative symbols with the standard symbols.
      * @param f The formula string to prettify
      * @returns The prettified formula string
      */
@@ -53,7 +54,7 @@ export class PrettySyntaxer {
     }
 
     /**
-     * This method takes a rule string and cleans it by
+     * Takes a rule string and cleans it by
      * 1. removing extra spaces
      * 2. replacing spaces around commas with just commas
      * @param r The rule string to clean

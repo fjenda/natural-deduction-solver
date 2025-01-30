@@ -7,7 +7,16 @@ import {selectedRows, solverContent} from "../../../stores/solverStore";
 import {FormulaComparer} from "../FormulaComparer";
 import {NodeType} from "../../syntax-checker/NodeType";
 
+/**
+ * Class that processes deduction rules
+ */
 export class DeductionProcessor {
+    /**
+     * Introduces an operator between two nodes
+     * @param first - the first node
+     * @param second - the second node
+     * @param operator - the operator to introduce
+     */
     static introduceOperator(first: Node, second: Node, operator: Operator): Node | null {
         if (!first || !second) return null;
 
@@ -39,7 +48,7 @@ export class DeductionProcessor {
 
         const rows = get(solverContent).proof;
         const rowTreeSimple = rows[selected[0] - 1].tree?.simplify();
-        if (!rowTreeSimple) return;
+        if (!rowTreeSimple) return { highlighted: [], applicable: false };
         let indices: number[] = [];
 
         // remove duplicates and retain row numbers
@@ -79,10 +88,6 @@ export class DeductionProcessor {
                 break;
             }
 
-            // TODO: Some cases need parentheses around them, figure out how to handle that
-            //        A =   a OR b IMP c
-            //       !A = !(a OR b IMP c)
-            //       For now it works only for simple formulas like a single constant, variable or function
             // A OR B, !A => B || A OR B, !B => A
             case NDRule.EDIS: {
                 // there are two cases, either the selected row has a disjunction or it's the "!A"
@@ -144,7 +149,7 @@ export class DeductionProcessor {
                     }
                 }
 
-                break;
+                return { highlighted: [], applicable: false };
             }
 
             // A IMP B, A => B
@@ -208,24 +213,30 @@ export class DeductionProcessor {
         return { highlighted: [], applicable: false };
     }
 
+    /**
+     * Applies a rule to the passed rows
+     * @param operation - the rule to apply
+     * @param selected - selected row
+     * @param other - other row
+     */
     public static applyRule(operation: NDRule, selected: TreeRuleType, other: TreeRuleType | null): TreeRuleType | TreeRuleType[] | null {
         // simpler tree structure without parentheses
         const rowTreeSimple = selected.tree?.simplify();
-        if (!rowTreeSimple) return;
+        if (!rowTreeSimple) return null;
 
         switch (operation) {
             // A, B => A AND B
             case NDRule.ICON: {
                 // if no other row is selected, return
-                if (!other) return;
+                if (!other) return null;
 
                 // introduce the conjunction operator
                 const res = this.introduceOperator(selected.tree!, other.tree!, Operator.CONJUNCTION);
-                if (!res) return;
+                if (!res) return null;
 
                 // generate the string representation of the tree
                 const resString = Node.generateString(res);
-                if (!resString) return;
+                if (!resString) return null;
 
                 // construct a tmp object
                 const tmp: TreeRuleType = {
@@ -238,7 +249,7 @@ export class DeductionProcessor {
                 // check if it already exists in the proof
                 if (this.existsInProof(tmp)) {
                     alert("The resulting formula already exists in the proof");
-                    return;
+                    return null;
                 }
 
                 return tmp;
@@ -250,7 +261,7 @@ export class DeductionProcessor {
 
                 const leftString = Node.generateString(left);
                 const rightString = Node.generateString(right);
-                if (!leftString || !rightString) return;
+                if (!leftString || !rightString) return null;
 
                 const result: TreeRuleType[] = [];
                 let lineOffset = 1;
@@ -283,7 +294,7 @@ export class DeductionProcessor {
                 // we need to split the tree into 2 parts and have them as selected and other
                 if (!other) {
                     // check if top operator is disjunction
-                    if (rowTreeSimple.value !== Operator.DISJUNCTION) return;
+                    if (rowTreeSimple.value !== Operator.DISJUNCTION) return null;
 
                     const [left, right] = this.splitTree(rowTreeSimple);
                     selected.tree = left;
@@ -297,11 +308,11 @@ export class DeductionProcessor {
 
                 let res1 = this.introduceOperator(selected.tree!, other.tree!, Operator.DISJUNCTION);
                 let res2 = this.introduceOperator(other.tree!, selected.tree!, Operator.DISJUNCTION);
-                if (!res1 || !res2) return;
+                if (!res1 || !res2) return null;
 
                 const resString1 = Node.generateString(res1);
                 const resString2 = Node.generateString(res2);
-                if (!resString1 || !resString2) return;
+                if (!resString1 || !resString2) return null;
 
                 const result: TreeRuleType[] = [];
                 let lineOffset = 1;
@@ -331,46 +342,45 @@ export class DeductionProcessor {
                 return result;
             }
             case NDRule.EDIS: {
-                if (!other) return;
+                if (!other) return null;
 
                 // get the disjunction part
                 const otherTreeSimple: Node = other.tree!.simplify();
-                let leftSelected, rightSelected = null;
-                let leftOther, rightOther = null;
-                let selectedSplit, otherSplit: boolean = false;
+                let leftSelected: Node | null = null;
+                let rightSelected: Node | null = null;
+                let leftOther: Node | null = null;
+                let rightOther: Node | null = null;
 
                 if (rowTreeSimple.value === Operator.DISJUNCTION) {
                     [leftSelected, rightSelected] = this.splitTree(rowTreeSimple);
-                    selectedSplit = true
                 }
 
                 if (otherTreeSimple?.value === Operator.DISJUNCTION) {
                     [leftOther, rightOther] = this.splitTree(otherTreeSimple!);
-                    otherSplit = true;
                 }
 
                 let res: Node | null = null;
-                if (selectedSplit && otherTreeSimple.isNegationOf(leftSelected)) {
+                if (leftSelected && otherTreeSimple.isNegationOf(leftSelected)) {
                     res = rightSelected;
                 }
 
-                if (selectedSplit && otherTreeSimple.isNegationOf(rightSelected)) {
+                if (rightSelected && otherTreeSimple.isNegationOf(rightSelected)) {
                     res = leftSelected;
                 }
 
-                if (otherSplit && rowTreeSimple.isNegationOf(leftOther)) {
+                if (leftOther && rowTreeSimple.isNegationOf(leftOther)) {
                     res = rightOther;
                 }
 
-                if (otherSplit && rowTreeSimple.isNegationOf(rightOther)) {
+                if (rightOther && rowTreeSimple.isNegationOf(rightOther)) {
                     res = leftOther;
                 }
 
-                if (!res) return;
+                if (!res) return null;
                 res = res.parenthesize();
 
                 const resString = Node.generateString(res);
-                if (!resString) return;
+                if (!resString) return null;
 
                 const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
@@ -379,19 +389,19 @@ export class DeductionProcessor {
                     value: resString
                 }
 
-                if (this.existsInProof(tmp)) return;
+                if (this.existsInProof(tmp)) return null;
 
                 return tmp;
 
             }
             case NDRule.IIMP: {
-                if (!other) return;
+                if (!other) return null;
 
                 let res = this.introduceOperator(selected.tree!, other.tree!, Operator.IMPLICATION);
-                if (!res) return;
+                if (!res) return null;
 
                 const resString = Node.generateString(res);
-                if (!resString) return;
+                if (!resString) return null;
 
                 const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
@@ -400,17 +410,19 @@ export class DeductionProcessor {
                     value: resString
                 };
 
-                if (this.existsInProof(tmp)) return;
+                if (this.existsInProof(tmp)) return null;
 
                 return tmp;
             }
             case NDRule.MP: {
-                if (!other) return;
+                if (!other) return null;
 
                 // get the implication part
                 const otherTreeSimple: Node = other.tree!.simplify();
-                let leftSelected, rightSelected: Node | null = null;
-                let leftOther, rightOther: Node | null = null;
+                let leftSelected: Node | null = null;
+                let rightSelected: Node | null = null;
+                let leftOther: Node | null = null;
+                let  rightOther: Node | null = null;
 
                 if (rowTreeSimple.value === Operator.IMPLICATION) {
                     [leftSelected, rightSelected] = this.splitTree(rowTreeSimple);
@@ -429,11 +441,11 @@ export class DeductionProcessor {
                     res = rightOther;
                 }
 
-                if (!res) return;
+                if (!res) return null;
                 res = res.parenthesize();
 
                 const resString = Node.generateString(res);
-                if (!resString) return;
+                if (!resString) return null;
 
                 const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
@@ -442,20 +454,20 @@ export class DeductionProcessor {
                     value: resString
                 }
 
-                if (this.existsInProof(tmp)) return;
+                if (this.existsInProof(tmp)) return null;
 
                 return tmp;
             }
             case NDRule.IEQ: {
-                if (!other) return;
+                if (!other) return null;
 
                 // replace the top operator
                 const [left, right] = this.splitTree(rowTreeSimple);
                 const res = this.introduceOperator(left, right, Operator.EQUIVALENCE);
-                if (!res) return;
+                if (!res) return null;
 
                 const resString = Node.generateString(res);
-                if (!resString) return;
+                if (!resString) return null;
 
                 const tmp: TreeRuleType = {
                     line: get(solverContent).proof.length + 1,
@@ -464,7 +476,7 @@ export class DeductionProcessor {
                     value: resString
                 };
 
-                if (this.existsInProof(tmp)) return;
+                if (this.existsInProof(tmp)) return null;
 
                 return tmp;
             }
@@ -473,11 +485,11 @@ export class DeductionProcessor {
 
                 let res1 = this.introduceOperator(left, right, Operator.IMPLICATION);
                 let res2 = this.introduceOperator(right, left, Operator.IMPLICATION);
-                if (!res1 || !res2) return;
+                if (!res1 || !res2) return null;
 
                 const resString1 = Node.generateString(res1);
                 const resString2 = Node.generateString(res2);
-                if (!resString1 || !resString2) return;
+                if (!resString1 || !resString2) return null;
 
                 const result: TreeRuleType[] = [];
                 let lineOffset = 1;
@@ -506,6 +518,10 @@ export class DeductionProcessor {
 
                 return result;
             }
+
+            default:
+                alert("Cannot apply unknown rule");
+                return null;
         }
     }
 

@@ -3,7 +3,17 @@ import {Operator} from "../syntax-checker/Operator";
 import {DeductionProcessor} from "./parsers/DeductionProcessor";
 import {NodeType} from "../syntax-checker/NodeType";
 
+/**
+ * Class that compares two formulas to check if they are equivalent
+ * It compares the strings and the trees of the formulas
+ */
 export class FormulaComparer {
+    /**
+     * Compares two formulas to check if they are equivalent
+     * @param f1 - the first formula
+     * @param f2 - the second formula
+     * @returns true if the formulas are equivalent, false otherwise
+     */
     public static compare(f1: TreeRuleType, f2: TreeRuleType): boolean {
         // if they are the same, return true
         if (f1.value === f2.value) {

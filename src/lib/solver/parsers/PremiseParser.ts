@@ -2,7 +2,17 @@ import {PrattParser} from "../../syntax-checker/PrattParser";
 import type {TreeRuleType} from "../../../types/TreeRuleType";
 import type {AppliedRule} from "../../../types/AppliedRule";
 
+/**
+ * This class is responsible for parsing the premises
+ */
 export class PremiseParser {
+    /**
+     * Parses the premise using the PrattParser
+     * @param premise - the premise to parse
+     * @param line - the line number
+     * @param rule - the rule that was applied
+     * @returns the parsed premise
+     */
     static parsePremise(premise: string, line: number, rule: AppliedRule): TreeRuleType {
         // construct the return object
         const tmp: TreeRuleType = {

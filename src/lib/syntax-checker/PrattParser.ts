@@ -24,25 +24,37 @@ import {Node} from "./Node"
 import {NodeType} from "./NodeType";
 import {Operator} from "./Operator";
 
-
+/**
+ * Precedence table for operators
+ */
 const PRECEDENCE: { [key: string]: number } = {
-    "=": 1,
+    // "=": 1,
     "≡": 1,
-    ">": 2,
+    // ">": 2,
     "⊃": 2,
-    "|": 3,
+    // "|": 3,
     "∨": 3,
-    "&": 4,
+    // "&": 4,
     "∧": 4,
-    "!": 5,
+    // "!": 5,
     "¬": 5,
 };
 
 const THROW_ERRORS = false;
 
+/**
+ * PrattParser class
+ * This class is used to parse a formula using the Pratt parsing algorithm
+ * The algorithm is based on the precedence of the operators
+ */
 export class PrattParser {
     private tokenStream!: TokenStream;
 
+    /**
+     * Parse a formula
+     * @param formula - the formula to parse
+     * @returns the root of the parsed tree
+     */
     parse(formula: string): Node | null {
         this.tokenStream = new TokenStream(formula);
         const tree = this.parseExpression(0);
@@ -59,6 +71,12 @@ export class PrattParser {
         return tree;
     }
 
+    /**
+     * Parse an expression with a given precedence
+     * @param precedence - the precedence of the current operator
+     * @returns the parsed node or null if the expression is not valid
+     * @private
+     */
     private parseExpression(precedence: number): Node | null {
         let left = this.parseToken();
 
@@ -73,11 +91,15 @@ export class PrattParser {
         return left;
     }
 
+    /**
+     * Parse a token
+     * @returns the parsed node or null if the token is not recognized
+     * @private
+     */
     private parseToken(): Node | null {
         const token = this.tokenStream.current();
         const beforeToken = this.tokenStream.save();
         this.tokenStream.advance();
-        // let savedIndex = this.tokenStream.save();
 
         if (!token) return null;
 
@@ -141,7 +163,8 @@ export class PrattParser {
             return null;
         }
 
-        if (["@", "?", "∀", "∃"].includes(token)) {
+        // if (["@", "?", "∀", "∃"].includes(token)) {
+        if (["∀", "∃"].includes(token)) {
             const node = new Node(NodeType.QUANTIFIER);
             node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, token));
 
@@ -168,7 +191,8 @@ export class PrattParser {
             return node;
         }
 
-        if (["!", "¬"].includes(token)) {
+        // if (["!", "¬"].includes(token)) {
+        if (["¬"].includes(token)) {
             const right = this.parseExpression(PRECEDENCE[token]);
             const node = new Node(NodeType.NEGATION, token);
             node.children.push(right!);
@@ -213,6 +237,13 @@ export class PrattParser {
         // throw new Error(`Unexpected token: ${token}`);
     }
 
+    /**
+     * Parse a token that is a led (left denotation)
+     * @param operator - the operator
+     * @param left - the left node
+     * @returns the parsed node or null if the token is not recognized
+     * @private
+     */
     private parseLed(operator: string, left: Node): Node | null {
         const precedence = PRECEDENCE[operator] || 0;
 
@@ -240,6 +271,11 @@ export class PrattParser {
         return null;
     }
 
+    /**
+     * Parse a term list
+     * @returns the parsed node or null if the term list is not valid
+     * @private
+     */
     private parseTermList(): Node | null {
         const node = new Node(NodeType.TERM_LIST);
 
@@ -269,6 +305,11 @@ export class PrattParser {
         return node;
     }
 
+    /**
+     * Parse a variable
+     * @returns the parsed node or null if the variable is not valid
+     * @private
+     */
     private parseVariable(): Node | null {
         const token = this.tokenStream.current();
 
@@ -280,6 +321,11 @@ export class PrattParser {
         return null;
     }
 
+    /**
+     * Get the precedence of the current token
+     * @returns the precedence of the current token
+     * @private
+     */
     private getPrecedence(): number {
         const token = this.tokenStream.current();
         if (!token) return 0;

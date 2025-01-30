@@ -3,27 +3,49 @@ import {NodeType} from "./NodeType";
 
 /**
  * Node class that represents a node in the abstract syntax tree
- *
+ * @property {NodeType} type - the type of the node
+ * @property {Operator | string} value - the value of the node
+ * @property {Array<Node>} children - the children of the node
  */
 export class Node {
     type: NodeType;
     value?: Operator | string;
     children: Array<Node>;
 
+    /**
+     * Constructor for the Node class
+     * @param type - the type of the node
+     * @param value - the value of the node
+     * @constructor
+     */
     constructor(type: NodeType, value?: Operator | string) {
         this.type = type;
         this.value = value;
         this.children = [];
     }
 
+    /**
+     * Sets the children of the node
+     * @param children - the children to set
+     */
     setChildren(children: Node[]) {
         this.children = children;
     }
 
+    /**
+     * Add a child to the node
+     * @param child - the child to add
+     */
     addChild(child: Node) {
         this.children.push(child);
     }
 
+    /**
+     * Prints the node and its children in a tree-like structure
+     * @param node - the node to print
+     * @param indent - the indentation string
+     * @param last - whether the node is the last child
+     */
     private internalPrint(node: Node, indent: string, last: boolean) {
         const value = node.value ? `${node.value}` : `${node.type}`;
 
@@ -35,10 +57,18 @@ export class Node {
         }
     }
 
+    /**
+     * Prints the node and its children in a tree-like structure
+     */
     print() {
         this.internalPrint(this, "", true);
     }
 
+    /**
+     * Checks if the node is equal to another node
+     * @param other - the other node to compare
+     * @returns {boolean} true if the nodes are equal
+     */
     equals(other: Node): boolean {
         // same object
         if (this === other) return true;
@@ -55,18 +85,27 @@ export class Node {
         // different number of children
         if ((this.children || []).length !== (other.children || []).length) return false;
 
+        // recursively check children
         return (this.children || []).every((child: any, index: number) =>
             child.equals(other.children[index])
         );
     }
 
+    /**
+     * Generates a string representation of the node
+     * @param node - the node to generate the string for
+     * @returns {string} the string representation of the node
+     */
     static generateString(node: Node): string {
+        // if the node has no children, return the value or type
         if (node.children.length === 0) {
             return node.value ? `${node.value}` : `${node.type}`;
         }
 
+        // generate the string for each child
         const childrenStrings = node.children.map(child => this.generateString(child));
 
+        // generate the string based on the node type
         switch (node.type) {
             case NodeType.BINARY_OPERATION:
                 return `${childrenStrings.join(` ${node.value} `)}`;
@@ -89,7 +128,7 @@ export class Node {
     }
 
     /**
-     * Recursive function that applies parentheses around the node
+     * Recursive method that applies parentheses around the node
      * @returns {Node} the node with parentheses
      */
     public parenthesize(): Node {

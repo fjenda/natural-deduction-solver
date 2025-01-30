@@ -4,6 +4,10 @@ import {solverBackup, solverContent} from "./solverStore";
 import {editState} from "./stateStore";
 import {EditState} from "../types/EditState";
 
+/**
+ * The theorems store.
+ * This store is used to store the theorems that the user has saved.
+ */
 export const theorems = function () {
     const {set, update, subscribe} = writable<Solution[]>([]);
 
@@ -19,8 +23,15 @@ export const theorems = function () {
     }
 }();
 
+/**
+ * The selected theorem store.
+ * This store is used to store the index of the theorem that the user has selected.
+ */
 export const selectedTheorem = writable<number>(-1);
 
+/**
+ * Add a new theorem to the theorems store.
+ */
 export const saveTheorem = (index: number): void => {
     theorems.update((theorems: Solution[]) => {
         if (get(solverContent).name === "") {
@@ -36,6 +47,9 @@ export const saveTheorem = (index: number): void => {
     editState.set(EditState.SOLVER);
 }
 
+/**
+ * Edit a theorem from the theorems store.
+ */
 export const editTheorem = (index: number): void => {
     solverBackup.set(get(solverContent));
     solverContent.set(get(theorems)[index]);
@@ -43,6 +57,9 @@ export const editTheorem = (index: number): void => {
     editState.set(EditState.THEOREM);
 }
 
+/**
+ * Remove a theorem from the theorems store.
+ */
 export const removeTheorem = (index: number): void => {
     theorems.update(theorems => theorems.filter((_, i) => i !== index));
 

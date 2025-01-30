@@ -8,7 +8,19 @@ import {FormulaComparer} from "../FormulaComparer";
 import {solverContent} from "../../../stores/solverStore";
 import {Node} from "../../syntax-checker/Node";
 
+/**
+ * The FormulaParser class is used to parse a formula and check if it is valid
+ * It also checks if the formula is a valid application of a deduction rule
+ * If the formula is valid, it returns the formula and the rule that was applied
+ * If the formula is not valid, it returns the formula and the unknown rule
+ */
 export class FormulaParser {
+    /**
+     * Parses a formula and checks if it is a valid application of a deduction rule
+     * @param formula - the formula to parse
+     * @param line - the line number of the formula
+     * @param rule - the rule that was applied to the formula
+     */
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
         // checks the syntax of the formula
         let parser = new PrattParser();
@@ -33,7 +45,9 @@ export class FormulaParser {
 
         // TODO: assumptions will get added automatically, conclusion i don't know yet
         // TODO: handle the case when we are proving the negation of the conclusion
-        if (rule === "ASS") return tmp;
+        if (rule === "ASS") {
+            return tmp;
+        }
 
         if (rule === "CONC") {
             tmp.rule = { rule: NDRule.CONC };

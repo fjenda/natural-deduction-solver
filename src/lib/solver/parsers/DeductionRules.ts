@@ -1,5 +1,9 @@
 import {Operator} from "../../syntax-checker/Operator";
 
+/**
+ * Natural Deduction Rules
+ * Enums for the deduction rules
+ */
 export enum NDRule {
     // Propositional Logic
     ICON = 'IC', // Introduction of Conjunction
@@ -22,6 +26,15 @@ export enum NDRule {
     CONC = 'CONC',
 }
 
+/**
+ * Class representing a deduction rule
+ * @property {NDRule} short - abbreviation of the rule
+ * @property {string} title - title of the rule
+ * @property {Operator} operation - the operator that the rule uses
+ * @property {number} inputSize - number of inputs
+ * @property {number} outputSize - number of outputs
+ * @property {string} detail - the detail that is shown when hovering over the rule
+ */
 export class DeductionRule {
     short: NDRule;
     title: string;
@@ -30,7 +43,16 @@ export class DeductionRule {
     outputSize: number;
     detail: string;
 
-    // constructor(short: DeductionRuleEnum, title: string, fn: (node: Node) => Node | null) {
+    /**
+     * Constructor of the DeductionRule object
+     * @param short - abbreviation of the rule title
+     * @param title - title of the rule
+     * @param operation - the operator that the rule uses
+     * @param inputSize - number of inputs
+     * @param outputSize - number of outputs
+     * @param detail - the detail that is shown when hovering over the rule
+     * @constructor
+     */
     constructor(
         short: NDRule,
         title: string,
@@ -179,6 +201,10 @@ export class DeductionRule {
         // DeductionRule.EEX,
     ];
 
+    /**
+     * Get the rule based on the abbreviation
+     * @param short - abbreviation of the rule
+     */
     public static getRule(short: string): DeductionRule {
         return DeductionRule.rules.find((rule) => rule.short === short) || DeductionRule.UNKNOWN;
     }
