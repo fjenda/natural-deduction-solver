@@ -284,7 +284,7 @@
                     </button>
                 {/if}
             {/if}
-            {#if $editState === EditState.SOLVER}
+            <!--{#if $editState === EditState.SOLVER}-->
                 <PremiseInput
                     placeholder="Conclusion"
                     bind:value="{$solverContent.conclusion}"
@@ -292,7 +292,7 @@
                     index={$solverContent.premises.length + 1}
                     disabled={solving}
                 />
-            {/if}
+            <!--{/if}-->
 
             <div class="button-wrapper">
                 {#if solving}

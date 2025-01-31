@@ -139,4 +139,9 @@
     .wrapper:focus-within input {
         border-radius: 0.5rem 0.5rem 0 0.5rem;
     }
+
+    input[disabled] {
+        /*background-color: #121212;*/
+        color: inherit;
+    }
 </style>

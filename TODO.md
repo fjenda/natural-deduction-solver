@@ -40,6 +40,7 @@
     - [x] Let the user reset the solving and update the premises
     - [x] They can always reset the solving, or create a new problem to solve
     - [x] Button to check the final solution
+- [ ] After clicking a button to start solving make the user choose if they want to solve using indirect proof or direct proof
 - [ ] Theorems
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
@@ -47,4 +48,4 @@
 - [ ] Documentation
   - [x] Add a README.md
   - [ ] Add a LICENSE
-  - [ ] Comment the code 
+  - [x] Comment the code 

@@ -28,15 +28,10 @@ import {Operator} from "./Operator";
  * Precedence table for operators
  */
 const PRECEDENCE: { [key: string]: number } = {
-    // "=": 1,
     "≡": 1,
-    // ">": 2,
     "⊃": 2,
-    // "|": 3,
     "∨": 3,
-    // "&": 4,
     "∧": 4,
-    // "!": 5,
     "¬": 5,
 };
 
@@ -162,8 +157,7 @@ export class PrattParser {
 
             return null;
         }
-
-        // if (["@", "?", "∀", "∃"].includes(token)) {
+        
         if (["∀", "∃"].includes(token)) {
             const node = new Node(NodeType.QUANTIFIER);
             node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, token));
@@ -191,7 +185,6 @@ export class PrattParser {
             return node;
         }
 
-        // if (["!", "¬"].includes(token)) {
         if (["¬"].includes(token)) {
             const right = this.parseExpression(PRECEDENCE[token]);
             const node = new Node(NodeType.NEGATION, token);

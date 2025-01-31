@@ -72,8 +72,6 @@
                     row.formula = $solverContent.proof[i].value;
                     row.rule = $solverContent.proof[i].rule;
                     row.editable = false;
-
-                    console.log($solverContent.proof[i]);
                 }}
                 onEdit={() => {
                     // remove the row from the proof
