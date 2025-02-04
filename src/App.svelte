@@ -21,7 +21,6 @@
     import {DeductionProcessor} from "./lib/solver/parsers/DeductionProcessor";
     import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import {Node} from "./lib/syntax-checker/Node";
     import {FormulaComparer} from "./lib/solver/FormulaComparer";
     import type {TreeRuleType} from "./types/TreeRuleType";
 
@@ -42,60 +41,12 @@
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
 
-    let lastPremises: string[] = [];
-    // $: if ($solverContent.premises) {
-    //     // add premises to the proof
-    //     $solverContent.premises.forEach((premise, i) => {
-    //         onChangePremise(premise.value, i);
-    //     });
-    //
-    //     // remove the rest
-    //     const from = $solverContent.premises.length;
-    //     const amount = lastPremises.length - from;
-    //     lastPremises.splice(from - 1, amount);
-    //     $solverContent.proof.splice(from - 1, amount);
-    // }
-
     function onChangePremise(value: string, index: number) {
-        // if unchanged, return
-        if (lastPremises[index] === value) return;
-
-        // parse the premise into ParsedExpression
-        const res = PremiseParser.parsePremise(value);
-        $solverContent.premises[index] = res;
-
-        // optimize parentheses
-        const tree = res.tree?.simplify().parenthesize();
-        if (!tree) return;
-
-        // update proof
-        $solverContent.proof[index] = {
-            line: index + 1,
-            tree: tree,
-            value: Node.generateString(tree),
-            rule: {rule: NDRule.ASS},
-        };
-
-        // update lastPremises
-        lastPremises[index] = value;
-
-        // remove old premises
-        removeOldPremises();
+        $solverContent.premises[index] = PremiseParser.parsePremise(value);
     }
 
-    // TODO: We will need to add the conclusion to the proof as well if we're using indirect proof
     function onChangeConclusion(value: string, index: number) {
         $solverContent.conclusion = PremiseParser.parsePremise(value);
-    }
-
-    function removeOldPremises() {
-        const from = $solverContent.premises.length;
-        const amount = lastPremises.length - from;
-        lastPremises.splice(from - 1, amount);
-        // $solverContent.proof.splice(from - 1, amount);
-
-        console.log(lastPremises);
-        console.log($solverContent.proof);
     }
 
     function addTheorem() {
@@ -142,9 +93,15 @@
             return;
         }
 
+        // if the number of selected rows is equal to the number of rows needed for the rule
+        if (selected.length === rule.inputSize) {
+            applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
+            return;
+        }
+
         // if the number of selected rows is not equal to the number of rows needed for the rule
         // display modal and make the user select the row there
-        if (rule.short === NDRule.IDIS && selected.length < rule.inputSize) {
+        if (rule.short === NDRule.IDIS) {
             setConfirmButtonAction(() => {
                 // parse the input formula
                 const formula = PremiseParser.parsePremise(modalInput.value);
@@ -160,32 +117,16 @@
                     rule: { rule: NDRule.UNKNOWN },
                 };
 
-                const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], tmp);
-                if (!result) return;
-
-                solverContent.update(sc => {
-                    if (Array.isArray(result)) {
-                        // sc.proof[result[0].line - 1] = result[0];
-                        for (const res of result) {
-                            sc.proof[res.line - 1] = res;
-                        }
-                    } else {
-                        sc.proof[result.line - 1] = result;
-                    }
-
-                    return sc;
-                });
-
+                applyRule(rule.short, proof[selected[0] - 1], tmp);
                 modalInput.value = "";
                 showModal = false;
-                selectedRows.set([]);
             });
 
             modalContent = "Write the formula to insert into the disjunction";
             modalInput.placeholder = "Enter the formula";
             showModal = true;
             setTimeout(() => modalInput.focus(), 50);
-        } else if (selected.length < rule.inputSize) {
+        } else {
             setConfirmButtonAction(() => {
                 // get the value from the input
                 const other = parseInt(modalInput.value);
@@ -203,21 +144,8 @@
                 }
 
                 const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
-                if (highlighted.includes(other)) {
-                    const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
-                    if (!result) return;
-
-                    solverContent.update(sc => {
-                        if (Array.isArray(result)) {
-                            for (const res of result) {
-                                sc.proof[res.line - 1] = res;
-                            }
-                        } else {
-                            sc.proof[result.line - 1] = result;
-                        }
-
-                        return sc;
-                    });
+                if (highlightedProof && highlighted.includes(other)) {
+                    applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
                 }
 
                 modalInput.value = "";
@@ -228,30 +156,33 @@
             modalContent = "Select the second row with which to execute the rule";
             showModal = true;
             setTimeout(() => modalInput.focus(), 50);
-        } else {
-            // if the number of selected rows is equal to the number of rows needed for the rule
-            const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
-            if (!result) return;
-
-            solverContent.update(sc => {
-                if (Array.isArray(result)) {
-                    for (const res of result) {
-                        sc.proof[res.line - 1] = res;
-                    }
-                } else {
-                    sc.proof[result.line - 1] = result;
-                }
-
-                return sc;
-            });
-
-            selectedRows.set([]);
-            // console.log($solverContent.proof);
         }
+    }
+
+    function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType) {
+        const result = DeductionProcessor.applyRule(short, row1, row2);
+        if (!result) return;
+
+        solverContent.update(sc => {
+            if (Array.isArray(result)) {
+                for (const res of result) {
+                    sc.proof[res.line - 1] = res;
+                }
+            } else {
+                sc.proof[result.line - 1] = result;
+            }
+
+            return sc;
+        });
+
+        selectedRows.set([]);
     }
 
     let solving: boolean = false;
     function startSolver() {
+        console.log($solverContent.proof);
+
+
         // check if premises in proof are all valid
         for (let i = 0; i < $solverContent.premises.length; i++) {
             if (!$solverContent.proof[i].tree) {
@@ -266,7 +197,6 @@
 
     function resetSolving() {
         solving = false;
-        lastPremises = [];
         solverContent.update(sc => {
             sc.proof = [];
             return sc;
