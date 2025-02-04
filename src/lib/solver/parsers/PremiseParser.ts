@@ -1,6 +1,6 @@
 import {PrattParser} from "../../syntax-checker/PrattParser";
-import type {TreeRuleType} from "../../../types/TreeRuleType";
-import type {AppliedRule} from "../../../types/AppliedRule";
+import {Node} from "../../syntax-checker/Node";
+import type {ParsedExpression} from "../../../types/ParsedExpression";
 
 /**
  * This class is responsible for parsing the premises
@@ -9,18 +9,14 @@ export class PremiseParser {
     /**
      * Parses the premise using the PrattParser
      * @param premise - the premise to parse
-     * @param line - the line number
-     * @param rule - the rule that was applied
      * @returns the parsed premise
      */
-    static parsePremise(premise: string, line: number, rule: AppliedRule): TreeRuleType {
+    static parsePremise(premise: string): ParsedExpression {
         // construct the return object
-        const tmp: TreeRuleType = {
-            line: line,
+        const tmp: ParsedExpression = {
             tree: null,
-            rule: rule,
             value: premise,
-        }
+        };
 
         // if the premise is empty, return the object
         if (premise === '') {
@@ -38,8 +34,13 @@ export class PremiseParser {
         if (!res) return tmp;
         // res.print();
 
+        const tree = res.simplify().parenthesize();
+
         // set the tree
-        tmp.tree = res;
+        tmp.tree = tree;
+        tmp.value = Node.generateString(tree);
+        // console.log(tmp);
+
         return tmp;
     }
 }

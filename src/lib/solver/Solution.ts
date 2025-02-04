@@ -1,4 +1,5 @@
 import type {TreeRuleType} from "../../types/TreeRuleType";
+import type {ParsedExpression} from "../../types/ParsedExpression";
 
 /**
  * Solution class
@@ -11,8 +12,8 @@ import type {TreeRuleType} from "../../types/TreeRuleType";
  */
 export class Solution {
     name: string = "";
-    premises: string[] = [""];
-    conclusion: string = "";
+    premises: ParsedExpression[] = [];
+    conclusion: ParsedExpression = { value: "", tree: null };
     proof: TreeRuleType[] = [];
 
     /**

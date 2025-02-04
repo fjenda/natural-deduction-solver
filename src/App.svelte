@@ -23,6 +23,7 @@
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import {Node} from "./lib/syntax-checker/Node";
     import {FormulaComparer} from "./lib/solver/FormulaComparer";
+    import type {TreeRuleType} from "./types/TreeRuleType";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -31,40 +32,71 @@
     // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
 
-    $solverContent.premises = ["a", "¬a"];
-    $solverContent.conclusion = "b";
+    $solverContent.premises = [
+        { value: "a", tree: null },
+        { value: "¬a", tree: null }
+    ];
+    $solverContent.conclusion = { value: "b", tree: null };
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
 
-    // reactive statement if $solverContent.premises change
     let lastPremises: string[] = [];
-    $: if ($solverContent.premises) {
-        // add premises to the proof
-        $solverContent.premises.forEach((premise, i) => {
-            if (lastPremises[i] === premise) return;
+    // $: if ($solverContent.premises) {
+    //     // add premises to the proof
+    //     $solverContent.premises.forEach((premise, i) => {
+    //         onChangePremise(premise.value, i);
+    //     });
+    //
+    //     // remove the rest
+    //     const from = $solverContent.premises.length;
+    //     const amount = lastPremises.length - from;
+    //     lastPremises.splice(from - 1, amount);
+    //     $solverContent.proof.splice(from - 1, amount);
+    // }
 
-            // parse the premise into a TreeRuleType object
-            const res = PremiseParser.parsePremise(premise, i + 1, { rule: NDRule.ASS });
-            const tree = res.tree?.simplify()?.parenthesize();
-            if (!tree) return;
+    function onChangePremise(value: string, index: number) {
+        // if unchanged, return
+        if (lastPremises[index] === value) return;
 
-            res.tree = tree;
-            res.value = Node.generateString(tree);
+        // parse the premise into ParsedExpression
+        const res = PremiseParser.parsePremise(value);
+        $solverContent.premises[index] = res;
 
-            $solverContent.proof[i] = res;
-            lastPremises[i] = premise;
-        });
+        // optimize parentheses
+        const tree = res.tree?.simplify().parenthesize();
+        if (!tree) return;
 
-        // remove the rest
+        // update proof
+        $solverContent.proof[index] = {
+            line: index + 1,
+            tree: tree,
+            value: Node.generateString(tree),
+            rule: {rule: NDRule.ASS},
+        };
+
+        // update lastPremises
+        lastPremises[index] = value;
+
+        // remove old premises
+        removeOldPremises();
+    }
+
+    // TODO: We will need to add the conclusion to the proof as well if we're using indirect proof
+    function onChangeConclusion(value: string, index: number) {
+        $solverContent.conclusion = PremiseParser.parsePremise(value);
+    }
+
+    function removeOldPremises() {
         const from = $solverContent.premises.length;
         const amount = lastPremises.length - from;
         lastPremises.splice(from - 1, amount);
-        $solverContent.proof.splice(from - 1, amount);
-    }
+        // $solverContent.proof.splice(from - 1, amount);
 
-    $: parsedConclusion = PremiseParser.parsePremise($solverContent.conclusion, -1, { rule: NDRule.UNKNOWN });
+        console.log(lastPremises);
+        console.log($solverContent.proof);
+    }
 
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
@@ -115,13 +147,20 @@
         if (rule.short === NDRule.IDIS && selected.length < rule.inputSize) {
             setConfirmButtonAction(() => {
                 // parse the input formula
-                const formula = PremiseParser.parsePremise(modalInput.value, -1, { rule: NDRule.UNKNOWN });
+                const formula = PremiseParser.parsePremise(modalInput.value);
                 if (!formula.tree) {
                     alert("Invalid formula");
                     return;
                 }
 
-                const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], formula);
+                const tmp: TreeRuleType = {
+                    line: -1,
+                    tree: formula.tree,
+                    value: formula.value,
+                    rule: { rule: NDRule.UNKNOWN },
+                };
+
+                const result = DeductionProcessor.applyRule(rule.short, proof[selected[0] - 1], tmp);
                 if (!result) return;
 
                 solverContent.update(sc => {
@@ -237,7 +276,7 @@
     function checkProof() {
         // check if proof contains a valid row with the conclusion
         const proof = get(solverContent).proof;
-        const exists = proof.filter(p => p.tree && p.rule.rule !== NDRule.UNKNOWN).findIndex(p => FormulaComparer.compare(p, parsedConclusion)) !== -1;
+        const exists = proof.filter(p => p.tree && p.rule.rule !== NDRule.UNKNOWN).findIndex(p => FormulaComparer.compare(p, $solverContent.conclusion)) !== -1;
 
         if (!exists) {
             alert("Proof does not contain a valid row with the conclusion");
@@ -267,9 +306,10 @@
                     <PremiseInputRow index="{i}">
                         <PremiseInput
                             placeholder="Premise {i + 1}"
-                            bind:value="{$solverContent.premises[i]}"
-                            error="{!$solverContent.proof[i]}"
+                            bind:value="{$solverContent.premises[i].value}"
+                            error="{!$solverContent.premises[i].tree}"
                             index={i}
+                            onChange={() => onChangePremise($solverContent.premises[i].value, i)}
                         />
                     </PremiseInputRow>
                 {/each}
@@ -284,15 +324,16 @@
                     </button>
                 {/if}
             {/if}
-            <!--{#if $editState === EditState.SOLVER}-->
+            {#if $editState === EditState.SOLVER}
                 <PremiseInput
                     placeholder="Conclusion"
-                    bind:value="{$solverContent.conclusion}"
-                    error="{!parsedConclusion.tree}"
+                    bind:value="{$solverContent.conclusion.value}"
+                    error="{!$solverContent.conclusion.tree}"
                     index={$solverContent.premises.length + 1}
+                    onChange={() => onChangeConclusion($solverContent.conclusion.value, $solverContent.premises.length + 1)}
                     disabled={solving}
                 />
-            <!--{/if}-->
+            {/if}
 
             <div class="button-wrapper">
                 {#if solving}

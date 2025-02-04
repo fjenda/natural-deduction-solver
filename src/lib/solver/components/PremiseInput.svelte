@@ -6,6 +6,7 @@
     export let error: boolean = false;
     export let index: number;
     export let disabled: boolean = false;
+    export let onChange: (value: string, index: number) => void;
     let inputElement: HTMLInputElement;
 
     let hint: string = "" +
@@ -58,6 +59,7 @@
         class:error={error}
         on:change={() => {
             value = PrettySyntaxer.clean(value ?? "");
+            onChange(value ?? "", index);
         }}
         tabindex="{index + 1}"
     />
@@ -79,7 +81,7 @@
     }
 
     input.error {
-        background-color: #df7171;
+        border-color: #ff0000;
     }
 
     .operator-input {

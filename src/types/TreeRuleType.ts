@@ -10,7 +10,7 @@ import type {AppliedRule} from "./AppliedRule";
  * @param value: string - the value of the rule
  */
 export type TreeRuleType = {
-    line: number,
+    line: number;
     tree: Node | null;
     rule: AppliedRule;
     value: string;

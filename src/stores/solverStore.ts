@@ -25,7 +25,7 @@ export const solverContent = function () {
  */
 export const addPremise = () => {
     solverContent.update(content => {
-        content.premises = [...content.premises, ""];
+        content.premises = [...content.premises, { value: "", tree: null }];
         return content;
     });
 }

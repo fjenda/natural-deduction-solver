@@ -1,7 +1,5 @@
 import type {TreeRuleType} from "../../types/TreeRuleType";
-import {Operator} from "../syntax-checker/Operator";
-import {DeductionProcessor} from "./parsers/DeductionProcessor";
-import {NodeType} from "../syntax-checker/NodeType";
+import type {ParsedExpression} from "../../types/ParsedExpression";
 
 /**
  * Class that compares two formulas to check if they are equivalent
@@ -14,7 +12,7 @@ export class FormulaComparer {
      * @param f2 - the second formula
      * @returns true if the formulas are equivalent, false otherwise
      */
-    public static compare(f1: TreeRuleType, f2: TreeRuleType): boolean {
+    public static compare(f1: TreeRuleType, f2: TreeRuleType | ParsedExpression): boolean {
         // if they are the same, return true
         if (f1.value === f2.value) {
             return true;
@@ -33,15 +31,16 @@ export class FormulaComparer {
         const tree1 = f1.tree.simplify();
         const tree2 = f2.tree.simplify();
 
+        // TODO: Fact check this, I don't think it's true
         // equivalence is commutative, so we check if the trees are equal
         // when we swap the children of the equivalence operator
-        if (tree1.type === NodeType.BINARY_OPERATION && tree1.value === Operator.EQUIVALENCE) {
-            const [left1, right1] = tree1.children;
-            const swapped1 = DeductionProcessor.introduceOperator(right1, left1, Operator.EQUIVALENCE)?.simplify();
-            if (swapped1?.equals(tree2)) {
-                return true;
-            }
-        }
+        // if (tree1.type === NodeType.BINARY_OPERATION && tree1.value === Operator.EQUIVALENCE) {
+        //     const [left1, right1] = tree1.children;
+        //     const swapped1 = DeductionProcessor.introduceOperator(right1, left1, Operator.EQUIVALENCE)?.simplify();
+        //     if (swapped1?.equals(tree2)) {
+        //         return true;
+        //     }
+        // }
 
         // if they are the same, but one lacks the structure of the parentheses, for example:
         // `a ∧ b ⊃ c ∨ d` is the same as `((a ∧ b) ⊃ (c ∨ d))`

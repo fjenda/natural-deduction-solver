@@ -131,9 +131,15 @@ export class Node {
      * Recursive method that applies parentheses around the node
      * @returns {Node} the node with parentheses
      */
-    public parenthesize(): Node {
+    public parenthesize(first: boolean = true): Node {
+        // if there's only one, and it's either conjunction or disjunction, don't parenthesize it
+        const ops = this.operators();
+        if (first && ops.size <= 1 && (ops.has(Operator.CONJUNCTION) || ops.has(Operator.DISJUNCTION))) {
+            return this;
+        }
+
         // parenthesize the children recrusively
-        this.children = this.children.map(child => child.parenthesize());
+        this.children = this.children.map(child => child.parenthesize(false));
 
         // don't wrap the node if it's one of the following types:
         // - variable, constant, negation block, parentheses block
@@ -146,7 +152,8 @@ export class Node {
             return this;
         }
 
-        // parenthesize the node
+        // parenthesize the node if it's not the first one
+        if (first) return this;
         const par = new Node(NodeType.PARENTHESES_BLOCK);
         par.setChildren([new Node(NodeType.PARENTHESIS, Operator.LPAR), this, new Node(NodeType.PARENTHESIS, Operator.RPAR)]);
 
@@ -180,5 +187,22 @@ export class Node {
         return this.type === NodeType.NEGATION
             && this.children.length === 1
             && this.children[0].equals(other);
+    }
+
+    /**
+     * Returns all the operators used in the tree
+     * @private
+     */
+    private operators(): Set<Operator> {
+        if (this.children.length === 0) {
+            return new Set(this.type === NodeType.BINARY_OPERATION ? [this.value as Operator] : []);
+        }
+
+        const operators = new Set(this.type === NodeType.BINARY_OPERATION ? [this.value as Operator] : []);
+        this.children.forEach(child => {
+            child.operators().forEach(op => operators.add(op));
+        });
+
+        return operators;
     }
 }
