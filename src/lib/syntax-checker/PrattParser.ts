@@ -187,8 +187,16 @@ export class PrattParser {
 
         if (["¬"].includes(token)) {
             const right = this.parseExpression(PRECEDENCE[token]);
+            if (!right) {
+                if (THROW_ERRORS) {
+                    throw new Error("Expected right side of unary operation");
+                }
+
+                return null;
+            }
+
             const node = new Node(NodeType.NEGATION, token);
-            node.children.push(right!);
+            node.children.push(right);
 
             return node;
         }
