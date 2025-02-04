@@ -45,7 +45,10 @@
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
   - [ ] Add a way to save theorems
+  - [ ] Add a few default theorems
 - [ ] Documentation
   - [x] Add a README.md
   - [ ] Add a LICENSE
   - [x] Comment the code 
+- [x] Update parenthesizing logic to only include the necessary parentheses
+- [ ] Add a way to save the current state of the solver and load it later

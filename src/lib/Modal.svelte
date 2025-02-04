@@ -4,6 +4,7 @@
     export let show: boolean;
     export let content = '';
     export let buttons: ButtonContent[] = [];
+    export let header: string = "Modal Header";
 
     function handleKeyDown(event: KeyboardEvent) {
         if (event.key === 'Escape') {
@@ -27,7 +28,7 @@
 <div class="modal" class:hidden={!show}>
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Modal Header</h2>
+            <h2>{header}</h2>
         </div>
         <div class="modal-body">
             {@html content}
@@ -88,6 +89,9 @@
 
     .button-footer {
         width: 100%;
+        padding: 0.8rem;
+        font-size: 1.2rem;
+        text-wrap: nowrap;
     }
 
     @media screen and (prefers-color-scheme: light) {

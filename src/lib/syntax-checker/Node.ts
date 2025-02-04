@@ -205,4 +205,13 @@ export class Node {
 
         return operators;
     }
+
+    /**
+     * Negates the formula by wrapping it in parentheses and adding a negation operator
+     */
+    public negate(): Node {
+        const neg = new Node(NodeType.NEGATION, Operator.NEGATION);
+        neg.addChild(this.simplify().parenthesize(false));
+        return neg;
+    }
 }

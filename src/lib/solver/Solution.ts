@@ -19,10 +19,15 @@ export class Solution {
     /**
      * Constructor of the Solution class
      * @param {string} name - the name of the solution
+     * @param {ParsedExpression[]} premises - the premises of the solution
      * @constructor
      */
-    constructor(name: string) {
+    constructor(name: string, premises?: ParsedExpression[]) {
         this.name = name;
+
+        if (premises) {
+            this.premises = premises;
+        }
     }
 
     /**

@@ -309,6 +309,10 @@
             border: 1px solid var(--light-border-color);
         }
 
+        .row:hover {
+            background: var(--light-element-color);
+        }
+
         .row-input {
             border: 1px solid var(--light-border-color);
             color: var(--light-text-color);

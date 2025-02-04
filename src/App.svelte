@@ -23,6 +23,8 @@
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import {FormulaComparer} from "./lib/solver/FormulaComparer";
     import type {TreeRuleType} from "./types/TreeRuleType";
+    import {Node} from "./lib/syntax-checker/Node";
+    import {onMount} from "svelte";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -50,11 +52,12 @@
     }
 
     function addTheorem() {
-        theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem")]);
+        theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem", [{ value: "", tree: null }])]);
     }
 
     let modalInput: HTMLInputElement;
     let showModal = false;
+    let modalHeader = "Select row";
     let modalContent = "Select the second row with which to execute the rule";
     let modalButtons: ButtonContent[] = [
         {
@@ -71,8 +74,9 @@
         }
     ];
 
-    function setConfirmButtonAction(action: () => void) {
-        modalButtons[0].action = action;
+    function setModalButton(index: number, text: string, action: () => void) {
+        modalButtons[index].text = text;
+        modalButtons[index].action = action;
     }
 
     // TODO: decide if we want to keep the alerts, could be slowing the user down.
@@ -102,7 +106,7 @@
         // if the number of selected rows is not equal to the number of rows needed for the rule
         // display modal and make the user select the row there
         if (rule.short === NDRule.IDIS) {
-            setConfirmButtonAction(() => {
+            setModalButton(0, "Confirm", () => {
                 // parse the input formula
                 const formula = PremiseParser.parsePremise(modalInput.value);
                 if (!formula.tree) {
@@ -122,12 +126,18 @@
                 showModal = false;
             });
 
+            setModalButton(1, "Cancel", () => {
+                modalInput.value = "";
+                showModal = false;
+            });
+
+            modalHeader = "Insert formula";
             modalContent = "Write the formula to insert into the disjunction";
             modalInput.placeholder = "Enter the formula";
             showModal = true;
             setTimeout(() => modalInput.focus(), 50);
         } else {
-            setConfirmButtonAction(() => {
+            setModalButton(0, "Confirm", () => {
                 // get the value from the input
                 const other = parseInt(modalInput.value);
 
@@ -153,6 +163,12 @@
                 selectedRows.set([]);
             });
 
+            setModalButton(1, "Cancel", () => {
+                modalInput.value = "";
+                showModal = false;
+            });
+
+            modalHeader = "Select row";
             modalContent = "Select the second row with which to execute the rule";
             showModal = true;
             setTimeout(() => modalInput.focus(), 50);
@@ -178,10 +194,13 @@
         selectedRows.set([]);
     }
 
-    let solving: boolean = false;
-    function startSolver() {
-        console.log($solverContent.proof);
-
+    // Adds all existing premises to the proof and checks if they are valid
+    function initializeProof() {
+        // add the premises to the proof
+        solverContent.update(sc => {
+            sc.proof = sc.premises.map(((p, i) => ({ line: i + 1, tree: p.tree, value: p.value, rule: { rule: NDRule.ASS } })));
+            return sc;
+        })
 
         // check if premises in proof are all valid
         for (let i = 0; i < $solverContent.premises.length; i++) {
@@ -190,13 +209,56 @@
                 return;
             }
         }
+    }
 
-        // start the solver
-        solving = true;
+    let solving: boolean = false;
+    let showConclusionSelect: boolean = false;
+    function startSolver() {
+        // if the conclusion is invalid, return
+        if (!$solverContent.conclusion.tree) {
+            alert("Conclusion is not valid");
+            return;
+        }
+
+        setModalButton(0, "Direct Proof", () => {
+            // init proof with premises
+            initializeProof();
+
+            // nothing else to do
+
+            // start the solver
+            showConclusionSelect = false;
+            solving = true;
+        });
+
+        setModalButton(1, "Indirect Proof", () => {
+            // init proof with premises
+            initializeProof()
+
+            // add the negated conclusion to the proof
+            const neg: Node = $solverContent.conclusion.tree.negate();
+            solverContent.update(sc => {
+                sc.proof.push({
+                    line: sc.proof.length + 1,
+                    tree: neg,
+                    value: Node.generateString(neg),
+                    rule: {rule: NDRule.CONC},
+                });
+
+                return sc;
+            });
+
+            // start the solver
+            showConclusionSelect = false
+            solving = true;
+        });
+
+        showConclusionSelect = true;
     }
 
     function resetSolving() {
         solving = false;
+        selectedRows.set([]);
         solverContent.update(sc => {
             sc.proof = [];
             return sc;
@@ -215,10 +277,19 @@
 
         alert("Proof is correct");
     }
+
+    onMount(() => {
+        // call onChangePremise/Conclusion to parse the initial values
+        $solverContent.premises.forEach((premise, i) => {
+            onChangePremise(premise.value, i);
+        });
+
+        onChangeConclusion($solverContent.conclusion.value, $solverContent.premises.length + 1);
+    })
 </script>
 
 <main>
-  <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons}>
+  <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
       <div slot="body">
           <input
               type="text"
@@ -228,6 +299,7 @@
           />
       </div>
   </Modal>
+  <Modal bind:show={showConclusionSelect} bind:buttons={modalButtons} header="Select Proof Type" />
   <MainLayout>
     <Panel>
         <SolverLayout>
@@ -246,7 +318,7 @@
 
                 {#if $editState === EditState.SOLVER}
                     <button
-                        class="add-button"
+                        class="action-button"
                         on:click={() => addPremise()}
                         tabindex={$solverContent.premises.length}
                     >
@@ -268,7 +340,7 @@
             <div class="button-wrapper">
                 {#if solving}
                     <button
-                            class="add-button"
+                            class="action-button"
                             on:click={checkProof}
                             tabindex={$solverContent.premises.length + 2}
                     >
@@ -276,15 +348,15 @@
                     </button>
                 {:else}
                     <button
-                        class="add-button"
+                        class="action-button"
                         on:click={startSolver}
                         tabindex={$solverContent.premises.length + 2}
                     >
-                        Create Problem
+                        Prove
                     </button>
                 {/if}
                 <button
-                    class="add-button reset"
+                    class="action-button reset"
                     on:click={resetSolving}
                     disabled={!solving}
                     tabindex={$solverContent.premises.length + 3}
@@ -322,7 +394,7 @@
         <Separator />
 
         <h2>Theorems</h2>
-        <button class="add-button" on:click={() => addTheorem()}>Add Theorem</button>
+        <button class="action-button" on:click={() => addTheorem()}>Add Theorem</button>
         <TheoremsLayout>
             {#if $theorems.length === 0}
                 <p>No theorems added yet.</p>
@@ -337,35 +409,42 @@
 </main>
 
 <style>
-    .add-button {
+    .action-button {
         width: 100%;
         height: 3.5rem;
     }
 
-    .add-button:focus[disabled],
-    .add-button.reset:hover[disabled],
-    .add-button:hover[disabled] {
+    .action-button:focus[disabled],
+    .action-button.reset:hover[disabled],
+    .action-button:hover[disabled] {
         cursor: not-allowed;
         color: #ffffff4d;
         border: 1px solid var(--dark-border-color);
     }
 
-    .add-button:focus,
-    .add-button:hover {
+    .action-button:focus,
+    .action-button:hover {
         color: #00ff00;
         border: 1px solid #00ff00;
         outline: none;
     }
 
-    .add-button.reset:hover {
+    .action-button.reset:hover {
         color: #ff0000;
         border: 1px solid #ff0000;
     }
 
     @media (prefers-color-scheme: light) {
-        .add-button:hover {
+        .action-button:hover {
             color: #00c800;
             border: 1px solid #00c800;
+        }
+
+        .action-button:focus[disabled],
+        .action-button.reset:hover[disabled],
+        .action-button:hover[disabled] {
+            color: #1010104C;
+            border: 1px solid var(--light-border-color);
         }
     }
 
