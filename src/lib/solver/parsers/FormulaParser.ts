@@ -88,7 +88,8 @@ export class FormulaParser {
         }
 
         // if we found the rule, try to apply it and check if the results differ
-        let first, second = null;
+        let first = null;
+        let second = null;
         first = get(solverContent).proof[line1 - 1];
         if (line2) {
             second = get(solverContent).proof[line2 - 1];
@@ -108,7 +109,13 @@ export class FormulaParser {
         tmp.rule = { rule: usedRule.short, lines: linesNumbers };
         // some rules return an array of results, in that case we need to check if our result is in the array
         if (Array.isArray(result)) {
-            if (!result.some((r) => FormulaComparer.compare(r, tmp))) {
+            if (!result.some((r) => {
+                if (FormulaComparer.compare(r, tmp)) {
+                    tmp.tree = r.tree;
+                    return true;
+                }
+                return false;
+            })) {
                 return tmp;
             }
 
@@ -123,6 +130,7 @@ export class FormulaParser {
         }
 
         // the results are the same, return the rule
+        tmp.tree = result.tree;
         tmp.rule = { rule: usedRule.short, lines: linesNumbers };
         return tmp;
     }
