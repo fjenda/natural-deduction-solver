@@ -25,6 +25,8 @@
     import type {TreeRuleType} from "./types/TreeRuleType";
     import {Node} from "./lib/syntax-checker/Node";
     import {onMount} from "svelte";
+    import { onChangePremise, onChangeConclusion, applyRule, checkProof } from "./lib/solver/solverLogic";
+
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -42,14 +44,6 @@
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
-
-    function onChangePremise(value: string, index: number) {
-        $solverContent.premises[index] = PremiseParser.parsePremise(value);
-    }
-
-    function onChangeConclusion(value: string, index: number) {
-        $solverContent.conclusion = PremiseParser.parsePremise(value);
-    }
 
     function addTheorem() {
         theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem", [{ value: "", tree: null }])]);
@@ -79,7 +73,6 @@
         modalButtons[index].action = action;
     }
 
-    // TODO: decide if we want to keep the alerts, could be slowing the user down.
     function handleRuleClick(rule: DeductionRule) {
         const proof = get(solverContent).proof;
         const selected = get(selectedRows);
@@ -106,96 +99,68 @@
         // if the number of selected rows is not equal to the number of rows needed for the rule
         // display modal and make the user select the row there
         if (rule.short === NDRule.IDIS) {
-            setModalButton(0, "Confirm", () => {
-                // parse the input formula
+            showModalWithInput("Insert formula", "Write the formula to insert into the disjunction", "Enter the formula", () => {
                 const formula = PremiseParser.parsePremise(modalInput.value);
                 if (!formula.tree) {
                     alert("Invalid formula");
                     return;
                 }
 
-                const tmp: TreeRuleType = {
-                    line: -1,
-                    tree: formula.tree,
-                    value: formula.value,
-                    rule: { rule: NDRule.UNKNOWN },
-                };
+                applyRule(rule.short, proof[selected[0] - 1], {
+                   line: -1,
+                   tree: formula.tree,
+                   value: formula.value,
+                   rule: { rule: NDRule.UNKNOWN },
+                });
 
-                applyRule(rule.short, proof[selected[0] - 1], tmp);
-                modalInput.value = "";
-                showModal = false;
+                closeModal();
             });
-
-            setModalButton(1, "Cancel", () => {
-                modalInput.value = "";
-                showModal = false;
-            });
-
-            modalHeader = "Insert formula";
-            modalContent = "Write the formula to insert into the disjunction";
-            modalInput.placeholder = "Enter the formula";
-            showModal = true;
-            setTimeout(() => modalInput.focus(), 50);
-        } else {
-            setModalButton(0, "Confirm", () => {
-                // get the value from the input
-                const other = parseInt(modalInput.value);
-
-                // check if the value is a number and if it is a valid row number
-                if (isNaN(other) || other < 1 || other > proof.length) {
-                    alert("Invalid row number");
-                    return;
-                }
-
-                // check if the user selected the same row
-                if (selected.includes(other)) {
-                    alert("Cannot select the same row");
-                    return;
-                }
-
-                const highlightedProof = highlighted.length > 0 ? proof[other - 1] : null;
-                if (highlightedProof && highlighted.includes(other)) {
-                    applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
-                }
-
-                modalInput.value = "";
-                showModal = false;
-                selectedRows.set([]);
-            });
-
-            setModalButton(1, "Cancel", () => {
-                modalInput.value = "";
-                showModal = false;
-            });
-
-            modalHeader = "Select row";
-            modalContent = "Select the second row with which to execute the rule";
-            showModal = true;
-            setTimeout(() => modalInput.focus(), 50);
+            return;
         }
-    }
 
-    function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType) {
-        const result = DeductionProcessor.applyRule(short, row1, row2);
-        if (!result) return;
-
-        solverContent.update(sc => {
-            if (Array.isArray(result)) {
-                for (const res of result) {
-                    sc.proof[res.line - 1] = res;
-                }
-            } else {
-                sc.proof[result.line - 1] = result;
+        showModalWithInput("Select row", "Select the second row with which to execute the rule", "Enter row number", () => {
+            const other = parseInt(modalInput.value);
+            if (isNaN(other) || other < 1 || other > proof.length) {
+                alert("Invalid row number");
+                return;
             }
 
-            return sc;
-        });
+            if (selected.includes(other)) {
+                alert("Cannot select the same row");
+                return;
+            }
 
+            const highlightedProof = highlighted.includes(other) ? proof[other - 1] : null;
+            if (highlightedProof) {
+                applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
+            }
+
+            closeModal();
+        });
+    }
+
+    // Utility function to show a modal with an input field
+    function showModalWithInput(header: string, content: string, placeholder: string, onConfirm: () => void) {
+        modalHeader = header;
+        modalContent = content;
+        modalInput.placeholder = placeholder;
+
+        setModalButton(0, "Confirm", onConfirm);
+        setModalButton(1, "Cancel", closeModal);
+
+        showModal = true;
+        setTimeout(() => modalInput.focus(), 50);
+    }
+
+    // Closes the modal and resets the input
+    function closeModal() {
+        modalInput.value = "";
+        showModal = false;
         selectedRows.set([]);
     }
 
     // Adds all existing premises to the proof and checks if they are valid
-    function initializeProof() {
+    function initializeProof(): boolean {
         // add the premises to the proof
         solverContent.update(sc => {
             sc.proof = sc.premises.map(((p, i) => ({ line: i + 1, tree: p.tree, value: p.value, rule: { rule: NDRule.ASS } })));
@@ -203,12 +168,13 @@
         })
 
         // check if premises in proof are all valid
-        for (let i = 0; i < $solverContent.premises.length; i++) {
-            if (!$solverContent.proof[i].tree) {
-                alert(`Premise ${i + 1} is not valid`);
-                return;
-            }
+        const invalidPremise = $solverContent.premises.some((_, i) => !$solverContent.proof[i].tree);
+        if (invalidPremise) {
+            alert("One or more premises are not valid");
+            return false;
         }
+
+        return true;
     }
 
     let solving: boolean = false;
@@ -220,38 +186,28 @@
             return;
         }
 
-        setModalButton(0, "Direct Proof", () => {
-            // init proof with premises
-            initializeProof();
+        const setupProof = (isIndirect: boolean) => {
+            if (!initializeProof()) return;
 
-            // nothing else to do
+            if (isIndirect) {
+                const neg = $solverContent.conclusion.tree.negate();
+                solverContent.update(sc => {
+                   sc.proof.push({
+                       line: sc.proof.length + 1,
+                       tree: neg,
+                       value: Node.generateString(neg),
+                       rule: { rule: NDRule.CONC },
+                   });
+                   return sc;
+                });
+            }
 
-            // start the solver
             showConclusionSelect = false;
             solving = true;
-        });
+        }
 
-        setModalButton(1, "Indirect Proof", () => {
-            // init proof with premises
-            initializeProof()
-
-            // add the negated conclusion to the proof
-            const neg: Node = $solverContent.conclusion.tree.negate();
-            solverContent.update(sc => {
-                sc.proof.push({
-                    line: sc.proof.length + 1,
-                    tree: neg,
-                    value: Node.generateString(neg),
-                    rule: {rule: NDRule.CONC},
-                });
-
-                return sc;
-            });
-
-            // start the solver
-            showConclusionSelect = false
-            solving = true;
-        });
+        setModalButton(0, "Direct Proof", () => setupProof(false));
+        setModalButton(1, "Indirect Proof", () => setupProof(true));
 
         showConclusionSelect = true;
     }
@@ -265,26 +221,13 @@
         });
     }
 
-    function checkProof() {
-        // check if proof contains a valid row with the conclusion
-        const proof = get(solverContent).proof;
-        const exists = proof.filter(p => p.tree && p.rule.rule !== NDRule.UNKNOWN).findIndex(p => FormulaComparer.compare(p, $solverContent.conclusion)) !== -1;
-
-        if (!exists) {
-            alert("Proof does not contain a valid row with the conclusion");
-            return;
-        }
-
-        alert("Proof is correct");
-    }
-
     onMount(() => {
         // call onChangePremise/Conclusion to parse the initial values
         $solverContent.premises.forEach((premise, i) => {
             onChangePremise(premise.value, i);
         });
 
-        onChangeConclusion($solverContent.conclusion.value, $solverContent.premises.length + 1);
+        onChangeConclusion($solverContent.conclusion.value);
     })
 </script>
 
@@ -332,7 +275,7 @@
                     bind:value="{$solverContent.conclusion.value}"
                     error="{!$solverContent.conclusion.tree}"
                     index={$solverContent.premises.length + 1}
-                    onChange={() => onChangeConclusion($solverContent.conclusion.value, $solverContent.premises.length + 1)}
+                    onChange={() => onChangeConclusion($solverContent.conclusion.value)}
                     disabled={solving}
                 />
             {/if}

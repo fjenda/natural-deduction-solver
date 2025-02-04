@@ -1,6 +1,9 @@
 <script lang="ts">
     import type {ButtonContent} from "../types/ButtonContent";
 
+    // import { showModal, modalHeader, modalContent, modalButtons, modalInput } from "../stores/modalStore";
+    // import { onMount } from "svelte";
+
     export let show: boolean;
     export let content = '';
     export let buttons: ButtonContent[] = [];
