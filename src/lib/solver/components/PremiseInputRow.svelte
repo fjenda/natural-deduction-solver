@@ -2,6 +2,7 @@
     import {removePremise} from "../../../stores/solverStore";
 
     export let index: number;
+    export let removable: boolean = true
 </script>
 
 <div class="premise-input-wrapper">
@@ -9,7 +10,8 @@
     <button
         type="button"
         aria-label="Remove premise"
-        on:click={() => removePremise(index)}
+        on:click={() => { removable && removePremise(index) }}
+        disabled={!removable}
     >
         <i class="fa fa-xmark"></i>
     </button>
@@ -41,6 +43,11 @@
         color: #ff0000;
     }
 
+    .premise-input-wrapper button:disabled:hover {
+        cursor: not-allowed;
+        color: rgba(255, 255, 255, 0.3);
+    }
+
     .premise-input-wrapper button:hover,
     .premise-input-wrapper button:focus {
         outline: none;
@@ -50,6 +57,10 @@
     @media (prefers-color-scheme: light) {
         .premise-input-wrapper button {
             background: var(--light-bg-color);
+        }
+
+        .premise-input-wrapper button:disabled:hover {
+            color: rgba(16, 16, 16, 0.3);
         }
     }
 </style>

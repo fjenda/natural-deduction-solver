@@ -25,7 +25,7 @@
     import type {TreeRuleType} from "./types/TreeRuleType";
     import {Node} from "./lib/syntax-checker/Node";
     import {onMount} from "svelte";
-    import { onChangePremise, onChangeConclusion, applyRule, checkProof } from "./lib/solver/solverLogic";
+    import { onChangePremise, onChangeConclusion, applyRule, checkProof, setupProof } from "./lib/solver/solverLogic";
 
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -159,24 +159,6 @@
         selectedRows.set([]);
     }
 
-    // Adds all existing premises to the proof and checks if they are valid
-    function initializeProof(): boolean {
-        // add the premises to the proof
-        solverContent.update(sc => {
-            sc.proof = sc.premises.map(((p, i) => ({ line: i + 1, tree: p.tree, value: p.value, rule: { rule: NDRule.ASS } })));
-            return sc;
-        })
-
-        // check if premises in proof are all valid
-        const invalidPremise = $solverContent.premises.some((_, i) => !$solverContent.proof[i].tree);
-        if (invalidPremise) {
-            alert("One or more premises are not valid");
-            return false;
-        }
-
-        return true;
-    }
-
     let solving: boolean = false;
     let showConclusionSelect: boolean = false;
     function startSolver() {
@@ -186,28 +168,14 @@
             return;
         }
 
-        const setupProof = (isIndirect: boolean) => {
-            if (!initializeProof()) return;
-
-            if (isIndirect) {
-                const neg = $solverContent.conclusion.tree.negate();
-                solverContent.update(sc => {
-                   sc.proof.push({
-                       line: sc.proof.length + 1,
-                       tree: neg,
-                       value: Node.generateString(neg),
-                       rule: { rule: NDRule.CONC },
-                   });
-                   return sc;
-                });
-            }
-
+        const setup = (isIndirect: boolean) => {
+            setupProof(isIndirect);
             showConclusionSelect = false;
             solving = true;
         }
 
-        setModalButton(0, "Direct Proof", () => setupProof(false));
-        setModalButton(1, "Indirect Proof", () => setupProof(true));
+        setModalButton(0, "Direct Proof", () => setup(false));
+        setModalButton(1, "Indirect Proof", () => setup(true));
 
         showConclusionSelect = true;
     }
@@ -228,10 +196,45 @@
         });
 
         onChangeConclusion($solverContent.conclusion.value);
-    })
+    });
+
+    let premises = '';
+    let conclusion = '';
+    let rule = '';
+    let result: string = '';
+
+    async function prove() {
+        try {
+            const response = await fetch('http://localhost:3000/prove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    premises: premises.split('\n').filter(p => p.trim() !== ''),
+                    conclusion,
+                    rule,
+                }),
+            });
+
+            const data = await response.json();
+            result = JSON.stringify(data, null, 2);
+        } catch (error) {
+            result = 'Error contacting the server';
+            console.error(error);
+        }
+    }
 </script>
 
 <main>
+    <textarea bind:value={premises} placeholder="Enter premises (one per line)"></textarea>
+<!--    <input bind:value={premises} placeholder="Enter premises" />-->
+    <input bind:value={conclusion} placeholder="Enter conclusion" />
+    <input bind:value={rule} placeholder="Enter rule" />
+    <button on:click={prove}>Prove</button>
+
+    <pre>{result}</pre>
+
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
       <div slot="body">
           <input
@@ -248,9 +251,9 @@
         <SolverLayout>
             {#if !solving}
                 {#each Array.from($solverContent.premises) as _, i}
-                    <PremiseInputRow index="{i}">
+                    <PremiseInputRow index="{i}" removable={$editState === EditState.SOLVER}>
                         <PremiseInput
-                            placeholder="Premise {i + 1}"
+                            placeholder={$editState === EditState.SOLVER ? `Premise ${i + 1}` : "Theorem"}
                             bind:value="{$solverContent.premises[i].value}"
                             error="{!$solverContent.premises[i].tree}"
                             index={i}
