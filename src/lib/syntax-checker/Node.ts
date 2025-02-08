@@ -1,4 +1,4 @@
-import {Operator} from "./Operator";
+import { Operator, operatorToProlog } from "./Operator";
 import {NodeType} from "./NodeType";
 
 /**
@@ -97,6 +97,11 @@ export class Node {
      * @returns {string} the string representation of the node
      */
     static generateString(node: Node): string {
+        // if the node is a constant, keep the parentheses after
+        if (node.type === NodeType.CONSTANT) {
+            return `${node.value}()`;
+        }
+
         // if the node has no children, return the value or type
         if (node.children.length === 0) {
             return node.value ? `${node.value}` : `${node.type}`;
@@ -213,5 +218,26 @@ export class Node {
         const neg = new Node(NodeType.NEGATION, Operator.NEGATION);
         neg.addChild(this.simplify().parenthesize(false));
         return neg;
+    }
+
+    public toPrologFormat(): string {
+        if (this.type === NodeType.PARENTHESES_BLOCK) {
+            return this.children[1].toPrologFormat();
+        }
+
+        if (this.type === NodeType.PREDICATE) {
+            return `${this.value}(${this.children.map(child => child.toPrologFormat()).join(", ")})`;
+        }
+
+        // 1 and 2 -> and(1,2)
+        if (this.type === NodeType.BINARY_OPERATION && this.value) {
+            return `${operatorToProlog(this.value as Operator)}(${this.children.map(child => child.toPrologFormat()).join(", ")})`;
+        }
+
+        if (this.type === NodeType.NEGATION) {
+            return `not(${this.children[0].toPrologFormat()})`;
+        }
+
+        return this.value as string;
     }
 }

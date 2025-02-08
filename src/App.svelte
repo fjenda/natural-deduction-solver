@@ -25,7 +25,14 @@
     import type {TreeRuleType} from "./types/TreeRuleType";
     import {Node} from "./lib/syntax-checker/Node";
     import {onMount} from "svelte";
-    import { onChangePremise, onChangeConclusion, applyRule, checkProof, setupProof } from "./lib/solver/solverLogic";
+    import {
+        onChangePremise,
+        onChangeConclusion,
+        applyRule,
+        checkProof,
+        setupProof,
+        verifyResult
+    } from "./lib/solver/solverLogic";
 
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -202,28 +209,6 @@
     let conclusion = '';
     let rule = '';
     let result: string = '';
-
-    async function prove() {
-        try {
-            const response = await fetch('http://localhost:3000/prove', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    premises: premises.split('\n').filter(p => p.trim() !== ''),
-                    conclusion,
-                    rule,
-                }),
-            });
-
-            const data = await response.json();
-            result = JSON.stringify(data, null, 2);
-        } catch (error) {
-            result = 'Error contacting the server';
-            console.error(error);
-        }
-    }
 </script>
 
 <main>
@@ -231,7 +216,7 @@
 <!--    <input bind:value={premises} placeholder="Enter premises" />-->
     <input bind:value={conclusion} placeholder="Enter conclusion" />
     <input bind:value={rule} placeholder="Enter rule" />
-    <button on:click={prove}>Prove</button>
+    <button on:click={async () => result = await verifyResult(premises, conclusion, rule)}>Prove</button>
 
     <pre>{result}</pre>
 

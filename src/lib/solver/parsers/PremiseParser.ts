@@ -30,6 +30,7 @@ export class PremiseParser {
         let pratt = new PrattParser();
         let res = pratt.parse(premise);
 
+
         // if the formula is not valid, return the error
         if (!res) return tmp;
         // res.print();
@@ -39,7 +40,8 @@ export class PremiseParser {
         // set the tree
         tmp.tree = tree;
         tmp.value = Node.generateString(tree);
-        // console.log(tmp);
+        console.log(tmp);
+        console.log(tmp.tree.toPrologFormat());
 
         return tmp;
     }

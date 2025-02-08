@@ -7,6 +7,9 @@ import type { TreeRuleType } from "../../types/TreeRuleType";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
 
+const API_PORT = 3000;
+const API_URL = `http://localhost:${API_PORT}/prove`;
+
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
         sc.premises[index] = PremiseParser.parsePremise(value);
@@ -19,6 +22,28 @@ export function onChangeConclusion(value: string) {
         sc.conclusion = PremiseParser.parsePremise(value);
         return sc;
     });
+}
+
+export async function verifyResult(premises: string, conclusion: string, rule: string): Promise<string> {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                premises: premises.split('\n').filter(p => p.trim() !== ''),
+                conclusion,
+                rule,
+            }),
+        });
+
+        const data = await response.json();
+        return JSON.stringify(data, null, 2);
+    } catch (error) {
+        console.error(error);
+        return 'Error: ' + error;
+    }
 }
 
 export function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType) {
