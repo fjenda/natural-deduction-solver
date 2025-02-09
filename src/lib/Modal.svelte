@@ -1,9 +1,6 @@
 <script lang="ts">
     import type {ButtonContent} from "../types/ButtonContent";
 
-    // import { showModal, modalHeader, modalContent, modalButtons, modalInput } from "../stores/modalStore";
-    // import { onMount } from "svelte";
-
     export let show: boolean;
     export let content = '';
     export let buttons: ButtonContent[] = [];
@@ -19,7 +16,7 @@
                 buttons[0].action();
                 break;
             case 'Escape':
-                buttons[1].action();
+                show = false;
                 break;
         }
     }
@@ -28,7 +25,7 @@
 
 <svelte:body on:keydown={handleKeyDown} />
 
-<div class="modal" class:hidden={!show}>
+<div class="modal" on:click|self={() => show = false} class:hidden={!show}>
     <div class="modal-content">
         <div class="modal-header">
             <h2>{header}</h2>

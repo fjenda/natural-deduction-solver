@@ -19,10 +19,11 @@
 // Large -> [A-Z]
 // Small -> [a-z]
 
-import {TokenStream} from "./TokenStream";
-import {Node} from "./Node"
-import {NodeType} from "./NodeType";
-import {Operator} from "./Operator";
+import { TokenStream } from "./TokenStream";
+import { Node } from "./Node"
+import { NodeType } from "./NodeType";
+import { Operator } from "./Operator";
+import { ParseStrategy } from "../../types/ParseStrategy";
 
 /**
  * Precedence table for operators
@@ -44,6 +45,16 @@ const THROW_ERRORS = false;
  */
 export class PrattParser {
     private tokenStream!: TokenStream;
+    private readonly strategy!: ParseStrategy;
+
+    /**
+     * Constructor for the PrattParser
+     * @param strategy - the strategy to use for parsing
+     * @constructor
+     */
+    constructor(strategy: ParseStrategy) {
+        this.strategy = strategy;
+    }
 
     /**
      * Parse a formula
@@ -101,7 +112,7 @@ export class PrattParser {
         // small character
         if (/[a-z]/.test(token)) {
             // function or constant
-            if (this.tokenStream.match("(")) {
+            if (this.tokenStream.match("(") && this.strategy === ParseStrategy.PREDICATE) {
                 const termList = this.parseTermList();
                 if (!this.tokenStream.match(")")) {
                     if (THROW_ERRORS) {
@@ -122,12 +133,17 @@ export class PrattParser {
                 return node;
             }
 
+            // constant if not in predicate mode
+            if (this.strategy !== ParseStrategy.PREDICATE) {
+                return new Node(NodeType.CONSTANT, token);
+            }
+
             // variable
             return new Node(NodeType.VARIABLE, token);
         }
 
         if (token.match(/[A-Z]/)) {
-            if (this.tokenStream.match("(")) {
+            if (this.tokenStream.match("(") && this.strategy === ParseStrategy.PREDICATE) {
                 const termList = this.parseTermList();
                 if (!this.tokenStream.match(")")) {
                     if (THROW_ERRORS) {
@@ -151,14 +167,18 @@ export class PrattParser {
                 return node;
             }
 
-            if (THROW_ERRORS) {
+            if (THROW_ERRORS && this.strategy === ParseStrategy.PREDICATE) {
                 throw new Error("Expected '(' after predicate " + token);
             }
 
-            return null;
+            if (this.strategy === ParseStrategy.PREDICATE) {
+                return null;
+            }
+
+            return new Node(NodeType.CONSTANT, token);
         }
         
-        if (["∀", "∃"].includes(token)) {
+        if (["∀", "∃"].includes(token) && this.strategy === ParseStrategy.PREDICATE) {
             const node = new Node(NodeType.QUANTIFIER);
             node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, token));
 

@@ -1,5 +1,8 @@
 import { Operator, operatorToProlog } from "./Operator";
-import {NodeType} from "./NodeType";
+import { NodeType } from "./NodeType";
+import { get } from "svelte/store";
+import { logicMode } from "../../stores/solverStore";
+import { ParseStrategy } from "../../types/ParseStrategy";
 
 /**
  * Node class that represents a node in the abstract syntax tree
@@ -99,7 +102,7 @@ export class Node {
     static generateString(node: Node): string {
         // if the node is a constant, keep the parentheses after
         if (node.type === NodeType.CONSTANT) {
-            return `${node.value}()`;
+            return get(logicMode) === ParseStrategy.PROPOSITIONAL ? `${node.value}` : `${node.value}()`;
         }
 
         // if the node has no children, return the value or type
@@ -127,6 +130,9 @@ export class Node {
             case NodeType.TERM_LIST:
                 return childrenStrings.join(", ");
 
+            case NodeType.FUNCTION:
+                return `${node.value}(${childrenStrings.join(", ")})`;
+
             default:
                 return node.value ? `${node.value}` : `${node.type}`;
         }
@@ -153,6 +159,7 @@ export class Node {
             || this.type === NodeType.NEGATION
             || this.type === NodeType.TERM_LIST
             || this.type === NodeType.PREDICATE
+            || this.type === NodeType.FUNCTION
         ) {
             return this;
         }

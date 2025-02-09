@@ -1,6 +1,8 @@
 import {PrattParser} from "../../syntax-checker/PrattParser";
 import {Node} from "../../syntax-checker/Node";
 import type {ParsedExpression} from "../../../types/ParsedExpression";
+import { get } from "svelte/store";
+import { logicMode } from "../../../stores/solverStore";
 
 /**
  * This class is responsible for parsing the premises
@@ -27,9 +29,8 @@ export class PremiseParser {
         premise = premise.replace(/\s/g, '');
 
         // syntax check
-        let pratt = new PrattParser();
-        let res = pratt.parse(premise);
-
+        let parser = new PrattParser(get(logicMode));
+        let res = parser.parse(premise);
 
         // if the formula is not valid, return the error
         if (!res) return tmp;

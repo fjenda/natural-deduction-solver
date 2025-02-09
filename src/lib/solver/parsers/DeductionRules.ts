@@ -1,4 +1,8 @@
-import {Operator} from "../../syntax-checker/Operator";
+import { Operator } from "../../syntax-checker/Operator";
+import { PrettySyntaxer } from "../PrettySyntaxer";
+import { get } from "svelte/store";
+import { logicMode } from "../../../stores/solverStore";
+import { ParseStrategy } from "../../../types/ParseStrategy";
 
 /**
  * Natural Deduction Rules
@@ -78,7 +82,7 @@ export class DeductionRule {
         Operator.CONJUNCTION,
         2,
         1,
-        "<p>A, B ⊢ A ∧ B</p>",
+        PrettySyntaxer.toMathML("A, B ⊢ A ∧ B"),
     );
 
 
@@ -88,7 +92,7 @@ export class DeductionRule {
         Operator.CONJUNCTION,
         1,
         2,
-        "<p>A ∧ B ⊢ A, B</p>",
+        PrettySyntaxer.toMathML("A ∧ B ⊢ A, B"),
     );
 
     static IDIS = new DeductionRule(
@@ -97,7 +101,7 @@ export class DeductionRule {
         Operator.DISJUNCTION,
         2, // the input is actually 1, the second part can be any valid formula
         1,
-        "<p>A ⊢ A ∨ B</p><p>B ⊢ A ∨ B</p>",
+        PrettySyntaxer.toMathML("A ⊢ A ∨ B\nB ⊢ A ∨ B"),
     );
 
     static EDIS = new DeductionRule(
@@ -106,7 +110,7 @@ export class DeductionRule {
         Operator.DISJUNCTION,
         2,
         1,
-        "<p>A ∨ B, ¬A ⊢ B</p><p>A ∨ B, ¬B ⊢ A</p>",
+        PrettySyntaxer.toMathML("A ∨ B, ¬A ⊢ B\nA ∨ B, ¬B ⊢ A"),
     );
 
     static IIMP = new DeductionRule(
@@ -115,7 +119,7 @@ export class DeductionRule {
         Operator.IMPLICATION,
         2,
         1,
-        "<p>A, B ⊢ A ⊃ B</p>",
+        PrettySyntaxer.toMathML("A, B ⊢ A ⊃ B"),
     );
 
     static MP = new DeductionRule(
@@ -124,7 +128,7 @@ export class DeductionRule {
         Operator.IMPLICATION,
         2,
         1,
-        "<p>A ⊃ B, A ⊢ B</p>",
+        PrettySyntaxer.toMathML("A ⊃ B, A ⊢ B"),
     );
 
     static IEQ = new DeductionRule(
@@ -133,7 +137,7 @@ export class DeductionRule {
         Operator.EQUIVALENCE,
         2,
         1,
-        "<p>A ⊃ B, B ⊃ A ⊢ A ≡ B</p>",
+        PrettySyntaxer.toMathML("A ⊃ B, B ⊃ A ⊢ A ≡ B"),
     );
 
     static EEQ = new DeductionRule(
@@ -142,7 +146,7 @@ export class DeductionRule {
         Operator.EQUIVALENCE,
         1,
         2,
-        "<p>A ≡ B ⊢ A ⊃ B, B ⊃ A</p>",
+        PrettySyntaxer.toMathML("A ≡ B ⊢ A ⊃ B, B ⊃ A"),
     );
 
     static IALL = new DeductionRule(
@@ -151,7 +155,7 @@ export class DeductionRule {
         Operator.UNIVERSAL,
         1,
         1,
-        "<p>A(x) ⊢ ∀xA(x)</p>",
+        PrettySyntaxer.toMathML("A(x) ⊢ ∀xA(x)"),
     );
 
     static EALL = new DeductionRule(
@@ -160,7 +164,7 @@ export class DeductionRule {
         Operator.UNIVERSAL,
         1,
         1,
-        "<p>∀xA(x) ⊢ A(x/t)</p>",
+        PrettySyntaxer.toMathML("∀xA(x) ⊢ A(x/t)"),
     );
 
     static IEX = new DeductionRule(
@@ -169,7 +173,7 @@ export class DeductionRule {
         Operator.EXISTENTIAL,
         1,
         1,
-        "<p>A(x/t) ⊢ ∃xA(x)</p>",
+        PrettySyntaxer.toMathML("A(x/t) ⊢ ∃xA(x)"),
     );
 
     static EEX = new DeductionRule(
@@ -178,28 +182,38 @@ export class DeductionRule {
         Operator.EXISTENTIAL,
         1,
         1,
-        "<p>∃xA(x) ⊢ A(x/c)</p>",
+        PrettySyntaxer.toMathML("∃xA(x) ⊢ A(x/c)"),
     );
 
-    static rules = [
-        // DeductionRule.UNKNOWN,
 
-        // Propositional Logic
-        DeductionRule.ICON,
-        DeductionRule.ECON,
-        DeductionRule.IDIS,
-        DeductionRule.EDIS,
-        DeductionRule.IIMP,
-        DeductionRule.MP,
-        DeductionRule.IEQ,
-        DeductionRule.EEQ,
+    /**
+     * Get the list of rules based on the logic mode
+     */
+    public static get rules(): DeductionRule[] {
+        const baseRules = [
+            // Propositional Logic
+            DeductionRule.ICON,
+            DeductionRule.ECON,
+            DeductionRule.IDIS,
+            DeductionRule.EDIS,
+            DeductionRule.IIMP,
+            DeductionRule.MP,
+            DeductionRule.IEQ,
+            DeductionRule.EEQ,
+        ];
 
-        // Predicate Logic
-        // DeductionRule.IALL,
-        // DeductionRule.EALL,
-        // DeductionRule.IEX,
-        // DeductionRule.EEX,
-    ];
+        if (get(logicMode) === ParseStrategy.PROPOSITIONAL)
+            return baseRules;
+
+        return [
+            ...baseRules,
+            // Predicate Logic
+            DeductionRule.IALL,
+            DeductionRule.EALL,
+            DeductionRule.IEX,
+            DeductionRule.EEX,
+        ];
+    }
 
     /**
      * Get the rule based on the abbreviation

@@ -1,5 +1,17 @@
-import {writable} from "svelte/store";
-import {Solution} from "../lib/solver/Solution";
+import { writable } from "svelte/store";
+import { Solution } from "../lib/solver/Solution";
+import { ParseStrategy } from "../types/ParseStrategy";
+import { DeductionRule } from "../lib/solver/parsers/DeductionRules";
+
+/**
+ * Store for the logic mode
+ */
+export const logicMode = writable<ParseStrategy>(ParseStrategy.PROPOSITIONAL);
+
+/**
+ * Store that contains the deduction rules based on the logic mode
+ */
+export const deductionRules = writable<DeductionRule[]>([]);
 
 /**
  * Store for the content of the solver

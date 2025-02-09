@@ -1,12 +1,12 @@
-import {DeductionRule, NDRule} from "./DeductionRules";
-import {PrattParser} from "../../syntax-checker/PrattParser";
-import type {TreeRuleType} from "../../../types/TreeRuleType";
-import {get} from "svelte/store";
-import {DeductionProcessor} from "./DeductionProcessor";
-import {PrettySyntaxer} from "../PrettySyntaxer";
-import {FormulaComparer} from "../FormulaComparer";
-import {solverContent} from "../../../stores/solverStore";
-import {Node} from "../../syntax-checker/Node";
+import { DeductionRule, NDRule } from "./DeductionRules";
+import { PrattParser } from "../../syntax-checker/PrattParser";
+import type { TreeRuleType } from "../../../types/TreeRuleType";
+import { get } from "svelte/store";
+import { DeductionProcessor } from "./DeductionProcessor";
+import { PrettySyntaxer } from "../PrettySyntaxer";
+import { FormulaComparer } from "../FormulaComparer";
+import { logicMode, solverContent } from "../../../stores/solverStore";
+import { Node } from "../../syntax-checker/Node";
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid
@@ -23,7 +23,7 @@ export class FormulaParser {
      */
     static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
         // checks the syntax of the formula
-        let parser = new PrattParser();
+        let parser = new PrattParser(get(logicMode));
         let res = parser.parse(formula);
 
         const tmp: TreeRuleType = {

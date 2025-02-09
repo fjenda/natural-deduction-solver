@@ -81,6 +81,8 @@
 
     // a row is invalid if the rule is unknown and it's not editable
     $: invalid = (rule.rule === NDRule.UNKNOWN && !editable);
+
+    $: mathmlFormula = PrettySyntaxer.toMathML(formula);
 </script>
 
 <a
@@ -109,7 +111,8 @@
                 {/each}
             </div>
         {:else}
-            {formula}
+            <!--{formula}-->
+            {@html mathmlFormula}
         {/if}
     </div>
     <div class="used-rule">

@@ -6,33 +6,39 @@
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
-    import {theorems} from "./stores/theoremsStore";
-    import {addPremise, highlightedRows, selectedRows, solverContent} from "./stores/solverStore";
-    import {Solution} from "./lib/solver/Solution";
-    import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
+    import { theorems } from "./stores/theoremsStore";
+    import {
+        addPremise,
+        deductionRules,
+        highlightedRows,
+        logicMode,
+        selectedRows,
+        solverContent
+    } from "./stores/solverStore";
+    import { Solution } from "./lib/solver/Solution";
+    import { PremiseParser } from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
-    import {DeductionRule, NDRule} from "./lib/solver/parsers/DeductionRules";
+    import { DeductionRule, NDRule } from "./lib/solver/parsers/DeductionRules";
     import Separator from "./lib/Separator.svelte";
-    import {EditState} from "./types/EditState";
-    import {editState} from "./stores/stateStore";
+    import { EditState } from "./types/EditState";
+    import { editState } from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
-    import type {ButtonContent} from "./types/ButtonContent";
-    import {DeductionProcessor} from "./lib/solver/parsers/DeductionProcessor";
-    import {get} from "svelte/store";
+    import type { ButtonContent } from "./types/ButtonContent";
+    import { DeductionProcessor } from "./lib/solver/parsers/DeductionProcessor";
+    import { get } from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import {FormulaComparer} from "./lib/solver/FormulaComparer";
-    import type {TreeRuleType} from "./types/TreeRuleType";
-    import {Node} from "./lib/syntax-checker/Node";
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import {
-        onChangePremise,
-        onChangeConclusion,
         applyRule,
         checkProof,
+        onChangeConclusion,
+        onChangePremise,
         setupProof,
         verifyResult
     } from "./lib/solver/solverLogic";
+    import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
+    import { ParseStrategy } from "./types/ParseStrategy";
 
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -43,10 +49,10 @@
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
 
     $solverContent.premises = [
-        { value: "a", tree: null },
-        { value: "¬a", tree: null }
+        { value: "A ∧ B", tree: null },
+        { value: "B ⊃ C", tree: null }
     ];
-    $solverContent.conclusion = { value: "b", tree: null };
+    $solverContent.conclusion = { value: "C", tree: null };
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -209,6 +215,15 @@
     let conclusion = '';
     let rule = '';
     let result: string = '';
+
+    function switchMode() {
+        logicMode.update(mode => mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL);
+        deductionRules.set(DeductionRule.rules);
+        $solverContent.premises.forEach((premise, i) => {
+            onChangePremise(premise.value, i);
+        });
+        onChangeConclusion($solverContent.conclusion.value);
+    }
 </script>
 
 <main>
@@ -219,6 +234,8 @@
     <button on:click={async () => result = await verifyResult(premises, conclusion, rule)}>Prove</button>
 
     <pre>{result}</pre>
+
+    <button on:click={switchMode} class="action-button">Switch Mode</button>
 
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
       <div slot="body">
@@ -258,14 +275,20 @@
                 {/if}
             {/if}
             {#if $editState === EditState.SOLVER}
-                <PremiseInput
-                    placeholder="Conclusion"
-                    bind:value="{$solverContent.conclusion.value}"
-                    error="{!$solverContent.conclusion.tree}"
-                    index={$solverContent.premises.length + 1}
-                    onChange={() => onChangeConclusion($solverContent.conclusion.value)}
-                    disabled={solving}
-                />
+                {#if !solving}
+                    <PremiseInput
+                        placeholder="Conclusion"
+                        bind:value="{$solverContent.conclusion.value}"
+                        error="{!$solverContent.conclusion.tree}"
+                        index={$solverContent.premises.length + 1}
+                        onChange={() => onChangeConclusion($solverContent.conclusion.value)}
+                    />
+                {:else}
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        Find a proof for the following conclusion:
+                        <MathMLViewer value={$solverContent.conclusion.value} />
+                    </div>
+                {/if}
             {/if}
 
             <div class="button-wrapper">
@@ -305,7 +328,7 @@
     <Panel>
         <h2>Deduction Rules</h2>
         <RuleGridLayout>
-            {#each DeductionRule.rules as rule}
+            {#each $deductionRules as rule}
                 <RuleSlot rule="{rule}"
                           onClick={() => { handleRuleClick(rule) }}
                           onMouseOver={() => {

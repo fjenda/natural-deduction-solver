@@ -5,7 +5,6 @@
 </script>
 
 <div class="tooltip {position}" class:show={show}>
-<!--    content is in html code, render it-->
     {@html content}
 </div>
 
@@ -19,6 +18,7 @@
         z-index: 1000;
         display: none;
         width: max-content;
+        font-size: 1.25em;
     }
 
     .tooltip.bottom::before {
@@ -74,7 +74,8 @@
     }
 
     .tooltip.show {
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
 
     .tooltip.bottom {

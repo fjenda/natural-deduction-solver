@@ -26,8 +26,8 @@
     - [x] Solved by allowing to add only one editable row
 - [x] Formula Parser
   - [x] Refactor Formula Parser
-- [ ] QoL improvements
-  - [ ] Easier way to switch between propositional and predicate logic
+- [x] QoL improvements
+  - [x] Easier way to switch between propositional and predicate logic
 - [ ] UI Improvements
   - [x] Add a preview of the hovered rule
   - [ ] Add a preview of the hovered theorem
@@ -52,3 +52,8 @@
   - [x] Comment the code 
 - [x] Update parenthesizing logic to only include the necessary parentheses
 - [ ] Add a way to save the current state of the solver and load it later
+- [ ] Include MathML
+  - [x] Solver Table
+  - [x] Rule Preview
+  - [ ] Theorem Preview
+  - [ ] Premises

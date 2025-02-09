@@ -74,4 +74,38 @@ export class PrettySyntaxer {
         r = r.replace(/\s*,\s*/g, ",");
         return r;
     }
+
+    /**
+     * Converts the plain text formula into MathML
+     * @param f The formula to convert
+     * @returns The MathML representation of the formula
+     */
+    public static toMathML(f: string): string {
+        return `
+            <math xmlns="http://www.w3.org/1998/Math/MathML">
+                <mtable>
+                    ${f
+                    .split('\n')  // Split the formula by newlines
+                    .map(line => `
+                        <mtr>
+                            <mtd>
+                                ${line
+                                    .replace(/¬/g, '<mo>¬</mo>')
+                                    .replace(/∧/g, '<mo>∧</mo>')
+                                    .replace(/∨/g, '<mo>∨</mo>')
+                                    .replace(/⊃/g, '<mo>⊃</mo>')
+                                    .replace(/≡/g, '<mo>≡</mo>')
+                                    .replace(/,/g, '<mo>,</mo>')
+                                    .replace(/⊢/g, '<mo>⊢</mo>')
+                                    .replace(/\s/g, '')
+                                    .replace(/\(/g, '<mo stretchy="false">(</mo>')
+                                    .replace(/\)/g, '<mo stretchy="false">)</mo>')
+                                    .replace(/\b([A-Za-z])\b/g, '<mi>$1</mi>')}
+                            </mtd>
+                        </mtr>`)
+                    .join('')}
+                </mtable>
+            </math>
+        `;
+    }
 }
