@@ -1,5 +1,6 @@
 <script lang="ts">
     import {PrettySyntaxer} from "../PrettySyntaxer";
+    import MathMLViewer from "./MathMLViewer.svelte";
 
     export let placeholder: string;
     export let value: string | null = "";
@@ -8,6 +9,7 @@
     export let disabled: boolean = false;
     export let onChange: (value: string, index: number) => void;
     let inputElement: HTMLInputElement;
+    let show: boolean = false;
 
     let hint: string = "" +
         "Constants - [a-z]()\n" +
@@ -46,28 +48,42 @@
             inputElement.setSelectionRange(newPosition, newPosition);
         }, 0);
     }
+
+    function toggleInput() {
+        show = !show;
+
+        setTimeout(() => inputElement.focus(), 50);
+    }
+
 </script>
 
-<div class="wrapper">
-    <input
-        type="text"
-        placeholder={placeholder}
-        name="formula-{index}"
-        disabled={disabled}
-        bind:this={inputElement}
-        bind:value={value}
-        class:error={error}
-        on:change={() => {
-            value = PrettySyntaxer.clean(value ?? "");
-            onChange(value ?? "", index);
-        }}
-        tabindex="{index + 1}"
-    />
-    <div class="operator-input">
-        {#each operators as operator}
-            <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
-        {/each}
-    </div>
+<div class="wrapper"
+     on:click={toggleInput}
+     on:focusout={toggleInput}
+    class:error={error}
+>
+    {#if !show}
+        <MathMLViewer value={value} fontSize="1.35" />
+    {:else}
+        <input
+            type="text"
+            placeholder={placeholder}
+            name="formula-{index}"
+            disabled={disabled}
+            bind:this={inputElement}
+            bind:value={value}
+            on:change={() => {
+                value = PrettySyntaxer.clean(value ?? "");
+                onChange(value ?? "", index);
+            }}
+            tabindex="{index + 1}"
+        />
+        <div class="operator-input">
+            {#each operators as operator}
+                <button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -76,11 +92,7 @@
         text-decoration: none;
     }
 
-    input.error::placeholder {
-        color: white;
-    }
-
-    input.error {
+    .wrapper.error {
         border-color: #ff0000;
     }
 
@@ -131,7 +143,16 @@
 
     .wrapper {
         width: 100%;
+        height: 3.5rem;
+        border-radius: 0.5rem;
+        background: #121212;
+        border: 1px solid var(--dark-border-color);
         position: relative;
+        display: flex;
+    }
+
+    .wrapper:focus-within {
+        border: 0;
     }
 
     .wrapper:focus-within .operator-input {
