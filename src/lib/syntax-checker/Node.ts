@@ -254,6 +254,10 @@ export class Node {
      * @returns {Node} the parsed node
      */
     public static fromPrologFormat(f: string): Node {
+        if (!f) {
+            throw new Error("Invalid Prolog format");
+        }
+
         f = f.trim();
 
         // if there are no parentheses, it's a constant

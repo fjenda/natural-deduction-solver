@@ -1,7 +1,7 @@
 import { selectedRows, solverContent } from "../../stores/solverStore";
 import { PremiseParser } from "./parsers/PremiseParser";
 import { DeductionProcessor } from "./parsers/DeductionProcessor";
-import { NDRule } from "./parsers/DeductionRules";
+import { DeductionRule, NDRule } from "./parsers/DeductionRules";
 import { FormulaComparer } from "./FormulaComparer";
 import type { TreeRuleType } from "../../types/TreeRuleType";
 import { get } from "svelte/store";
@@ -25,7 +25,7 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-export async function verifyResult(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
+export async function queryProlog(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -46,6 +46,19 @@ export async function verifyResult(premises: string[], conclusion: string, rule:
     }
 }
 
+export async function verifyResult(rule: DeductionRule, premises: string[], selected: number[]) {
+    // send request to prolog
+    const result: ProveResult = await queryProlog(premises, 'X', rule.short);
+    console.log(result);
+
+    // get result
+    if (!result.success) {
+        return alert(result.message);
+    }
+
+    addToProof(result, rule.short, selected);
+}
+
 export function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType) {
     const result = DeductionProcessor.applyRule(short, row1, row2);
     if (!result) return;
@@ -62,6 +75,27 @@ export function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType)
     });
 
     selectedRows.set([]);
+}
+
+export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): void {
+    // add the result to the proof
+    solverContent.update(sc => {
+        const results = Array.isArray(result.results) ? result.results : [result.results];
+        results.forEach(r => {
+           const tree = Node.fromPrologFormat(r);
+           const tmp = {
+               line: sc.proof.length + 1,
+               tree: tree.parenthesize(),
+               value: Node.generateString(tree),
+               rule: { rule: rule, lines: lines }
+           };
+
+           if (!DeductionProcessor.existsInProof(tmp)) {
+               sc.proof.push(tmp);
+           }
+        });
+        return sc;
+    });
 }
 
 export function checkProof() {

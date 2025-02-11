@@ -30,7 +30,6 @@
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import { onMount } from "svelte";
     import {
-        applyRule,
         checkProof,
         onChangeConclusion,
         onChangePremise,
@@ -87,115 +86,69 @@
         modalButtons[index].action = action;
     }
 
-    function handleRuleClick(rule: DeductionRule) {
+    async function onRuleClick(rule: DeductionRule): Promise<void> {
+        // get selected rows
         const proof = get(solverContent).proof;
         const selected = get(selectedRows);
-        const highlighted = get(highlightedRows);
 
         // make the user select at least one row
         if (selected.length === 0) {
-            alert("Select at least one row");
-            return;
+            return alert("Select at least one row");
         }
 
         // if the user selected more rows than needed for the rule
         if (selected.length > rule.inputSize) {
-            alert("Too many rows selected");
-            return;
+            return alert("Too many rows selected");
         }
 
-        // if the number of selected rows is equal to the number of rows needed for the rule
-        if (selected.length === rule.inputSize) {
-            applyRule(rule.short, proof[selected[0] - 1], proof[selected[1] - 1]);
-            return;
-        }
-
-        // if the number of selected rows is not equal to the number of rows needed for the rule
-        // display modal and make the user select the row there
-        if (rule.short === NDRule.IDIS) {
-            showModalWithInput("Insert formula", "Write the formula to insert into the disjunction", "Enter the formula", () => {
-                const formula = PremiseParser.parsePremise(modalInput.value);
-                if (!formula.tree) {
-                    alert("Invalid formula");
-                    return;
-                }
-
-                applyRule(rule.short, proof[selected[0] - 1], {
-                   line: -1,
-                   tree: formula.tree,
-                   value: formula.value,
-                   rule: { rule: NDRule.UNKNOWN },
-                });
-
-                closeModal();
-            });
-            return;
-        }
-
-        showModalWithInput("Select row", "Select the second row with which to execute the rule", "Enter row number", () => {
-            const other = parseInt(modalInput.value);
-            if (isNaN(other) || other < 1 || other > proof.length) {
-                alert("Invalid row number");
-                return;
-            }
-
-            if (selected.includes(other)) {
-                alert("Cannot select the same row");
-                return;
-            }
-
-            const highlightedProof = highlighted.includes(other) ? proof[other - 1] : null;
-            if (highlightedProof) {
-                applyRule(rule.short, proof[selected[0] - 1], highlightedProof);
-            }
-
-            closeModal();
-        });
-    }
-
-    async function handleRuleClickProlog(rule: DeductionRule): Promise<void> {
-        // get selected rows
-        const proof = get(solverContent).proof;
-        const selected = get(selectedRows);
+        // get the premises
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
-        console.log(premises);
+        if (selected.length === rule.inputSize) {
+            return await verifyResult(rule, premises, selected);
+        }
 
-        // send request to prolog
-        const result: ProveResult = await verifyResult(premises, 'X', rule.short);
-        console.log(result);
+        if (rule.short === NDRule.IDIS) {
+            showModalWithInput(
+                "Insert formula",
+                "Write the formula to insert into the disjunction",
+                "Enter the formula",
+                () => {
+                    const formula = PremiseParser.parsePremise(modalInput.value);
+                    if (!formula.tree) {
+                        alert("Invalid formula");
+                        return;
+                    }
 
-        // get result
-        if (!result.success) {
-            alert(result.message);
+                    premises.push(formula.tree.toPrologFormat());
+                    verifyResult(rule, premises, selected);
+                    closeModal();
+                }
+            );
             return;
         }
 
-        // add the result to the proof
-        solverContent.update(sc => {
-            if (Array.isArray(result.results)) {
-                result.results.forEach(r => {
-                    const tree = Node.fromPrologFormat(r);
-                    sc.proof.push({
-                        line: sc.proof.length + 1,
-                        tree: tree.parenthesize(),
-                        value: Node.generateString(tree),
-                        rule: { rule: rule.short, lines: $selectedRows }
-                    });
-                });
-            } else {
-                const tree = Node.fromPrologFormat(result.results);
-                sc.proof.push({
-                    line: sc.proof.length + 1,
-                    tree: tree.parenthesize(),
-                    value: Node.generateString(tree),
-                    rule: { rule: rule.short, lines: $selectedRows }
-                });
-            }
-            return sc;
-        });
+        // if the user selected fewer rows than needed for the rule
+        showModalWithInput(
+            "Select row",
+            "Select the second row with which to execute the rule",
+            "Enter row number",
+            () => {
+                const other = parseInt(modalInput.value);
+                if (isNaN(other) || other < 1 || other > proof.length) {
+                    return alert("Invalid row number");
+                }
 
-        console.log($solverContent.proof);
+                if (selected.includes(other)) {
+                    return alert("Cannot select the same row");
+                }
+
+                selected.push(other);
+                premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? "");
+                verifyResult(rule, premises, selected);
+                closeModal();
+            }
+        );
     }
 
     // Utility function to show a modal with an input field
@@ -223,8 +176,7 @@
     function startSolver() {
         // if the conclusion is invalid, return
         if (!$solverContent.conclusion.tree) {
-            alert("Conclusion is not valid");
-            return;
+            return alert("Conclusion is not valid");
         }
 
         const setup = (isIndirect: boolean) => {
@@ -255,9 +207,6 @@
         });
 
         onChangeConclusion($solverContent.conclusion.value);
-
-        // (p -> (q = r)) & c
-        // console.log(Node.fromPrologFormat("and(and('A','B'),imp('B','C'))"));
     });
 
     function switchMode() {
@@ -271,13 +220,6 @@
 </script>
 
 <main>
-<!--    <textarea bind:value={premises} placeholder="Enter premises (one per line)"></textarea>-->
-<!--    <input bind:value={premises} placeholder="Enter premises" />-->
-<!--    <input bind:value={conclusion} placeholder="Enter conclusion" />-->
-<!--    <input bind:value={rule} placeholder="Enter rule" />-->
-<!--    <button on:click={async () => result = await verifyResult(premises.split('\n'), conclusion, rule)}>Prove</button>-->
-<!--    <pre>{result}</pre>-->
-
   <button on:click={switchMode} class="action-button">Switch Mode</button>
 
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
@@ -373,7 +315,7 @@
         <RuleGridLayout>
             {#each $deductionRules as rule}
                 <RuleSlot rule="{rule}"
-                          onClick={() => { handleRuleClickProlog(rule) }}
+                          onClick={() => { onRuleClick(rule) }}
                           onMouseOver={() => {
                               if (!solving) return;
                               if (get(selectedRows).length === rule.inputSize) return;

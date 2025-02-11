@@ -6,6 +6,7 @@ import {get} from "svelte/store";
 import {selectedRows, solverContent} from "../../../stores/solverStore";
 import {FormulaComparer} from "../FormulaComparer";
 import {NodeType} from "../../syntax-checker/NodeType";
+import type { ProveResult } from "../../../types/ProveResult";
 
 /**
  * Class that processes deduction rules
@@ -530,7 +531,7 @@ export class DeductionProcessor {
      * @param formula The formula to check
      * @private
      */
-    private static existsInProof(formula: TreeRuleType): boolean {
+    public static existsInProof(formula: TreeRuleType): boolean {
         return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
     }
 }
