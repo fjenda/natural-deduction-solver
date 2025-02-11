@@ -1,9 +1,8 @@
-import { selectedRows, solverContent } from "../../stores/solverStore";
+import { solverContent } from "../../stores/solverStore";
 import { PremiseParser } from "./parsers/PremiseParser";
 import { DeductionProcessor } from "./parsers/DeductionProcessor";
 import { DeductionRule, NDRule } from "./parsers/DeductionRules";
 import { FormulaComparer } from "./FormulaComparer";
-import type { TreeRuleType } from "../../types/TreeRuleType";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
 import type { ProveResult } from "../../types/ProveResult";
@@ -25,7 +24,7 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-export async function queryProlog(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
+async function handlePost(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -46,9 +45,9 @@ export async function queryProlog(premises: string[], conclusion: string, rule: 
     }
 }
 
-export async function verifyResult(rule: DeductionRule, premises: string[], selected: number[]) {
+export async function queryProlog(rule: DeductionRule, premises: string[], selected: number[]) {
     // send request to prolog
-    const result: ProveResult = await queryProlog(premises, 'X', rule.short);
+    const result: ProveResult = await handlePost(premises, 'X', rule.short);
     console.log(result);
 
     // get result
@@ -59,22 +58,19 @@ export async function verifyResult(rule: DeductionRule, premises: string[], sele
     addToProof(result, rule.short, selected);
 }
 
-export function applyRule(short: NDRule, row1: TreeRuleType, row2: TreeRuleType) {
-    const result = DeductionProcessor.applyRule(short, row1, row2);
-    if (!result) return;
+export async function verifyResult(result: Node, premises: string[], rule: NDRule) {
+    // get the prolog results
+    const other = await handlePost(premises, 'X', rule);
+    const values = Array.isArray(other.results) ? other.results : [other.results];
 
-    solverContent.update(sc => {
-        if (Array.isArray(result)) {
-            result.forEach(res => {
-                sc.proof[res.line - 1] = res;
-            });
-        } else {
-            sc.proof[result.line - 1] = result;
-        }
-        return sc;
+    // compare with the one that user added, if they are the same, add them
+    let exists: boolean = false;
+    values.forEach(val => {
+       const tmp = Node.fromPrologFormat(val);
+       if (tmp.equals(result)) exists = true;
     });
 
-    selectedRows.set([]);
+    return exists;
 }
 
 export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): void {

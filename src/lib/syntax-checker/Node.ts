@@ -317,4 +317,12 @@ export class Node {
 
         return res;
     }
+
+    /**
+     * Splits the tree in half
+     * @returns {Node[]} left and right children of the tree
+     */
+    public split(): Node[] {
+        return [this.children[0], this.children[1]];
+    }
 }

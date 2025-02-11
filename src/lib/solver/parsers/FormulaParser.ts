@@ -7,6 +7,7 @@ import { PrettySyntaxer } from "../PrettySyntaxer";
 import { FormulaComparer } from "../FormulaComparer";
 import { logicMode, solverContent } from "../../../stores/solverStore";
 import { Node } from "../../syntax-checker/Node";
+import { queryProlog, verifyResult } from "../solverLogic";
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid
@@ -98,39 +99,22 @@ export class FormulaParser {
         // apply the rule
         let result = null;
         if (usedRule === DeductionRule.IDIS) {
-            result = DeductionProcessor.applyRule(usedRule.short, tmp, null);
+            const [left, right] = tmp.tree.split();
+            result = queryProlog(usedRule, [left.toPrologFormat(), right.toPrologFormat()], [tmp.line]);
         } else {
-            result = DeductionProcessor.applyRule(usedRule.short, first, second);
-        }
-
-        // if the result is null, the rule wasn't applied correctly
-        if (!result) return tmp;
-
-        tmp.rule = { rule: usedRule.short, lines: linesNumbers };
-        // some rules return an array of results, in that case we need to check if our result is in the array
-        if (Array.isArray(result)) {
-            if (!result.some((r) => {
-                if (FormulaComparer.compare(r, tmp)) {
-                    tmp.tree = r.tree;
-                    return true;
-                }
-                return false;
-            })) {
-                return tmp;
+            let prem: string[] = [];
+            if (!second) {
+                // @ts-ignore
+                prem = [first.tree.toPrologFormat()];
+            } else {
+                // @ts-ignore
+                prem = [first.tree.toPrologFormat(), second.tree.toPrologFormat()];
             }
-
-            // the results are the same, return the rule
-            tmp.rule = { rule: usedRule.short, lines: linesNumbers };
-            return tmp;
+            result = verifyResult(tmp.tree, prem, usedRule.short);
         }
 
-        // check if the results differ
-        if (!FormulaComparer.compare(result, tmp)) {
-            return tmp;
-        }
-
-        // the results are the same, return the rule
-        tmp.tree = result.tree;
+        // if the result is false, it's not correct
+        if (!result) return tmp;
         tmp.rule = { rule: usedRule.short, lines: linesNumbers };
         return tmp;
     }

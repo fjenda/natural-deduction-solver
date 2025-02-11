@@ -34,7 +34,7 @@
         onChangeConclusion,
         onChangePremise,
         setupProof,
-        verifyResult
+        queryProlog
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { ParseStrategy } from "./types/ParseStrategy";
@@ -105,7 +105,7 @@
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
         if (selected.length === rule.inputSize) {
-            return await verifyResult(rule, premises, selected);
+            return await queryProlog(rule, premises, selected);
         }
 
         if (rule.short === NDRule.IDIS) {
@@ -121,7 +121,7 @@
                     }
 
                     premises.push(formula.tree.toPrologFormat());
-                    verifyResult(rule, premises, selected);
+                    queryProlog(rule, premises, selected);
                     closeModal();
                 }
             );
@@ -145,7 +145,7 @@
 
                 selected.push(other);
                 premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? "");
-                verifyResult(rule, premises, selected);
+                queryProlog(rule, premises, selected);
                 closeModal();
             }
         );
