@@ -1,4 +1,4 @@
-import { Operator, operatorToProlog } from "./Operator";
+import { Operator, operatorFromProlog, operatorToProlog } from "./Operator";
 import { NodeType } from "./NodeType";
 import { get } from "svelte/store";
 import { logicMode } from "../../stores/solverStore";
@@ -242,9 +242,75 @@ export class Node {
         }
 
         if (this.type === NodeType.NEGATION) {
-            return `not(${this.children[0].toPrologFormat()})`;
+            return `${operatorToProlog(this.value as Operator)}(${this.children[0].toPrologFormat()})`;
         }
 
-        return this.value as string;
+        return `'${this.value}'`;
+    }
+
+    /**
+     * Converts a string in Prolog format to a Node
+     * @param f - the string in Prolog format
+     * @returns {Node} the parsed node
+     */
+    public static fromPrologFormat(f: string): Node {
+        f = f.trim();
+
+        // if there are no parentheses, it's a constant
+        if (!f.includes("(")) {
+            // the format is 'constant'
+            return new Node(NodeType.CONSTANT, f.slice(1, -1));
+        }
+
+        // match function calls
+        const match = f.match(/^(\w+)\((.*)\)$/);
+        if (!match) {
+            throw new Error(`Invalid Prolog format ${f}`);
+        }
+
+        const op = match[1];
+        const args = match[2];
+
+        const children = Node.parseArgs(args).map(Node.fromPrologFormat);
+
+        if (op === "not") {
+            const node = new Node(NodeType.NEGATION, operatorFromProlog(op));
+            node.setChildren(children);
+            return node;
+        }
+
+        const node = new Node(NodeType.BINARY_OPERATION, operatorFromProlog(op));
+        node.setChildren(children);
+        return node;
+    }
+
+    /**
+     * Parses the arguments of a Prolog function
+     * @param args - the arguments string
+     * @returns {string[]} the parsed arguments
+     * @private
+     */
+    private static parseArgs(args: string): string[] {
+        let depth = 0;
+        let curr = "";
+        const res: string[] = [];
+
+        for (let i = 0; i < args.length; i++) {
+            const char = args[i];
+
+            if (char === "(") depth++;
+            if (char === ")") depth--;
+
+            if (char === "," && depth === 0) {
+                res.push(curr.trim());
+                curr = "";
+            } else {
+                curr += char;
+            }
+        }
+
+        if (curr.trim()) res.push(curr.trim());
+
+        return res;
     }
 }

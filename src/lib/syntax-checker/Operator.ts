@@ -29,7 +29,7 @@ export function operatorToProlog(op: Operator): string {
         case Operator.DISJUNCTION:
             return "or";
         case Operator.IMPLICATION:
-            return "impl";
+            return "imp";
         case Operator.EQUIVALENCE:
             return "eq";
         case Operator.NEGATION:
@@ -40,5 +40,26 @@ export function operatorToProlog(op: Operator): string {
             return "exists";
         default:
             return op;
+    }
+}
+
+export function operatorFromProlog(op: string): Operator {
+    switch (op) {
+        case "and":
+            return Operator.CONJUNCTION;
+        case "or":
+            return Operator.DISJUNCTION;
+        case "imp":
+            return Operator.IMPLICATION;
+        case "eq":
+            return Operator.EQUIVALENCE;
+        case "not":
+            return Operator.NEGATION;
+        case "forall":
+            return Operator.UNIVERSAL;
+        case "exists":
+            return Operator.EXISTENTIAL;
+        default:
+            return op as Operator
     }
 }

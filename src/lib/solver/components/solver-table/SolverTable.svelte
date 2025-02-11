@@ -75,8 +75,8 @@
                 }}
                 onEdit={() => {
                     // remove the row from the proof
-                    $solverContent.proof.splice(i, 1);
                     row.editable = true;
+                    $solverContent.proof.splice(i, 1);
                 }}
                 onDelete={() => {
                     solverContent.update(content => {

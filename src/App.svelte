@@ -39,7 +39,8 @@
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { ParseStrategy } from "./types/ParseStrategy";
-
+    import { Node } from "./lib/syntax-checker/Node";
+    import type { ProveResult } from "./types/ProveResult";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -152,6 +153,51 @@
         });
     }
 
+    async function handleRuleClickProlog(rule: DeductionRule): Promise<void> {
+        // get selected rows
+        const proof = get(solverContent).proof;
+        const selected = get(selectedRows);
+        const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
+
+        console.log(premises);
+
+        // send request to prolog
+        const result: ProveResult = await verifyResult(premises, 'X', rule.short);
+        console.log(result);
+
+        // get result
+        if (!result.success) {
+            alert(result.message);
+            return;
+        }
+
+        // add the result to the proof
+        solverContent.update(sc => {
+            if (Array.isArray(result.results)) {
+                result.results.forEach(r => {
+                    const tree = Node.fromPrologFormat(r);
+                    sc.proof.push({
+                        line: sc.proof.length + 1,
+                        tree: tree.parenthesize(),
+                        value: Node.generateString(tree),
+                        rule: { rule: rule.short, lines: $selectedRows }
+                    });
+                });
+            } else {
+                const tree = Node.fromPrologFormat(result.results);
+                sc.proof.push({
+                    line: sc.proof.length + 1,
+                    tree: tree.parenthesize(),
+                    value: Node.generateString(tree),
+                    rule: { rule: rule.short, lines: $selectedRows }
+                });
+            }
+            return sc;
+        });
+
+        console.log($solverContent.proof);
+    }
+
     // Utility function to show a modal with an input field
     function showModalWithInput(header: string, content: string, placeholder: string, onConfirm: () => void) {
         modalHeader = header;
@@ -209,12 +255,10 @@
         });
 
         onChangeConclusion($solverContent.conclusion.value);
-    });
 
-    let premises = '';
-    let conclusion = '';
-    let rule = '';
-    let result: string = '';
+        // (p -> (q = r)) & c
+        // console.log(Node.fromPrologFormat("and(and('A','B'),imp('B','C'))"));
+    });
 
     function switchMode() {
         logicMode.update(mode => mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL);
@@ -227,15 +271,14 @@
 </script>
 
 <main>
-    <textarea bind:value={premises} placeholder="Enter premises (one per line)"></textarea>
+<!--    <textarea bind:value={premises} placeholder="Enter premises (one per line)"></textarea>-->
 <!--    <input bind:value={premises} placeholder="Enter premises" />-->
-    <input bind:value={conclusion} placeholder="Enter conclusion" />
-    <input bind:value={rule} placeholder="Enter rule" />
-    <button on:click={async () => result = await verifyResult(premises, conclusion, rule)}>Prove</button>
+<!--    <input bind:value={conclusion} placeholder="Enter conclusion" />-->
+<!--    <input bind:value={rule} placeholder="Enter rule" />-->
+<!--    <button on:click={async () => result = await verifyResult(premises.split('\n'), conclusion, rule)}>Prove</button>-->
+<!--    <pre>{result}</pre>-->
 
-    <pre>{result}</pre>
-
-    <button on:click={switchMode} class="action-button">Switch Mode</button>
+  <button on:click={switchMode} class="action-button">Switch Mode</button>
 
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
       <div slot="body">
@@ -330,7 +373,7 @@
         <RuleGridLayout>
             {#each $deductionRules as rule}
                 <RuleSlot rule="{rule}"
-                          onClick={() => { handleRuleClick(rule) }}
+                          onClick={() => { handleRuleClickProlog(rule) }}
                           onMouseOver={() => {
                               if (!solving) return;
                               if (get(selectedRows).length === rule.inputSize) return;

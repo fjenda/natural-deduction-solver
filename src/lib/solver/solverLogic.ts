@@ -6,6 +6,7 @@ import { FormulaComparer } from "./FormulaComparer";
 import type { TreeRuleType } from "../../types/TreeRuleType";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
+import type { ProveResult } from "../../types/ProveResult";
 
 const API_PORT = 3000;
 const API_URL = `http://localhost:${API_PORT}/prove`;
@@ -24,7 +25,7 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-export async function verifyResult(premises: string, conclusion: string, rule: string): Promise<string> {
+export async function verifyResult(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
@@ -32,17 +33,16 @@ export async function verifyResult(premises: string, conclusion: string, rule: s
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                premises: premises.split('\n').filter(p => p.trim() !== ''),
+                premises: premises.filter(p => p.trim() !== ''),
                 conclusion,
                 rule,
             }),
         });
 
-        const data = await response.json();
-        return JSON.stringify(data, null, 2);
+        return await response.json();
     } catch (error) {
         console.error(error);
-        return 'Error: ' + error;
+        return { success: false, results: [], message: "An error occurred while verifying the proof" };
     }
 }
 

@@ -11,7 +11,7 @@ export const logicMode = writable<ParseStrategy>(ParseStrategy.PROPOSITIONAL);
 /**
  * Store that contains the deduction rules based on the logic mode
  */
-export const deductionRules = writable<DeductionRule[]>([]);
+export const deductionRules = writable<DeductionRule[]>(DeductionRule.rules);
 
 /**
  * Store for the content of the solver
