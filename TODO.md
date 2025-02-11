@@ -40,7 +40,7 @@
     - [x] Let the user reset the solving and update the premises
     - [x] They can always reset the solving, or create a new problem to solve
     - [x] Button to check the final solution
-- [ ] After clicking a button to start solving make the user choose if they want to solve using indirect proof or direct proof
+- [x] After clicking a button to start solving make the user choose if they want to solve using indirect proof or direct proof
 - [ ] Theorems
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
@@ -56,4 +56,8 @@
   - [x] Solver Table
   - [x] Rule Preview
   - [ ] Theorem Preview
-  - [ ] Premises
+  - [x] Premises
+- [ ] Do the natural deduction logic in Prolog
+  - [x] Prolog API 
+  - [x] Basic rules implementation
+  - [ ] Theorem support

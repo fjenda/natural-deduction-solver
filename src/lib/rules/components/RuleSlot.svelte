@@ -1,8 +1,9 @@
 <script lang="ts">
     import type { DeductionRule } from "../../solver/parsers/DeductionRules";
-    import { DeductionProcessor } from "../../solver/parsers/DeductionProcessor";
     import { highlightedRows, selectedRows } from "../../../stores/solverStore";
     import Tooltip from "../../Tooltip.svelte";
+    import { usable } from "../../solver/solverLogic";
+    import { get } from "svelte/store";
 
     export let rule: DeductionRule;
     export let onClick: () => void;
@@ -10,8 +11,8 @@
     export let onMouseOut: () => void;
     let showTooltip: boolean = false;
 
-    function handleClick() {
-        const result = DeductionProcessor.getUsableRows(rule.short);
+    async function handleClick() {
+        const result = await usable(rule, get(selectedRows)[0]);
         if (!result.applicable) return;
 
         highlightedRows.set(result.highlighted);

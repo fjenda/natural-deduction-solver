@@ -52,7 +52,7 @@
     function toggleInput() {
         show = !show;
 
-        setTimeout(() => inputElement.focus(), 50);
+        setTimeout(() => inputElement?.focus(), 10);
     }
 
 </script>
@@ -63,7 +63,7 @@
     class:error={error}
 >
     {#if !show}
-        <MathMLViewer value={value} fontSize="1.35" />
+        <MathMLViewer value={value} fontSize={1.35} />
     {:else}
         <input
             type="text"

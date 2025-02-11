@@ -11,7 +11,6 @@
         addPremise,
         deductionRules,
         highlightedRows,
-        logicMode,
         selectedRows,
         solverContent
     } from "./stores/solverStore";
@@ -25,7 +24,6 @@
     import { editState } from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
     import type { ButtonContent } from "./types/ButtonContent";
-    import { DeductionProcessor } from "./lib/solver/parsers/DeductionProcessor";
     import { get } from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import { onMount } from "svelte";
@@ -34,12 +32,9 @@
         onChangeConclusion,
         onChangePremise,
         setupProof,
-        queryProlog
+        queryProlog, switchMode, resetSolving, handlePost, usable
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
-    import { ParseStrategy } from "./types/ParseStrategy";
-    import { Node } from "./lib/syntax-checker/Node";
-    import type { ProveResult } from "./types/ProveResult";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -191,15 +186,6 @@
         showConclusionSelect = true;
     }
 
-    function resetSolving() {
-        solving = false;
-        selectedRows.set([]);
-        solverContent.update(sc => {
-            sc.proof = [];
-            return sc;
-        });
-    }
-
     onMount(() => {
         // call onChangePremise/Conclusion to parse the initial values
         $solverContent.premises.forEach((premise, i) => {
@@ -209,17 +195,25 @@
         onChangeConclusion($solverContent.conclusion.value);
     });
 
-    function switchMode() {
-        logicMode.update(mode => mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL);
-        deductionRules.set(DeductionRule.rules);
-        $solverContent.premises.forEach((premise, i) => {
-            onChangePremise(premise.value, i);
-        });
-        onChangeConclusion($solverContent.conclusion.value);
-    }
+    // let result;
+    // let premises: string = "";
+    // let conclusion: string = "";
+    // let rule: string = "";
+    //
+    // async function test() {
+    //     const res = await handlePost('/prove', premises.split('\n'), conclusion, rule);
+    //     console.log(res);
+    // }
+
 </script>
 
 <main>
+<!--    <textarea bind:value={premises}></textarea>-->
+<!--    <input bind:value={conclusion} />-->
+<!--    <input bind:value={rule} />-->
+<!--    <button on:click={test}>Test</button>-->
+<!--    <pre>{result}</pre>-->
+
   <button on:click={switchMode} class="action-button">Switch Mode</button>
 
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
@@ -296,7 +290,7 @@
                 {/if}
                 <button
                     class="action-button reset"
-                    on:click={resetSolving}
+                    on:click={() => solving = resetSolving()}
                     disabled={!solving}
                     tabindex={$solverContent.premises.length + 3}
                 >
@@ -316,10 +310,12 @@
             {#each $deductionRules as rule}
                 <RuleSlot rule="{rule}"
                           onClick={() => { onRuleClick(rule) }}
-                          onMouseOver={() => {
+                          onMouseOver={async () => {
                               if (!solving) return;
-                              if (get(selectedRows).length === rule.inputSize) return;
-                              const rows = DeductionProcessor.getUsableRows(rule.short);
+                              if (get(selectedRows).length >= rule.inputSize) return;
+                              if (get(selectedRows).length === 0) return;
+                              // const rows = DeductionProcessor.getUsableRows(rule.short);
+                              const rows = await usable(rule, get(selectedRows)[0]);
                               highlightedRows.set(rows.highlighted);
                           }}
                           onMouseOut={() => {

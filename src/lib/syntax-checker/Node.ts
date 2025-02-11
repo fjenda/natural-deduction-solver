@@ -245,7 +245,7 @@ export class Node {
             return `${operatorToProlog(this.value as Operator)}(${this.children[0].toPrologFormat()})`;
         }
 
-        return `'${this.value}'`;
+        return `'${this.value ?? ""}'`;
     }
 
     /**

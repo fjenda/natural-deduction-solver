@@ -1,14 +1,16 @@
-import { solverContent } from "../../stores/solverStore";
+import { deductionRules, logicMode, selectedRows, solverContent } from "../../stores/solverStore";
 import { PremiseParser } from "./parsers/PremiseParser";
-import { DeductionProcessor } from "./parsers/DeductionProcessor";
 import { DeductionRule, NDRule } from "./parsers/DeductionRules";
 import { FormulaComparer } from "./FormulaComparer";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
 import type { ProveResult } from "../../types/ProveResult";
+import { ParseStrategy } from "../../types/ParseStrategy";
+import type { TreeRuleType } from "../../types/TreeRuleType";
 
 const API_PORT = 3000;
-const API_URL = `http://localhost:${API_PORT}/prove`;
+const API_HOST = "http://localhost";
+const API_URL = `${API_HOST}:${API_PORT}`;
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -24,9 +26,9 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-async function handlePost(premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
+export async function handlePost(endpoint: string, premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -47,8 +49,7 @@ async function handlePost(premises: string[], conclusion: string, rule: string):
 
 export async function queryProlog(rule: DeductionRule, premises: string[], selected: number[]) {
     // send request to prolog
-    const result: ProveResult = await handlePost(premises, 'X', rule.short);
-    console.log(result);
+    const result: ProveResult = await handlePost('/prove', premises, 'X', rule.short);
 
     // get result
     if (!result.success) {
@@ -60,7 +61,7 @@ export async function queryProlog(rule: DeductionRule, premises: string[], selec
 
 export async function verifyResult(result: Node, premises: string[], rule: NDRule) {
     // get the prolog results
-    const other = await handlePost(premises, 'X', rule);
+    const other = await handlePost('/prove', premises, 'X', rule);
     const values = Array.isArray(other.results) ? other.results : [other.results];
 
     // compare with the one that user added, if they are the same, add them
@@ -71,6 +72,32 @@ export async function verifyResult(result: Node, premises: string[], rule: NDRul
     });
 
     return exists;
+}
+
+export async function usable(rule: DeductionRule, row: number): Promise<{ highlighted: number[], applicable: boolean }> {
+    const proof = get(solverContent).proof;
+    const selected: string = proof[row - 1].tree?.toPrologFormat() ?? "";
+    const indices: number[] = [];
+
+    if (rule.inputSize === 1) {
+        const { success } = await handlePost('/prove', [selected], 'X', rule.short);
+        if (success) indices.push(row);
+        return { applicable: !!indices.length, highlighted: indices };
+    }
+
+    for (const r of proof) {
+        const i = proof.indexOf(r);
+        if (i === row - 1) continue;
+
+        const other: string = r.tree?.toPrologFormat() ?? "";
+        const result: ProveResult = await handlePost('/prove', [selected, other], 'X', rule.short);
+        if (!result.success) continue;
+
+        // if DeductionProcessor.existsInProof()
+        indices.push(r.line);
+    }
+
+    return { applicable: !!indices.length, highlighted: indices };
 }
 
 export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): void {
@@ -86,12 +113,16 @@ export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): 
                rule: { rule: rule, lines: lines }
            };
 
-           if (!DeductionProcessor.existsInProof(tmp)) {
+           if (!existsInProof(tmp)) {
                sc.proof.push(tmp);
            }
         });
         return sc;
     });
+}
+
+function existsInProof(formula: TreeRuleType): boolean {
+    return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
 }
 
 export function checkProof() {
@@ -135,4 +166,23 @@ export function setupProof(isIndirect: boolean) {
             return sc;
         });
     }
+}
+
+export function switchMode() {
+    logicMode.update(mode => mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL);
+    deductionRules.set(DeductionRule.rules);
+    get(solverContent).premises.forEach((premise, i) => {
+        onChangePremise(premise.value, i);
+    });
+    onChangeConclusion(get(solverContent).conclusion.value);
+}
+
+export function resetSolving(): boolean {
+    selectedRows.set([]);
+    solverContent.update(sc => {
+        sc.proof = [];
+        return sc;
+    });
+
+    return false;
 }

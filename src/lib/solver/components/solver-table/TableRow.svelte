@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {PrettySyntaxer} from "../../PrettySyntaxer";
-    import {highlightedRows, selectedRows} from "../../../../stores/solverStore";
-    import type {AppliedRule} from "../../../../types/AppliedRule";
-    import {NDRule} from "../../parsers/DeductionRules";
+    import { PrettySyntaxer } from "../../PrettySyntaxer";
+    import { highlightedRows, selectedRows } from "../../../../stores/solverStore";
+    import type { AppliedRule } from "../../../../types/AppliedRule";
+    import { NDRule } from "../../parsers/DeductionRules";
 
     export let line: number;
     export let formula: string;

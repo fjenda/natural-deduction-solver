@@ -1,10 +1,10 @@
 <script lang="ts">
     import { PrettySyntaxer } from "../PrettySyntaxer";
 
-    export let value: string = "";
+    export let value: string | null = "";
     export let fontSize: number = 1.35;
 
-    $: mathml = PrettySyntaxer.toMathML(value);
+    $: mathml = PrettySyntaxer.toMathML(value ?? "");
 </script>
 
 <div class="mathml-viewer" style="font-size: {fontSize}em;">
