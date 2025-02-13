@@ -245,7 +245,10 @@ export class Node {
             return `${operatorToProlog(this.value as Operator)}(${this.children[0].toPrologFormat()})`;
         }
 
-        return `'${this.value ?? ""}'`;
+        if (!this.value) return "";
+
+        // if value is upper-case, wrap in single quotes
+        return this.value && this.value === this.value.toUpperCase() ? `'${this.value}'` : `${this.value}`;
     }
 
     /**
@@ -263,7 +266,13 @@ export class Node {
         // if there are no parentheses, it's a constant
         if (!f.includes("(")) {
             // the format is 'constant'
-            return new Node(NodeType.CONSTANT, f.slice(1, -1));
+
+            // if its upper-case slice the single quotes
+            if (f[0] === "'" && f[f.length - 1] === "'") {
+                return new Node(NodeType.CONSTANT, f.slice(1, -1));
+            }
+
+            return new Node(NodeType.CONSTANT, f);
         }
 
         // match function calls
@@ -285,6 +294,8 @@ export class Node {
 
         const node = new Node(NodeType.BINARY_OPERATION, operatorFromProlog(op));
         node.setChildren(children);
+        node.simplify().parenthesize();
+
         return node;
     }
 

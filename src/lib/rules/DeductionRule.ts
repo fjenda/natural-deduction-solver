@@ -1,8 +1,9 @@
-import { Operator } from "../../syntax-checker/Operator";
-import { PrettySyntaxer } from "../PrettySyntaxer";
+import { Operator } from "../syntax-checker/Operator";
+import { PrettySyntaxer } from "../solver/PrettySyntaxer";
 import { get } from "svelte/store";
-import { logicMode } from "../../../stores/solverStore";
-import { ParseStrategy } from "../../../types/ParseStrategy";
+import { logicMode } from "../../stores/solverStore";
+import { ParseStrategy } from "../../types/ParseStrategy";
+import type { IRule } from "./IRule";
 
 /**
  * Natural Deduction Rules
@@ -34,15 +35,13 @@ export enum NDRule {
  * Class representing a deduction rule
  * @property {NDRule} short - abbreviation of the rule
  * @property {string} title - title of the rule
- * @property {Operator} operation - the operator that the rule uses
  * @property {number} inputSize - number of inputs
  * @property {number} outputSize - number of outputs
  * @property {string} detail - the detail that is shown when hovering over the rule
  */
-export class DeductionRule {
+export class DeductionRule implements IRule {
     short: NDRule;
     title: string;
-    operation: Operator;
     inputSize: number;
     outputSize: number;
     detail: string;
@@ -51,7 +50,6 @@ export class DeductionRule {
      * Constructor of the DeductionRule object
      * @param short - abbreviation of the rule title
      * @param title - title of the rule
-     * @param operation - the operator that the rule uses
      * @param inputSize - number of inputs
      * @param outputSize - number of outputs
      * @param detail - the detail that is shown when hovering over the rule
@@ -60,14 +58,12 @@ export class DeductionRule {
     constructor(
         short: NDRule,
         title: string,
-        operation: Operator = Operator.UNKNOWN,
         inputSize: number = 0,
         outputSize: number = 0,
         detail: string = "",
     ) {
         this.short = short;
         this.title = title;
-        this.operation = operation;
         this.inputSize = inputSize;
         this.outputSize = outputSize;
         this.detail = detail;
@@ -79,7 +75,6 @@ export class DeductionRule {
     static ICON = new DeductionRule(
         NDRule.ICON,
         'Introduction of Conjunction',
-        Operator.CONJUNCTION,
         2,
         1,
         PrettySyntaxer.toMathML("A, B ⊢ A ∧ B"),
@@ -89,7 +84,6 @@ export class DeductionRule {
     static ECON = new DeductionRule(
         NDRule.ECON,
         'Elimination of Conjunction',
-        Operator.CONJUNCTION,
         1,
         2,
         PrettySyntaxer.toMathML("A ∧ B ⊢ A, B"),
@@ -98,7 +92,6 @@ export class DeductionRule {
     static IDIS = new DeductionRule(
         NDRule.IDIS,
         'Introduction of Disjunction',
-        Operator.DISJUNCTION,
         2, // the input is actually 1, the second part can be any valid formula
         1,
         PrettySyntaxer.toMathML("A ⊢ A ∨ B\nB ⊢ A ∨ B"),
@@ -107,7 +100,6 @@ export class DeductionRule {
     static EDIS = new DeductionRule(
         NDRule.EDIS,
         'Elimination of Disjunction',
-        Operator.DISJUNCTION,
         2,
         1,
         PrettySyntaxer.toMathML("A ∨ B, ¬A ⊢ B\nA ∨ B, ¬B ⊢ A"),
@@ -116,7 +108,6 @@ export class DeductionRule {
     static IIMP = new DeductionRule(
         NDRule.IIMP,
         'Introduction of Implication',
-        Operator.IMPLICATION,
         2,
         1,
         PrettySyntaxer.toMathML("A, B ⊢ A ⊃ B"),
@@ -125,7 +116,6 @@ export class DeductionRule {
     static MP = new DeductionRule(
         NDRule.MP,
         'Modus Ponens',
-        Operator.IMPLICATION,
         2,
         1,
         PrettySyntaxer.toMathML("A ⊃ B, A ⊢ B"),
@@ -134,7 +124,6 @@ export class DeductionRule {
     static IEQ = new DeductionRule(
         NDRule.IEQ,
         'Introduction of Equivalence',
-        Operator.EQUIVALENCE,
         2,
         1,
         PrettySyntaxer.toMathML("A ⊃ B, B ⊃ A ⊢ A ≡ B"),
@@ -143,7 +132,6 @@ export class DeductionRule {
     static EEQ = new DeductionRule(
         NDRule.EEQ,
         'Elimination of Equivalence',
-        Operator.EQUIVALENCE,
         1,
         2,
         PrettySyntaxer.toMathML("A ≡ B ⊢ A ⊃ B, B ⊃ A"),
@@ -152,7 +140,6 @@ export class DeductionRule {
     static IALL = new DeductionRule(
         NDRule.IALL,
         'Introduction of General Quantifier',
-        Operator.UNIVERSAL,
         1,
         1,
         PrettySyntaxer.toMathML("A(x) ⊢ ∀xA(x)"),
@@ -161,7 +148,6 @@ export class DeductionRule {
     static EALL = new DeductionRule(
         NDRule.EALL,
         'Elimination of General Quantifier',
-        Operator.UNIVERSAL,
         1,
         1,
         PrettySyntaxer.toMathML("∀xA(x) ⊢ A(x/t)"),
@@ -170,7 +156,6 @@ export class DeductionRule {
     static IEX = new DeductionRule(
         NDRule.IEX,
         'Introduction of Existential Quantifier',
-        Operator.EXISTENTIAL,
         1,
         1,
         PrettySyntaxer.toMathML("A(x/t) ⊢ ∃xA(x)"),
@@ -179,7 +164,6 @@ export class DeductionRule {
     static EEX = new DeductionRule(
         NDRule.EEX,
         'Elimination of Existential Quantifier',
-        Operator.EXISTENTIAL,
         1,
         1,
         PrettySyntaxer.toMathML("∃xA(x) ⊢ A(x/c)"),

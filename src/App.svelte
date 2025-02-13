@@ -6,7 +6,7 @@
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
-    import { theorems } from "./stores/theoremsStore";
+    import { addTheorem, theorems } from "./stores/theoremsStore";
     import {
         addPremise,
         deductionRules,
@@ -18,10 +18,10 @@
     import { PremiseParser } from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
-    import { DeductionRule, NDRule } from "./lib/solver/parsers/DeductionRules";
+    import { DeductionRule, NDRule } from "./lib/rules/DeductionRule";
     import Separator from "./lib/Separator.svelte";
     import { EditState } from "./types/EditState";
-    import { editState } from "./stores/stateStore";
+    import { editState, solving } from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
     import type { ButtonContent } from "./types/ButtonContent";
     import { get } from "svelte/store";
@@ -35,6 +35,7 @@
         queryProlog, switchMode, resetSolving, handlePost, usable
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
+    import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -52,10 +53,6 @@
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
     // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
-
-    function addTheorem() {
-        theorems.update((theorems) => [...theorems, new Solution("Unnamed Theorem", [{ value: "", tree: null }])]);
-    }
 
     let modalInput: HTMLInputElement;
     let showModal = false;
@@ -109,6 +106,7 @@
                 "Write the formula to insert into the disjunction",
                 "Enter the formula",
                 () => {
+                    modalInput.value = PrettySyntaxer.clean(modalInput.value);
                     const formula = PremiseParser.parsePremise(modalInput.value);
                     if (!formula.tree) {
                         alert("Invalid formula");
@@ -166,18 +164,19 @@
         selectedRows.set([]);
     }
 
-    let solving: boolean = false;
     let showConclusionSelect: boolean = false;
     function startSolver() {
         // if the conclusion is invalid, return
         if (!$solverContent.conclusion.tree) {
-            return alert("Conclusion is not valid");
+            return $editState === EditState.SOLVER
+                ? alert("Invalid conclusion")
+                : alert("Invalid theorem");
         }
 
         const setup = (isIndirect: boolean) => {
             setupProof(isIndirect);
             showConclusionSelect = false;
-            solving = true;
+            solving.set(true);
         }
 
         setModalButton(0, "Direct Proof", () => setup(false));
@@ -230,11 +229,11 @@
   <MainLayout>
     <Panel>
         <SolverLayout>
-            {#if !solving}
+            {#if !$solving && $editState === EditState.SOLVER}
                 {#each Array.from($solverContent.premises) as _, i}
                     <PremiseInputRow index="{i}" removable={$editState === EditState.SOLVER}>
                         <PremiseInput
-                            placeholder={$editState === EditState.SOLVER ? `Premise ${i + 1}` : "Theorem"}
+                            placeholder={`Premise ${i + 1}`}
                             bind:value="{$solverContent.premises[i].value}"
                             error="{!$solverContent.premises[i].tree}"
                             index={i}
@@ -243,35 +242,31 @@
                     </PremiseInputRow>
                 {/each}
 
-                {#if $editState === EditState.SOLVER}
-                    <button
-                        class="action-button"
-                        on:click={() => addPremise()}
-                        tabindex={$solverContent.premises.length}
-                    >
-                        Add Premise
-                    </button>
-                {/if}
+                <button
+                    class="action-button"
+                    on:click={() => addPremise()}
+                    tabindex={$solverContent.premises.length}
+                >
+                    Add Premise
+                </button>
             {/if}
-            {#if $editState === EditState.SOLVER}
-                {#if !solving}
-                    <PremiseInput
-                        placeholder="Conclusion"
-                        bind:value="{$solverContent.conclusion.value}"
-                        error="{!$solverContent.conclusion.tree}"
-                        index={$solverContent.premises.length + 1}
-                        onChange={() => onChangeConclusion($solverContent.conclusion.value)}
-                    />
-                {:else}
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        Find a proof for the following conclusion:
-                        <MathMLViewer value={$solverContent.conclusion.value} />
-                    </div>
-                {/if}
+            {#if !$solving}
+                <PremiseInput
+                    placeholder={$editState === EditState.SOLVER ? `Conclusion` : "Theorem"}
+                    bind:value="{$solverContent.conclusion.value}"
+                    error="{!$solverContent.conclusion.tree}"
+                    index={$solverContent.premises.length + 1}
+                    onChange={() => onChangeConclusion($solverContent.conclusion.value)}
+                />
+            {:else}
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    Find a proof for the following {$editState === EditState.SOLVER ? 'conclusion' : 'theorem'}:
+                    <MathMLViewer value={$solverContent.conclusion.value} />
+                </div>
             {/if}
 
             <div class="button-wrapper">
-                {#if solving}
+                {#if $solving}
                     <button
                             class="action-button"
                             on:click={checkProof}
@@ -290,15 +285,15 @@
                 {/if}
                 <button
                     class="action-button reset"
-                    on:click={() => solving = resetSolving()}
-                    disabled={!solving}
+                    on:click={resetSolving}
+                    disabled={!$solving}
                     tabindex={$solverContent.premises.length + 3}
                 >
                     Reset
                 </button>
             </div>
 
-            {#if solving}
+            {#if $solving}
                 <SolverTable data={$solverContent.proof} />
             {/if}
         </SolverLayout>
@@ -328,8 +323,8 @@
 
         <Separator />
 
-        <h2>Theorems</h2>
-        <button class="action-button" on:click={() => addTheorem()}>Add Theorem</button>
+        <h2>Theorem</h2>
+        <button class="action-button" on:click={addTheorem}>Add Theorem</button>
         <TheoremsLayout>
             {#if $theorems.length === 0}
                 <p>No theorems added yet.</p>

@@ -4,8 +4,9 @@
     import type {TableRowData} from "../../../../types/TableRow";
     import {FormulaParser} from "../../parsers/FormulaParser";
     import type {TreeRuleType} from "../../../../types/TreeRuleType";
-    import {NDRule} from "../../parsers/DeductionRules";
+    import {NDRule} from "../../../rules/DeductionRule";
     import {FormulaComparer} from "../../FormulaComparer";
+    import { TheoremParser } from "../../parsers/TheoremParser";
 
     let container: HTMLDivElement;
 

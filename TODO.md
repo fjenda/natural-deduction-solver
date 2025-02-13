@@ -41,7 +41,7 @@
     - [x] They can always reset the solving, or create a new problem to solve
     - [x] Button to check the final solution
 - [x] After clicking a button to start solving make the user choose if they want to solve using indirect proof or direct proof
-- [ ] Theorems
+- [ ] Theorem
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
   - [ ] Add a way to save theorems

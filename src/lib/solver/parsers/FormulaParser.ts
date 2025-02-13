@@ -1,4 +1,4 @@
-import { DeductionRule, NDRule } from "./DeductionRules";
+import { DeductionRule, NDRule } from "../../rules/DeductionRule";
 import { PrattParser } from "../../syntax-checker/PrattParser";
 import type { TreeRuleType } from "../../../types/TreeRuleType";
 import { get } from "svelte/store";
@@ -6,6 +6,8 @@ import { PrettySyntaxer } from "../PrettySyntaxer";
 import { logicMode, solverContent } from "../../../stores/solverStore";
 import { Node } from "../../syntax-checker/Node";
 import { queryProlog, verifyResult } from "../solverLogic";
+import { Theorem } from "../../rules/Theorem";
+import type { IRule } from "../../rules/IRule";
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid
@@ -78,8 +80,11 @@ export class FormulaParser {
         }
 
         // now that we have the name of the rule and the rows it was used with, check if a rule like this exists
-        const usedRule = DeductionRule.getRule(ruleName);
-
+        let usedRule: IRule = DeductionRule.getRule(ruleName);
+        if (usedRule === DeductionRule.UNKNOWN) {
+            usedRule = Theorem.getRule(ruleName);
+        }
+        console.log(usedRule);
         // if the rule wasn't found, return the unknown rule
         if (usedRule === DeductionRule.UNKNOWN) {
             tmp.rule = { rule: NDRule.UNKNOWN };

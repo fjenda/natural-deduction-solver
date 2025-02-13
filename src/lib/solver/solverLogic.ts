@@ -1,16 +1,18 @@
 import { deductionRules, logicMode, selectedRows, solverContent } from "../../stores/solverStore";
 import { PremiseParser } from "./parsers/PremiseParser";
-import { DeductionRule, NDRule } from "./parsers/DeductionRules";
+import { DeductionRule, NDRule } from "../rules/DeductionRule";
 import { FormulaComparer } from "./FormulaComparer";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
 import type { ProveResult } from "../../types/ProveResult";
 import { ParseStrategy } from "../../types/ParseStrategy";
 import type { TreeRuleType } from "../../types/TreeRuleType";
+import type { IRule } from "../rules/IRule";
+import { editState, solving } from "../../stores/stateStore";
+import { EditState } from "../../types/EditState";
+import { TheoremParser } from "./parsers/TheoremParser";
+import { API_URL } from "../../../config";
 
-const API_PORT = 3000;
-const API_HOST = "http://localhost";
-const API_URL = `${API_HOST}:${API_PORT}`;
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -47,7 +49,7 @@ export async function handlePost(endpoint: string, premises: string[], conclusio
     }
 }
 
-export async function queryProlog(rule: DeductionRule, premises: string[], selected: number[]) {
+export async function queryProlog(rule: IRule, premises: string[], selected: number[]) {
     // send request to prolog
     const result: ProveResult = await handlePost('/prove', premises, 'X', rule.short);
 
@@ -56,10 +58,12 @@ export async function queryProlog(rule: DeductionRule, premises: string[], selec
         return alert(result.message);
     }
 
+    console.log(result);
+
     addToProof(result, rule.short, selected);
 }
 
-export async function verifyResult(result: Node, premises: string[], rule: NDRule) {
+export async function verifyResult(result: Node, premises: string[], rule: string) {
     // get the prolog results
     const other = await handlePost('/prove', premises, 'X', rule);
     const values = Array.isArray(other.results) ? other.results : [other.results];
@@ -100,7 +104,7 @@ export async function usable(rule: DeductionRule, row: number): Promise<{ highli
     return { applicable: !!indices.length, highlighted: indices };
 }
 
-export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): void {
+export function addToProof(result: ProveResult, rule: string, lines?: number[]): void {
     // add the result to the proof
     solverContent.update(sc => {
         const results = Array.isArray(result.results) ? result.results : [result.results];
@@ -110,7 +114,7 @@ export function addToProof(result: ProveResult, rule: NDRule, lines: number[]): 
                line: sc.proof.length + 1,
                tree: tree.parenthesize(),
                value: Node.generateString(tree),
-               rule: { rule: rule, lines: lines }
+               rule: { rule: rule, lines: lines ?? [] },
            };
 
            if (!existsInProof(tmp)) {
@@ -153,6 +157,38 @@ function initializeProof(): boolean {
 export function setupProof(isIndirect: boolean) {
     if (!initializeProof()) return;
 
+    if (get(editState) === EditState.THEOREM) {
+        let [left, right] = TheoremParser.splitTheorem(get(solverContent).conclusion.value);
+        if (!left) return alert('Failed to parse left side of the theorem');
+
+        solverContent.update(sc => {
+           sc.proof.push({
+               line: sc.proof.length + 1,
+               tree: left,
+               value: Node.generateString(left),
+               rule: { rule: NDRule.ASS },
+           });
+           return sc;
+        });
+
+        if (isIndirect) {
+            if (!right) return alert('Failed to parse right side of the theorem');
+
+            const neg = right.negate();
+            solverContent.update(sc => {
+                sc.proof.push({
+                    line: sc.proof.length + 1,
+                    tree: neg,
+                    value: Node.generateString(neg),
+                    rule: { rule: NDRule.CONC },
+                });
+                return sc;
+            });
+        }
+
+        return;
+    }
+
     if (isIndirect) {
         // @ts-ignore
         const neg = get(solverContent).conclusion.tree.negate();
@@ -183,6 +219,7 @@ export function resetSolving(): boolean {
         sc.proof = [];
         return sc;
     });
+    solving.set(false);
 
     return false;
 }

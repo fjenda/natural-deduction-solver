@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { DeductionRule } from "../../solver/parsers/DeductionRules";
+    import type { DeductionRule } from "../DeductionRule";
     import { highlightedRows, selectedRows } from "../../../stores/solverStore";
     import Tooltip from "../../Tooltip.svelte";
     import { usable } from "../../solver/solverLogic";

@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 import { Solution } from "../lib/solver/Solution";
 import { ParseStrategy } from "../types/ParseStrategy";
-import { DeductionRule } from "../lib/solver/parsers/DeductionRules";
+import { DeductionRule } from "../lib/rules/DeductionRule";
 
 /**
  * Store for the logic mode

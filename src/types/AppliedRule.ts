@@ -1,4 +1,4 @@
-import type {NDRule} from "../lib/solver/parsers/DeductionRules";
+import type {NDRule} from "../lib/rules/DeductionRule";
 
 /**
  * AppliedRule type
@@ -7,7 +7,7 @@ import type {NDRule} from "../lib/solver/parsers/DeductionRules";
  * @param lines?: number[] - the lines that the rule was applied to
  */
 export type AppliedRule = {
-    rule: NDRule;
+    rule: string;
     lines?: number[];
 }
 

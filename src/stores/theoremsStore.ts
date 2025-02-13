@@ -1,7 +1,7 @@
 import {get, writable} from "svelte/store";
-import type {Solution} from "../lib/solver/Solution";
+import {Solution} from "../lib/solver/Solution";
 import {solverBackup, solverContent} from "./solverStore";
-import {editState} from "./stateStore";
+import { editState, solving } from "./stateStore";
 import {EditState} from "../types/EditState";
 
 /**
@@ -30,7 +30,16 @@ export const theorems = function () {
 export const selectedTheorem = writable<number>(-1);
 
 /**
- * Add a new theorem to the theorems store.
+ * Adds a new theorem to the theorems store.
+ */
+export const addTheorem = (): void => {
+    theorems.update((theorems: Solution[]) =>
+       [...theorems, new Solution("Unnamed Theorem", {value: "", tree: null})]
+    );
+}
+
+/**
+ * Saves a theorem to the theorems store.
  */
 export const saveTheorem = (index: number): void => {
     // save the new theorem to the theorems store
@@ -52,6 +61,9 @@ export const saveTheorem = (index: number): void => {
 
     // change the edit state to solver
     editState.set(EditState.SOLVER);
+
+    // hide the proof
+    solving.set(false);
 }
 
 /**
@@ -69,6 +81,11 @@ export const editTheorem = (index: number): void => {
 
     // change the edit state to theorem
     editState.set(EditState.THEOREM);
+
+    // show the proof if conclusion isn't empty
+    if (get(solverContent).conclusion.value !== "") {
+        solving.set(true);
+    }
 }
 
 /**
