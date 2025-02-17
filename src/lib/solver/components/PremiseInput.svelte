@@ -49,10 +49,25 @@
         }, 0);
     }
 
-    function toggleInput() {
+    function toggleInput(event: FocusEvent | MouseEvent) {
         show = !show;
 
-        setTimeout(() => inputElement?.focus(), 10);
+        setTimeout(() => {
+            if (inputElement) {
+                // if already focused, don't move the cursor
+                if (document.activeElement === inputElement) {
+                    return;
+                }
+
+                inputElement.focus();
+
+                // set the cursor position based on the clicked position
+                if (event && event.target instanceof HTMLInputElement) {
+                    const clickPosition = event.target.selectionStart;
+                    inputElement.setSelectionRange(clickPosition, clickPosition);
+                }
+            }
+        }, 10);
     }
 
 </script>
@@ -60,7 +75,7 @@
 <div class="wrapper"
      on:click={toggleInput}
      on:focusout={toggleInput}
-    class:error={error}
+     class:error={error}
 >
     {#if !show}
         <MathMLViewer value={value} fontSize={1.35} />

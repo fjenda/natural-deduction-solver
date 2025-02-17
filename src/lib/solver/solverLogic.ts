@@ -58,7 +58,7 @@ export async function queryProlog(rule: IRule, premises: string[], selected: num
         return alert(result.message);
     }
 
-    console.log(result);
+    // console.log(result);
 
     addToProof(result, rule.short, selected);
 }
