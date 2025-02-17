@@ -36,9 +36,9 @@
     <button
             class="rule-slot"
             title="{rule.title}"
-            on:mouseover={handleMouseOver}
+            on:mouseenter={handleMouseOver}
             on:focus={handleMouseOver}
-            on:mouseout={handleMouseOut}
+            on:mouseleave={handleMouseOut}
             on:blur={handleMouseOut}
             on:mousedown|preventDefault={handleClick}
     >

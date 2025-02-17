@@ -1,15 +1,39 @@
 <script lang="ts">
-    import {selectedTheorem, removeTheorem, saveTheorem, editTheorem} from "../../../stores/theoremsStore";
-    import {solverContent} from "../../../stores/solverStore";
+    import { selectedTheorem, removeTheorem, saveTheorem, editTheorem } from "../../../stores/theoremsStore";
+    import { solverContent } from "../../../stores/solverStore";
+    import { theorems } from "../../../stores/theoremsStore";
+    import MathMLViewer from "../../solver/components/MathMLViewer.svelte";
 
     export let name: string = "";
     export let index: number = -1;
+    let hovered: boolean = false;
+    let hoveredTimeout: NodeJS.Timeout;
+
+    function handleMouseOver() {
+        hovered = true;
+        clearTimeout(hoveredTimeout);
+    }
+
+    function handleMouseOut() {
+        hovered = false;
+        hoveredTimeout = setTimeout(() => {
+            hovered = false;
+        }, 100);
+    }
 </script>
 
-<div class="theorem-slot">
+<div
+    class="theorem-slot"
+    on:mouseenter={handleMouseOver}
+    on:focus={handleMouseOver}
+    on:mouseleave={handleMouseOut}
+    on:blur={handleMouseOut}
+>
     <div class="name">
         {#if index === $selectedTheorem}
             <input type="text" bind:value={$solverContent.name} class="name-input" placeholder="Theorem Name" />
+        {:else if hovered && $theorems[index].conclusion.value}
+            <MathMLViewer value={$theorems[index].conclusion.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
         {:else}
             {name}
         {/if}
@@ -42,6 +66,8 @@
         grid-template-columns: 1fr auto;
         gap: 1rem;
         align-items: center;
+        position: relative;
+        line-height: 0;
     }
 
     .theorem-slot .name {

@@ -28,9 +28,9 @@
   - [x] Refactor Formula Parser
 - [x] QoL improvements
   - [x] Easier way to switch between propositional and predicate logic
-- [ ] UI Improvements
+- [x] UI Improvements
   - [x] Add a preview of the hovered rule
-  - [ ] Add a preview of the hovered theorem
+  - [x] Add a preview of the hovered theorem
 - [x] Modification of Solver
   - [x] Fix Disjunction 
     - [x] Introduction
@@ -44,7 +44,7 @@
 - [ ] Theorem
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
-  - [ ] Add a way to save theorems
+  - [x] Add a way to save theorems
   - [ ] Add a few default theorems
 - [ ] Documentation
   - [x] Add a README.md
@@ -52,10 +52,10 @@
   - [x] Comment the code 
 - [x] Update parenthesizing logic to only include the necessary parentheses
 - [ ] Add a way to save the current state of the solver and load it later
-- [ ] Include MathML
+- [x] Include MathML
   - [x] Solver Table
   - [x] Rule Preview
-  - [ ] Theorem Preview
+  - [x] Theorem Preview
   - [x] Premises
 - [ ] Do the natural deduction logic in Prolog
   - [x] Prolog API 

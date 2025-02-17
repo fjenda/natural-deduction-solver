@@ -78,7 +78,7 @@
      class:error={error}
 >
     {#if !show}
-        <MathMLViewer value={value} fontSize={1.35} />
+        <MathMLViewer value={value} fontSize="1.35rem" />
     {:else}
         <input
             type="text"
