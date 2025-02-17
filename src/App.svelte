@@ -36,6 +36,7 @@
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
+    import {lastHovered} from "./stores/modalStore";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -306,15 +307,22 @@
                 <RuleSlot rule="{rule}"
                           onClick={() => { onRuleClick(rule) }}
                           onMouseOver={async () => {
-                              if (!solving) return;
+                              if (!$solving) return;
                               if (get(selectedRows).length >= rule.inputSize) return;
                               if (get(selectedRows).length === 0) return;
+
+                              if ($lastHovered.rule === rule.title && $lastHovered.selected === get(selectedRows)) {
+                                  highlightedRows.set($lastHovered.rows);
+                                  return;
+                              }
+
                               // const rows = DeductionProcessor.getUsableRows(rule.short);
                               const rows = await usable(rule, get(selectedRows)[0]);
                               highlightedRows.set(rows.highlighted);
+                              lastHovered.set({ rule: rule.title, selected: get(selectedRows) , rows: rows.highlighted });
                           }}
                           onMouseOut={() => {
-                              if (!solving) return;
+                              if (!$solving) return;
                               highlightedRows.set([]);
                           }}
                 />
