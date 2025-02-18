@@ -1,7 +1,7 @@
 <script lang="ts">
     import { PrettySyntaxer } from "../../PrettySyntaxer";
     import { highlightedRows, selectedRows } from "../../../../stores/solverStore";
-    import type { AppliedRule } from "../../../../types/AppliedRule";
+    import {type AppliedRule, appliedRuleToString} from "../../../../types/AppliedRule";
     import { NDRule } from "../../../rules/DeductionRule";
 
     export let line: number;
@@ -13,7 +13,6 @@
     export let onEdit: () => void;
     export let onDelete: () => void;
     let formulaInput: HTMLInputElement;
-    let ruleText: string = "";
 
     function handleInputChange(s: string): string {
         return PrettySyntaxer.clean(s);
@@ -83,6 +82,8 @@
     $: invalid = (rule.rule === NDRule.UNKNOWN && !editable);
 
     $: mathmlFormula = PrettySyntaxer.toMathML(formula);
+
+    $: ruleText = appliedRuleToString(rule);
 </script>
 
 <a

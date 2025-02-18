@@ -67,7 +67,7 @@
                         return;
                     }
 
-                    $solverContent.proof[i] = res;
+                    $solverContent.proof.splice(i, 0, res);
 
                     row.formula = $solverContent.proof[i].value;
                     row.rule = $solverContent.proof[i].rule;

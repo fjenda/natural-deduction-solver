@@ -1,5 +1,3 @@
-import type {NDRule} from "../lib/rules/DeductionRule";
-
 /**
  * AppliedRule type
  * This type is used to represent a rule that has been applied to a line in the proof.
@@ -11,3 +9,6 @@ export type AppliedRule = {
     lines?: number[];
 }
 
+export function appliedRuleToString(appliedRule: AppliedRule): string {
+    return appliedRule.rule + (appliedRule.lines ? ' ' + appliedRule.lines.join(',') : '');
+}

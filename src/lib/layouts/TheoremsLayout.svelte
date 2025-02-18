@@ -10,10 +10,11 @@
         width: 100%;
         min-height: 3.5rem;
         max-height: 300px;
-        padding: 1rem;
+        padding: 0.5rem;
         overflow-y: auto;
         border: 1px solid var(--dark-border-color);
         border-radius: 0.5rem;
+        background: #121212;
     }
 
     @media (prefers-color-scheme: light) {

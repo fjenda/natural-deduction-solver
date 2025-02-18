@@ -236,7 +236,6 @@ export class Node {
             return `${this.value}(${this.children.map(child => child.toPrologFormat()).join(", ")})`;
         }
 
-        // 1 and 2 -> and(1,2)
         if (this.type === NodeType.BINARY_OPERATION && this.value) {
             return `${operatorToProlog(this.value as Operator)}(${this.children.map(child => child.toPrologFormat()).join(", ")})`;
         }

@@ -34,7 +34,7 @@ export const selectedTheorem = writable<number>(-1);
  */
 export const addTheorem = (): void => {
     theorems.update((theorems: Solution[]) =>
-       [...theorems, new Solution("Unnamed Theorem", {value: "", tree: null})]
+       [...theorems, new Solution("Unnamed", {value: "", tree: null})]
     );
 }
 
@@ -46,7 +46,7 @@ export const saveTheorem = (index: number): void => {
     theorems.update((theorems: Solution[]) => {
         // if the solver content name is empty, set it to "Unnamed Theorem"
         if (get(solverContent).name === "") {
-            get(solverContent).name = "Unnamed Theorem";
+            get(solverContent).name = "Unnamed";
         }
 
         theorems[index] = get(solverContent);

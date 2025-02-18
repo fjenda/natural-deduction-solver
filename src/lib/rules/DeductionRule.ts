@@ -134,7 +134,7 @@ export class DeductionRule implements IRule {
         'Elimination of Equivalence',
         1,
         2,
-        PrettySyntaxer.toMathML("A ≡ B ⊢ A ⊃ B, B ⊃ A"),
+        PrettySyntaxer.toMathML("A ≡ B ⊢ A ⊃ B\nA ≡ B ⊢ B ⊃ A"),
     );
 
     static IALL = new DeductionRule(
