@@ -10,7 +10,7 @@
     import {
         addPremise,
         deductionRules,
-        highlightedRows,
+        highlightedRows, indirectSolving,
         selectedRows,
         solverContent
     } from "./stores/solverStore";
@@ -175,7 +175,8 @@
         }
 
         const setup = (isIndirect: boolean) => {
-            setupProof(isIndirect);
+            indirectSolving.set(isIndirect);
+            setupProof();
             showConclusionSelect = false;
             solving.set(true);
         }
@@ -232,7 +233,7 @@
         <SolverLayout>
             {#if !$solving && $editState === EditState.SOLVER}
                 {#each Array.from($solverContent.premises) as _, i}
-                    <PremiseInputRow index="{i}" removable={$editState === EditState.SOLVER}>
+                    <PremiseInputRow index="{i}" removable={$editState === EditState.SOLVER && i !== 0}>
                         <PremiseInput
                             placeholder={`Premise ${i + 1}`}
                             bind:value="{$solverContent.premises[i].value}"
@@ -339,7 +340,14 @@
             {/if}
 
             {#each $theorems as theorem, i}
-                <TheoremSlot name="{theorem.name}" index="{i}" />
+                <TheoremSlot
+                    name="{theorem.name}"
+                    index="{i}"
+                    valid={theorem.valid && theorem.complete }
+                    onClick={() => {
+                        console.log("clicked");
+                    }}
+                />
             {/each}
         </TheoremsLayout>
     </Panel>

@@ -1,10 +1,10 @@
-import { deductionRules, logicMode, selectedRows, solverContent } from "../../stores/solverStore";
+import { deductionRules, indirectSolving, logicMode, selectedRows, solverContent } from "../../stores/solverStore";
 import { PremiseParser } from "./parsers/PremiseParser";
 import { DeductionRule, NDRule } from "../rules/DeductionRule";
 import { FormulaComparer } from "./FormulaComparer";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
-import type { ProveResult } from "../../types/ProveResult";
+import type { ProveRequest, ProveResult } from "../../types/EndpointResults/ProveResult";
 import { ParseStrategy } from "../../types/ParseStrategy";
 import type { TreeRuleType } from "../../types/TreeRuleType";
 import type { IRule } from "../rules/IRule";
@@ -12,7 +12,7 @@ import { editState, solving } from "../../stores/stateStore";
 import { EditState } from "../../types/EditState";
 import { TheoremParser } from "./parsers/TheoremParser";
 import { API_URL } from "../../../config";
-
+import type { EndpointRequest, EndpointResult } from "../../types/EndpointResults/EndpointResult";
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -28,30 +28,27 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-export async function handlePost(endpoint: string, premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
+// export async function handlePost(endpoint: string, premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
+export async function handlePost<D = unknown>(endpoint: string, data: D): Promise<EndpointResult> {
     try {
         const response = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                premises: premises.filter(p => p.trim() !== ''),
-                conclusion,
-                rule,
-            }),
+            body: JSON.stringify(data),
         });
 
         return await response.json();
     } catch (error) {
         console.error(error);
-        return { success: false, results: [], message: "An error occurred while verifying the proof" };
+        return { success: false, message: "An error occurred while verifying the proof" };
     }
 }
 
 export async function queryProlog(rule: IRule, premises: string[], selected: number[]) {
     // send request to prolog
-    const result: ProveResult = await handlePost('/prove', premises, 'X', rule.short);
+    const result = await handlePost<ProveRequest>('/prove', { premises: premises, conclusion: 'X', rule: rule.short }) as ProveResult;
 
     // get result
     if (!result.success) {
@@ -65,13 +62,13 @@ export async function queryProlog(rule: IRule, premises: string[], selected: num
 
 export async function verifyResult(result: Node, premises: string[], rule: string) {
     // get the prolog results
-    const other = await handlePost('/prove', premises, 'X', rule);
+    const other = await handlePost<ProveRequest>('/prove', { premises: premises, conclusion: 'X', rule: rule }) as ProveResult;
     const values = Array.isArray(other.results) ? other.results : [other.results];
 
     // compare with the one that user added, if they are the same, add them
     let exists: boolean = false;
     values.forEach(val => {
-       const tmp = Node.fromPrologFormat(val);
+       const tmp = Node.fromPrologFormat(val ?? "");
        if (tmp.equals(result)) exists = true;
     });
 
@@ -84,7 +81,7 @@ export async function usable(rule: DeductionRule, row: number): Promise<{ highli
     const indices: number[] = [];
 
     if (rule.inputSize === 1) {
-        const { success } = await handlePost('/prove', [selected], 'X', rule.short);
+        const { success } = await handlePost<ProveRequest>('/prove', { premises: [selected], conclusion: 'X', rule: rule.short }) as ProveResult;
         if (success) indices.push(row);
         return { applicable: !!indices.length, highlighted: indices };
     }
@@ -94,7 +91,7 @@ export async function usable(rule: DeductionRule, row: number): Promise<{ highli
         if (i === row - 1) continue;
 
         const other: string = r.tree?.toPrologFormat() ?? "";
-        const result: ProveResult = await handlePost('/prove', [selected, other], 'X', rule.short);
+        const result = await handlePost<ProveRequest>('/prove', { premises: [selected, other], conclusion: 'X', rule: rule.short }) as ProveResult;
         if (!result.success) continue;
 
         // if DeductionProcessor.existsInProof()
@@ -109,7 +106,7 @@ export function addToProof(result: ProveResult, rule: string, lines?: number[]):
     solverContent.update(sc => {
         const results = Array.isArray(result.results) ? result.results : [result.results];
         results.forEach(r => {
-           const tree = Node.fromPrologFormat(r);
+           const tree = Node.fromPrologFormat(r ?? "");
            const tmp = {
                line: sc.proof.length + 1,
                tree: tree.parenthesize(),
@@ -129,11 +126,29 @@ function existsInProof(formula: TreeRuleType): boolean {
     return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
 }
 
-export function checkProof() {
-    const proof = get(solverContent).proof;
-    const exists = proof.some(p => p.tree && p.rule.rule !== NDRule.UNKNOWN && FormulaComparer.compare(p, get(solverContent).conclusion));
+export async function checkProof() {
+    const contradiction = await hasContradiction();
+    if (contradiction) {
+        const isIndirect = get(indirectSolving);
 
+        if (isIndirect) {
+            alert("Proof contains a contradiction, it is correct");
+            return;
+        }
+
+        alert("Something went wrong, proof contains a contradiction");
+        return;
+    }
+
+
+    const exists = get(solverContent).complete;
     alert(exists ? "Proof is correct" : "Proof does not contain a valid row with the conclusion");
+}
+
+export async function hasContradiction(): Promise<boolean> {
+    const proofPFL = get(solverContent).proof.map(p => p.tree?.toPrologFormat() ?? "");
+    const result = await handlePost<EndpointRequest>('/conflict', { proof: proofPFL }) as EndpointResult;
+    return result.success;
 }
 
 // Adds all existing premises to the proof and checks if they are valid
@@ -154,9 +169,11 @@ function initializeProof(): boolean {
     return true;
 }
 
-export function setupProof(isIndirect: boolean) {
+export function setupProof() {
     if (!initializeProof()) return;
 
+
+    const isIndirect = get(indirectSolving);
     if (get(editState) === EditState.THEOREM) {
         let [left, right] = TheoremParser.splitTheorem(get(solverContent).conclusion.value);
         if (!left) return alert('Failed to parse left side of the theorem');

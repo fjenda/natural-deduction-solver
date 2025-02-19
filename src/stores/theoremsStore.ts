@@ -63,7 +63,7 @@ export const saveTheorem = (index: number): void => {
     editState.set(EditState.SOLVER);
 
     // hide the proof
-    solving.set(false);
+    // solving.set(false);
 }
 
 /**
@@ -83,9 +83,9 @@ export const editTheorem = (index: number): void => {
     editState.set(EditState.THEOREM);
 
     // show the proof if conclusion isn't empty
-    if (get(solverContent).conclusion.value !== "") {
-        solving.set(true);
-    }
+    // if (get(solverContent).conclusion.value !== "") {
+    //     solving.set(true);
+    // }
 }
 
 /**

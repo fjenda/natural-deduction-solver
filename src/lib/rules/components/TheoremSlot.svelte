@@ -6,6 +6,8 @@
 
     export let name: string = "";
     export let index: number = -1;
+    export let valid: boolean = false;
+    export let onClick: () => void;
     let hovered: boolean = false;
     let hoveredTimeout: NodeJS.Timeout;
 
@@ -24,10 +26,12 @@
 
 <div
     class="theorem-slot"
+    class:invalid={!valid}
     on:mouseenter={handleMouseOver}
     on:focus={handleMouseOver}
     on:mouseleave={handleMouseOut}
     on:blur={handleMouseOut}
+    on:click={onClick}
 >
     <div class="name">
         {#if index === $selectedTheorem}
@@ -35,7 +39,7 @@
         {:else if hovered && $theorems[index].conclusion.value}
             <MathMLViewer value={$theorems[index].conclusion.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
         {:else}
-            {name}
+            <p>{name}</p>
         {/if}
     </div>
     <div class="actions">
@@ -68,6 +72,15 @@
         align-items: center;
         position: relative;
         line-height: 0;
+    }
+
+    .theorem-slot:hover,
+    .theorem-slot:focus {
+        border: 1px solid var(--light-border-color);
+    }
+
+    .theorem-slot.invalid {
+        border-color: #ff0000;
     }
 
     .theorem-slot .name {
@@ -128,6 +141,17 @@
         .theorem-slot {
             background-color: var(--light-element-color);
             border: 1px solid var(--light-border-color);
+        }
+
+        .theorem-slot .name input {
+            background-color: var(--light-element-color);
+            color: #000;
+            outline-color: var(--light-border-color);
+        }
+
+        .theorem-slot:hover,
+        .theorem-slot:focus {
+            border: 1px solid var(--dark-border-color);
         }
     }
 </style>

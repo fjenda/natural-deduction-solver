@@ -82,3 +82,8 @@ export const highlightedRows = writable<number[]>([]);
  * Store that contains the rows that are selected by the user
  */
 export const selectedRows = writable<number[]>([]);
+
+/**
+ * Store that contains a boolean value indicating if we're solving using indirect proof
+ */
+export const indirectSolving = writable<boolean>(false);

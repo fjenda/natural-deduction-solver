@@ -139,23 +139,6 @@
         border: 1px solid var(--light-border-color);
     }
 
-    @media (prefers-color-scheme: light) {
-        .operator-input button {
-            border: 1px solid var(--light-border-color);
-            background: var(--light-element-color);
-            color: var(--light-text-color);
-        }
-
-        .operator-input button:hover {
-            border: 1px solid var(--dark-border-color);
-        }
-
-        .operator-input {
-            background-color: var(--light-bg-color);
-            border: 1px solid var(--light-border-color);
-        }
-    }
-
     .wrapper {
         width: 100%;
         height: 3.5rem;
@@ -181,5 +164,27 @@
     input[disabled] {
         /*background-color: #121212;*/
         color: inherit;
+    }
+
+    @media (prefers-color-scheme: light) {
+        .operator-input button {
+            border: 1px solid var(--light-border-color);
+            background: var(--light-element-color);
+            color: var(--light-text-color);
+        }
+
+        .operator-input button:hover {
+            border: 1px solid var(--dark-border-color);
+        }
+
+        .operator-input {
+            background-color: var(--light-bg-color);
+            border: 1px solid var(--light-border-color);
+        }
+
+        .wrapper {
+            background: #ffffff;
+            border: 1px solid var(--light-border-color);
+        }
     }
 </style>

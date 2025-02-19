@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { DeductionRule } from "../DeductionRule";
+    import { type DeductionRule, NDRule } from "../DeductionRule";
     import { highlightedRows, selectedRows } from "../../../stores/solverStore";
     import Tooltip from "../../Tooltip.svelte";
     import { usable } from "../../solver/solverLogic";
@@ -13,7 +13,7 @@
 
     async function handleClick() {
         const result = await usable(rule, get(selectedRows)[0]);
-        if (!result.applicable) return;
+        if (!result.applicable && rule.short !== NDRule.IDIS) return;
 
         highlightedRows.set(result.highlighted);
         onClick();
@@ -67,7 +67,8 @@
         background: var(--dark-element-color);
     }
 
-    .rule-slot:hover {
+    .rule-slot:hover,
+    .rule-slot:focus {
         border: 1px solid var(--light-border-color);
     }
 
@@ -77,7 +78,8 @@
             background: var(--light-element-color);
         }
 
-        .rule-slot:hover {
+        .rule-slot:hover,
+        .rule-slot:focus {
             border: 1px solid var(--dark-border-color);
         }
     }
