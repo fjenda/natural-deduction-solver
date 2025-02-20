@@ -176,9 +176,9 @@
 
         const setup = (isIndirect: boolean) => {
             indirectSolving.set(isIndirect);
-            setupProof();
+            const res = setupProof();
             showConclusionSelect = false;
-            solving.set(true);
+            solving.set(res);
         }
 
         setModalButton(0, "Direct Proof", () => setup(false));
@@ -343,9 +343,12 @@
                 <TheoremSlot
                     name="{theorem.name}"
                     index="{i}"
-                    valid={theorem.valid && theorem.complete }
+                    valid={theorem.valid && theorem.complete}
                     onClick={() => {
-                        console.log("clicked");
+                        console.log(theorem);
+                        const vars = theorem.conclusion.tree?.variables;
+                        if (!vars) return;
+                        console.log(vars);
                     }}
                 />
             {/each}

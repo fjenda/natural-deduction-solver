@@ -335,4 +335,19 @@ export class Node {
     public split(): Node[] {
         return [this.children[0], this.children[1]];
     }
+
+    public get variables(): Set<string> {
+        const vars = new Set<string>();
+
+        if ([NodeType.VARIABLE, NodeType.CONSTANT].includes(this.type)) {
+            vars.add(this.value as string);
+            return vars;
+        }
+
+        this.children.forEach(child => {
+            child.variables.forEach(v => vars.add(v));
+        });
+
+        return vars;
+    }
 }

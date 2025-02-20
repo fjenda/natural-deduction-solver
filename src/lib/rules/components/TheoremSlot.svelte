@@ -35,7 +35,7 @@
 >
     <div class="name">
         {#if index === $selectedTheorem}
-            <input type="text" bind:value={$solverContent.name} class="name-input" placeholder="Theorem Name" />
+            <input type="text" bind:value={$solverContent.name} on:click|stopPropagation class="name-input" placeholder="Theorem Name" />
         {:else if hovered && $theorems[index].conclusion.value}
             <MathMLViewer value={$theorems[index].conclusion.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
         {:else}
@@ -44,15 +44,15 @@
     </div>
     <div class="actions">
         {#if index === $selectedTheorem}
-            <button class="save-button" aria-label="Save Theorem" on:click={() => saveTheorem(index)}>
+            <button class="save-button" aria-label="Save Theorem" on:click|stopPropagation={() => saveTheorem(index)}>
                 <i class="fa-regular fa-floppy-disk"></i>
             </button>
         {:else}
-            <button class="edit-button" aria-label="Edit Theorem" on:click={() => editTheorem(index)} disabled={$selectedTheorem !== -1}>
+            <button class="edit-button" aria-label="Edit Theorem" on:click|stopPropagation={() => editTheorem(index)} disabled={$selectedTheorem !== -1}>
                 <i class="fas fa-edit"></i>
             </button>
         {/if}
-        <button class="delete-button" aria-label="Delete Theorem" on:click={() => removeTheorem(index)}>
+        <button class="delete-button" aria-label="Delete Theorem" on:click|stopPropagation={() => removeTheorem(index)}>
             <i class="fas fa-times"></i>
         </button>
     </div>

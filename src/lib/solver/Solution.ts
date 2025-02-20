@@ -19,6 +19,8 @@ export class Solution {
     premises: ParsedExpression[] = [];
     conclusion: ParsedExpression = { value: "", tree: null };
     proof: TreeRuleType[] = [];
+    indirect: boolean = false;
+    contradiction: boolean = false;
 
     /**
      * Constructor of the Solution class
@@ -51,6 +53,8 @@ export class Solution {
     }
 
     public get complete(): boolean {
+        if (this.indirect && this.contradiction) return true;
+
         if (this.premises.length === 0) {
             return this.isCompleteTheorem();
         }

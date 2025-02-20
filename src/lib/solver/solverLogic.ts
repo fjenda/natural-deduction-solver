@@ -128,15 +128,28 @@ function existsInProof(formula: TreeRuleType): boolean {
 
 export async function checkProof() {
     const contradiction = await hasContradiction();
-    if (contradiction) {
-        const isIndirect = get(indirectSolving);
+    const isIndirect = get(indirectSolving);
 
+    if (contradiction) {
         if (isIndirect) {
             alert("Proof contains a contradiction, it is correct");
+            solverContent.update(sc => {
+                sc.contradiction = true;
+                return sc;
+            });
             return;
         }
 
         alert("Something went wrong, proof contains a contradiction");
+        return;
+    }
+
+    if (isIndirect) {
+        alert("Proof does not contain a contradiction, it is incorrect");
+        solverContent.update(sc => {
+            sc.contradiction = false;
+            return sc;
+        });
         return;
     }
 
@@ -169,14 +182,17 @@ function initializeProof(): boolean {
     return true;
 }
 
-export function setupProof() {
-    if (!initializeProof()) return;
+export function setupProof(): boolean {
+    if (!initializeProof()) return false;
 
 
     const isIndirect = get(indirectSolving);
     if (get(editState) === EditState.THEOREM) {
         let [left, right] = TheoremParser.splitTheorem(get(solverContent).conclusion.value);
-        if (!left) return alert('Failed to parse left side of the theorem');
+        if (!left) {
+            alert('Failed to parse left side of the theorem');
+            return false;
+        }
 
         solverContent.update(sc => {
            sc.proof.push({
@@ -185,11 +201,15 @@ export function setupProof() {
                value: Node.generateString(left),
                rule: { rule: NDRule.ASS },
            });
+           sc.indirect = isIndirect;
            return sc;
         });
 
         if (isIndirect) {
-            if (!right) return alert('Failed to parse right side of the theorem');
+            if (!right) {
+                alert('Failed to parse right side of the theorem');
+                return false;
+            }
 
             const neg = right.negate();
             solverContent.update(sc => {
@@ -203,7 +223,7 @@ export function setupProof() {
             });
         }
 
-        return;
+        return true;
     }
 
     if (isIndirect) {
@@ -219,6 +239,8 @@ export function setupProof() {
             return sc;
         });
     }
+
+    return true;
 }
 
 export function switchMode() {

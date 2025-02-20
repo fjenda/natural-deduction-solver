@@ -41,6 +41,8 @@
     - [x] They can always reset the solving, or create a new problem to solve
     - [x] Button to check the final solution
 - [x] After clicking a button to start solving make the user choose if they want to solve using indirect proof or direct proof
+- [x] Indirect proof support
+- [x] Prolog conflict checking
 - [ ] Theorem
   - [ ] Add theorems to the solver
   - [ ] Add a way to select theorems
@@ -57,7 +59,6 @@
   - [x] Rule Preview
   - [x] Theorem Preview
   - [x] Premises
-- [ ] Do the natural deduction logic in Prolog
+- [x] Do the natural deduction logic in Prolog
   - [x] Prolog API 
   - [x] Basic rules implementation
-  - [ ] Theorem support

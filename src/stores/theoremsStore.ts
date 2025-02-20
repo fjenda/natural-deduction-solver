@@ -1,6 +1,6 @@
 import {get, writable} from "svelte/store";
 import {Solution} from "../lib/solver/Solution";
-import {solverBackup, solverContent} from "./solverStore";
+import {indirectSolving, solverBackup, solverContent} from "./solverStore";
 import { editState, solving } from "./stateStore";
 import {EditState} from "../types/EditState";
 
@@ -62,8 +62,11 @@ export const saveTheorem = (index: number): void => {
     // change the edit state to solver
     editState.set(EditState.SOLVER);
 
+    // indirect solving
+    indirectSolving.set(get(solverContent).indirect);
+
     // hide the proof
-    // solving.set(false);
+    solving.set(false);
 }
 
 /**
@@ -82,10 +85,13 @@ export const editTheorem = (index: number): void => {
     // change the edit state to theorem
     editState.set(EditState.THEOREM);
 
+    // indirect solving
+    indirectSolving.set(get(solverContent).indirect);
+
     // show the proof if conclusion isn't empty
-    // if (get(solverContent).conclusion.value !== "") {
-    //     solving.set(true);
-    // }
+    if (get(solverContent).conclusion.value.length !== 0) {
+        solving.set(true);
+    }
 }
 
 /**

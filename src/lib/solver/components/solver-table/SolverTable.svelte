@@ -7,6 +7,10 @@
     import {NDRule} from "../../../rules/DeductionRule";
     import {FormulaComparer} from "../../FormulaComparer";
     import { TheoremParser } from "../../parsers/TheoremParser";
+    import {get} from "svelte/store";
+    import {editState} from "../../../../stores/stateStore";
+    import {EditState} from "../../../../types/EditState";
+    import {indirectSolving} from "../../../../stores/solverStore.js";
 
     let container: HTMLDivElement;
 
@@ -52,7 +56,12 @@
                 line={row.line}
                 formula={row.formula}
                 rule={row.rule}
-                premise={i <= $solverContent.premises.length - 1}
+                premise={(() => {
+                    if (get(editState) === EditState.SOLVER)
+                        return i <= $solverContent.premises.length - 1;
+
+                    return i === 0 || (get(indirectSolving) && i === 1);
+                })()}
                 editable={row.editable}
                 onSave={(content, rule) => {
                     const res = FormulaParser.parseFormula(content, i + 1, rule);

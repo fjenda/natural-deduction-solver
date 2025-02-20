@@ -84,7 +84,7 @@ export class FormulaParser {
         if (usedRule === DeductionRule.UNKNOWN) {
             usedRule = Theorem.getRule(ruleName);
         }
-        console.log(usedRule);
+        // console.log(usedRule);
         // if the rule wasn't found, return the unknown rule
         if (usedRule === DeductionRule.UNKNOWN) {
             tmp.rule = { rule: NDRule.UNKNOWN };
