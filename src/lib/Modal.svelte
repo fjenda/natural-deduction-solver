@@ -12,9 +12,9 @@
         }
 
         switch (event.key) {
-            case 'Enter':
-                buttons[0].action();
-                break;
+            // case 'Enter':
+            //     buttons[0].action();
+            //     break;
             case 'Escape':
                 show = false;
                 break;
@@ -23,7 +23,7 @@
 
 </script>
 
-<!--<svelte:body on:keydown={handleKeyDown} />-->
+<svelte:body on:keydown={handleKeyDown} />
 
 <div class="modal" on:click|self={() => show = false} class:hidden={!show}>
     <div class="modal-content">

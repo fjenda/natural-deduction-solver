@@ -187,6 +187,20 @@
         showConclusionSelect = true;
     }
 
+    let showFillVariables: boolean = false;
+    let varCount: number = 3
+    function fillVariables(vars: Set<string>) {
+        console.log(vars);
+        varCount = vars.size;
+        setModalButton(0, "Confirm", () => {
+            showFillVariables = false;
+        });
+        setModalButton(1, "Cancel", () => {
+            showFillVariables = false;
+        });
+        showFillVariables = true;
+    }
+
     onMount(() => {
         // call onChangePremise/Conclusion to parse the initial values
         $solverContent.premises.forEach((premise, i) => {
@@ -228,6 +242,13 @@
       </div>
   </Modal>
   <Modal bind:show={showConclusionSelect} bind:buttons={modalButtons} header="Select Proof Type" />
+  <Modal bind:show={showFillVariables} bind:buttons={modalButtons} header="Fill Variables">
+      <div slot="body" style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {#each Array.from({ length: varCount }) as _, i}
+              <input type="text" placeholder={`Variable ${i + 1}`} />
+          {/each}
+      </div>
+  </Modal>
   <MainLayout>
     <Panel>
         <SolverLayout>
@@ -345,10 +366,9 @@
                     index="{i}"
                     valid={theorem.valid && theorem.complete}
                     onClick={() => {
-                        console.log(theorem);
                         const vars = theorem.conclusion.tree?.variables;
                         if (!vars) return;
-                        console.log(vars);
+                        fillVariables(vars);
                     }}
                 />
             {/each}
