@@ -28,15 +28,19 @@
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import { onMount } from "svelte";
     import {
-        checkProof,
+        // checkProof,
         onChangeConclusion,
         onChangePremise,
         setupProof,
-        queryProlog, switchMode, resetSolving, handlePost, usable
+        switchMode, resetSolving, proveProlog, usable, checkProof, substitute
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
-    import {lastHovered} from "./stores/modalStore";
+    import { lastHovered } from "./stores/modalStore";
+    import SWIPL from "swipl-wasm";
+    // import prologCode from "./prolog/ruleset.pl?raw";
+    import { PrologController } from "./prolog/PrologController";
+    import { compoundToString } from "./types/prolog/Compound.js";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -98,7 +102,7 @@
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
         if (selected.length === rule.inputSize) {
-            await queryProlog(rule, premises, selected);
+            await proveProlog(premises, rule, selected);
             selectedRows.update(() => []);
             return;
         }
@@ -118,7 +122,7 @@
                     }
 
                     premises.push(formula.tree.toPrologFormat());
-                    queryProlog(rule, premises, selected);
+                    proveProlog(premises, rule, selected);
                     closeModal();
                 }
             );
@@ -142,7 +146,8 @@
 
                 selected.push(other);
                 premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? "");
-                queryProlog(rule, premises, selected);
+                // queryProlog(rule, premises, selected);
+                proveProlog(premises, rule, selected);
                 closeModal();
             }
         );
@@ -205,10 +210,11 @@
                     return null;
                 }
 
-                return proof[vIndex - 1];
+                return proof[vIndex - 1].tree.toPrologFormat();
             });
 
             // replace the variables with the values
+            substitute(theoremId, Array.from(vars), values);
 
             showFillVariables = false;
         });
@@ -226,7 +232,18 @@
 
         onChangeConclusion($solverContent.conclusion.value);
     });
-
+    //
+    // async function test() {
+    //     // await PrologController.loadString(prologCode, 'ruleset');
+    //     const results = (await PrologController.query("prove_handler([and(imp('A', and('B', 'C')), or('B', eq('C', 'D')))], X, 'EC').")).all();
+    //
+    //     console.log(results);
+    //     if (results.length === 0) return;
+    //
+    //     results.forEach(r => {
+    //         console.log(PrologController.parsePrologCompound(r.X));
+    //     });
+    // }
     // let result;
     // let premises: string = "";
     // let conclusion: string = "";
@@ -355,7 +372,6 @@
                                   return;
                               }
 
-                              // const rows = DeductionProcessor.getUsableRows(rule.short);
                               const rows = await usable(rule, get(selectedRows)[0]);
                               highlightedRows.set(rows.highlighted);
                               lastHovered.set({ rule: rule.title, selected: get(selectedRows) , rows: rows.highlighted });

@@ -5,7 +5,7 @@ import { get } from "svelte/store";
 import { PrettySyntaxer } from "../PrettySyntaxer";
 import { logicMode, solverContent } from "../../../stores/solverStore";
 import { Node } from "../../syntax-checker/Node";
-import { queryProlog, verifyResult } from "../solverLogic";
+import { proveProlog, verifyProlog } from "../solverLogic";
 import { Theorem } from "../../rules/Theorem";
 import type { IRule } from "../../rules/IRule";
 
@@ -103,7 +103,7 @@ export class FormulaParser {
         let result = null;
         if (usedRule === DeductionRule.IDIS) {
             const [left, right] = tmp.tree.split();
-            result = queryProlog(usedRule, [left.toPrologFormat(), right.toPrologFormat()], [tmp.line]);
+            result = proveProlog([left.toPrologFormat(), right.toPrologFormat()], usedRule, [tmp.line]);
         } else {
             let prem: string[] = [];
             if (!second) {
@@ -113,7 +113,7 @@ export class FormulaParser {
                 // @ts-ignore
                 prem = [first.tree.toPrologFormat(), second.tree.toPrologFormat()];
             }
-            result = verifyResult(tmp.tree, prem, usedRule.short);
+            result = verifyProlog(prem, usedRule, tmp.tree);
         }
 
         // if the result is false, it's not correct

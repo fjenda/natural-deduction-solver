@@ -4,17 +4,16 @@ import { DeductionRule, NDRule } from "../rules/DeductionRule";
 import { FormulaComparer } from "./FormulaComparer";
 import { get } from "svelte/store";
 import { Node } from "../syntax-checker/Node";
-import type { ProveRequest, ProveResult } from "../../types/EndpointResults/ProveResult";
 import { ParseStrategy } from "../../types/ParseStrategy";
 import type { TreeRuleType } from "../../types/TreeRuleType";
 import type { IRule } from "../rules/IRule";
 import { editState, solving } from "../../stores/stateStore";
 import { EditState } from "../../types/EditState";
 import { TheoremParser } from "./parsers/TheoremParser";
-import { API_URL } from "../../../config";
-import type { EndpointRequest, EndpointResult } from "../../types/EndpointResults/EndpointResult";
 import {theorems} from "../../stores/theoremsStore";
-import type {SubstitutionRequest, SubstitutionResult} from "../../types/EndpointResults/SubstitutionResult";
+import { PrologController } from "../../prolog/PrologController";
+import { type Compound, compoundToString } from "../../types/prolog/Compound";
+import type { ContradictionResult, ProveResult, SubstitutionResult } from "../../types/prolog/PrologResult";
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -30,60 +29,66 @@ export function onChangeConclusion(value: string) {
     });
 }
 
-// export async function handlePost(endpoint: string, premises: string[], conclusion: string, rule: string): Promise<ProveResult> {
-export async function handlePost<D = unknown>(endpoint: string, data: D): Promise<EndpointResult> {
-    try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+async function queryProlog(premises: string[], rule: IRule): Promise<string[]> {
+    // construct query
+    const query = `prove_handler([${premises.join(',')}], X, '${rule.short}').`;
+
+    // query prolog
+    const results = (await PrologController.query(query)).all() as ProveResult[];
+
+    // parse results into strings
+    return results.map(r => compoundToString(PrologController.parsePrologCompound(r.X)));
+}
+
+export async function proveProlog(premises: string[], rule: IRule, selected: number[]) {
+    // get results
+    const resultsPFL: string[] = await queryProlog(premises, rule);
+
+    // no results
+    if (resultsPFL.length === 0) return;
+
+    // add to proof
+    addProof(resultsPFL, rule.short, selected);
+}
+
+export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
+    // get results
+    const resultsPFL: string[] = await queryProlog(premises, rule);
+
+    // no results
+    if (resultsPFL.length === 0) return false;
+
+    // check if exists
+    const tmp = result.toPrologFormat();
+    return resultsPFL.includes(tmp);
+}
+
+export function addProof(results: string[], rule: string, lines: number[]) {
+    solverContent.update(sc => {
+        results.forEach(r => {
+            const tree = Node.fromPrologFormat(r ?? "");
+            const tmp = {
+                line: sc.proof.length + 1,
+                tree: tree.simplify().parenthesize(),
+                value: Node.generateString(tree),
+                rule: { rule: rule, lines: lines ?? [] },
+            };
+
+            if (!existsInProof(tmp)) {
+                sc.proof.push(tmp);
+            }
         });
-
-        return await response.json();
-    } catch (error) {
-        console.error(error);
-        return { success: false, message: "An error occurred while verifying the proof" };
-    }
-}
-
-export async function queryProlog(rule: IRule, premises: string[], selected: number[]) {
-    // send request to prolog
-    const result = await handlePost<ProveRequest>('/prove', { premises: premises, conclusion: 'X', rule: rule.short }) as ProveResult;
-
-    // get result
-    if (!result.success) {
-        return alert(result.message);
-    }
-
-    // console.log(result);
-
-    addToProof(result, rule.short, selected);
-}
-
-export async function verifyResult(result: Node, premises: string[], rule: string) {
-    // get the prolog results
-    const other = await handlePost<ProveRequest>('/prove', { premises: premises, conclusion: 'X', rule: rule }) as ProveResult;
-    const values = Array.isArray(other.results) ? other.results : [other.results];
-
-    // compare with the one that user added, if they are the same, add them
-    let exists: boolean = false;
-    values.forEach(val => {
-       const tmp = Node.fromPrologFormat(val ?? "");
-       if (tmp.equals(result)) exists = true;
+        return sc;
     });
-
-    return exists;
 }
 
-export async function usable(rule: DeductionRule, row: number): Promise<{ highlighted: number[], applicable: boolean }> {
+export async function usable(rule: IRule, row: number): Promise<{ highlighted: number[], applicable: boolean }> {
     const proof = get(solverContent).proof;
     const selected: string = proof[row - 1].tree?.toPrologFormat() ?? "";
     const indices: number[] = [];
 
     if (rule.inputSize === 1) {
-        const { success } = await handlePost<ProveRequest>('/prove', { premises: [selected], conclusion: 'X', rule: rule.short }) as ProveResult;
+        const success = (await queryProlog([selected], rule)).length > 0;
         if (success) indices.push(row);
         return { applicable: !!indices.length, highlighted: indices };
     }
@@ -93,35 +98,13 @@ export async function usable(rule: DeductionRule, row: number): Promise<{ highli
         if (i === row - 1) continue;
 
         const other: string = r.tree?.toPrologFormat() ?? "";
-        const result = await handlePost<ProveRequest>('/prove', { premises: [selected, other], conclusion: 'X', rule: rule.short }) as ProveResult;
-        if (!result.success) continue;
+        const results = await queryProlog([selected, other], rule);
+        if (results.length === 0) continue;
 
-        // if DeductionProcessor.existsInProof()
         indices.push(r.line);
     }
 
     return { applicable: !!indices.length, highlighted: indices };
-}
-
-export function addToProof(result: ProveResult, rule: string, lines?: number[]): void {
-    // add the result to the proof
-    solverContent.update(sc => {
-        const results = Array.isArray(result.results) ? result.results : [result.results];
-        results.forEach(r => {
-           const tree = Node.fromPrologFormat(r ?? "");
-           const tmp = {
-               line: sc.proof.length + 1,
-               tree: tree.simplify().parenthesize(),
-               value: Node.generateString(tree),
-               rule: { rule: rule, lines: lines ?? [] },
-           };
-
-           if (!existsInProof(tmp)) {
-               sc.proof.push(tmp);
-           }
-        });
-        return sc;
-    });
 }
 
 function existsInProof(formula: TreeRuleType): boolean {
@@ -160,15 +143,24 @@ export async function checkProof() {
     alert(exists ? "Proof is correct" : "Proof does not contain a valid row with the conclusion");
 }
 
-export async function hasContradiction(): Promise<boolean> {
+export async function hasContradiction() {
     const proofPFL = get(solverContent).proof.map(p => p.tree?.toPrologFormat() ?? "");
-    const result = await handlePost<EndpointRequest>('/conflict', { proof: proofPFL }) as EndpointResult;
-    return result.success;
+    const query = `conflict_handler([${proofPFL.join(",")}], X, Y, Z).`;
+    const result = (await PrologController.query(query)).once() as ContradictionResult;
+
+    if (typeof result.Z === "string") {
+        result.Z = result.Z === "true";
+    }
+    return result.Z;
 }
 
 export async function substitute(theoremId: number, oldVars: string[], newVars: string[]) {
     const theoremPFL = get(theorems)[theoremId].conclusion.tree?.toPrologFormat() ?? "";
-    const result = await handlePost<SubstitutionRequest>('/substitute', { formula: theoremPFL, oldVars, newVars }) as SubstitutionResult;
+    console.log(newVars);
+
+    const query = `substitute(${theoremPFL}, [${oldVars.join(",")}], [${newVars.join(",")}], X).`;
+    const result = (await PrologController.query(query)).once() as SubstitutionResult;
+    // const result = await handlePost<SubstitutionRequest>('/substitute', { formula: theoremPFL, oldVars, newVars }) as SubstitutionResult;
     console.log(result);
 }
 

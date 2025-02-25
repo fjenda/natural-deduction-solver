@@ -18,9 +18,9 @@ export enum Operator {
 }
 
 /**
- * Convert operator to Prolog format
+ * Convert operator to prolog format
  * @param {Operator} op the operator to convert
- * @returns {string} the operator in Prolog format
+ * @returns {string} the operator in prolog format
  */
 export function operatorToProlog(op: Operator): string {
     switch (op) {
