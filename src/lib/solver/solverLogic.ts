@@ -13,6 +13,8 @@ import { EditState } from "../../types/EditState";
 import { TheoremParser } from "./parsers/TheoremParser";
 import { API_URL } from "../../../config";
 import type { EndpointRequest, EndpointResult } from "../../types/EndpointResults/EndpointResult";
+import {theorems} from "../../stores/theoremsStore";
+import type {SubstitutionRequest, SubstitutionResult} from "../../types/EndpointResults/SubstitutionResult";
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -109,7 +111,7 @@ export function addToProof(result: ProveResult, rule: string, lines?: number[]):
            const tree = Node.fromPrologFormat(r ?? "");
            const tmp = {
                line: sc.proof.length + 1,
-               tree: tree.parenthesize(),
+               tree: tree.simplify().parenthesize(),
                value: Node.generateString(tree),
                rule: { rule: rule, lines: lines ?? [] },
            };
@@ -164,11 +166,17 @@ export async function hasContradiction(): Promise<boolean> {
     return result.success;
 }
 
+export async function substitute(theoremId: number, oldVars: string[], newVars: string[]) {
+    const theoremPFL = get(theorems)[theoremId].conclusion.tree?.toPrologFormat() ?? "";
+    const result = await handlePost<SubstitutionRequest>('/substitute', { formula: theoremPFL, oldVars, newVars }) as SubstitutionResult;
+    console.log(result);
+}
+
 // Adds all existing premises to the proof and checks if they are valid
 function initializeProof(): boolean {
     // add the premises to the proof
     solverContent.update(sc => {
-        sc.proof = sc.premises.map(((p, i) => ({ line: i + 1, tree: p.tree, value: p.value, rule: { rule: NDRule.ASS } })));
+        sc.proof = sc.premises.map(((p, i) => ({ line: i + 1, tree: p.tree, value: p.value, rule: { rule: NDRule.PREM } })));
         return sc;
     })
 
@@ -199,7 +207,7 @@ export function setupProof(): boolean {
                line: sc.proof.length + 1,
                tree: left,
                value: Node.generateString(left),
-               rule: { rule: NDRule.ASS },
+               rule: { rule: NDRule.PREM },
            });
            sc.indirect = isIndirect;
            return sc;

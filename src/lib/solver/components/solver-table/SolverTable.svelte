@@ -97,6 +97,7 @@
             />
         {/each}
 
+        <div class="button-wrapper">
             <button
                 on:click={addRow}
                 aria-label="Add row"
@@ -104,7 +105,18 @@
                 disabled={!canAddRow()}
             >
                 <i class="fas fa-plus"></i>
+                Proof
             </button>
+            <button
+                    on:click={addRow}
+                    aria-label="Add row"
+                    class:disabled={!canAddRow()}
+                    disabled={!canAddRow()}
+            >
+                <i class="fas fa-plus"></i>
+                Subproof
+            </button>
+        </div>
     </div>
 </div>
 
@@ -127,6 +139,7 @@
     }
 
     button {
+        width: 100%;
         height: 3.5rem;
     }
 
@@ -143,5 +156,12 @@
             border: 1px solid var(--light-border-color);
             background: #efefef4d;
         }
+    }
+
+    .button-wrapper {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        gap: 0.5rem;
     }
 </style>

@@ -98,7 +98,9 @@
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
         if (selected.length === rule.inputSize) {
-            return await queryProlog(rule, premises, selected);
+            await queryProlog(rule, premises, selected);
+            selectedRows.update(() => []);
+            return;
         }
 
         if (rule.short === NDRule.IDIS) {
@@ -109,6 +111,7 @@
                 () => {
                     modalInput.value = PrettySyntaxer.clean(modalInput.value);
                     const formula = PremiseParser.parsePremise(modalInput.value);
+                    console.log(formula);
                     if (!formula.tree) {
                         alert("Invalid formula");
                         return;
@@ -162,7 +165,7 @@
     function closeModal() {
         modalInput.value = "";
         showModal = false;
-        selectedRows.set([]);
+        selectedRows.update(() => []);
     }
 
     let showConclusionSelect: boolean = false;
@@ -189,10 +192,24 @@
 
     let showFillVariables: boolean = false;
     let varCount: number = 3
-    function fillVariables(vars: Set<string>) {
-        console.log(vars);
+    let varInputs: string[] = [];
+    function fillVariables(vars: Set<string>, theoremId: number) {
         varCount = vars.size;
+        console.log(vars);
         setModalButton(0, "Confirm", () => {
+            // get the lines selected
+            const proof = get(solverContent).proof;
+            const values = varInputs.map(v => {
+                const vIndex = parseInt(v);
+                if (isNaN(vIndex) || vIndex < 0 || vIndex > proof.length) {
+                    return null;
+                }
+
+                return proof[vIndex - 1];
+            });
+
+            // replace the variables with the values
+
             showFillVariables = false;
         });
         setModalButton(1, "Cancel", () => {
@@ -245,7 +262,7 @@
   <Modal bind:show={showFillVariables} bind:buttons={modalButtons} header="Fill Variables">
       <div slot="body" style="display: flex; flex-direction: column; gap: 0.5rem;">
           {#each Array.from({ length: varCount }) as _, i}
-              <input type="text" placeholder={`Variable ${i + 1}`} />
+              <input type="text" placeholder={`Variable ${i + 1}`} bind:value={varInputs[i]} />
           {/each}
       </div>
   </Modal>
@@ -368,7 +385,7 @@
                     onClick={() => {
                         const vars = theorem.conclusion.tree?.variables;
                         if (!vars) return;
-                        fillVariables(vars);
+                        fillVariables(vars, i);
                     }}
                 />
             {/each}

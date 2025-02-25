@@ -27,6 +27,7 @@ export enum NDRule {
     EEX = 'E∃', // Elimination of Existential Quantifier
 
     UNKNOWN = 'x',
+    PREM = 'PREM',
     ASS = 'ASS',
     CONC = 'CONC',
 }
@@ -70,6 +71,7 @@ export class DeductionRule implements IRule {
     }
 
     static ASS = new DeductionRule(NDRule.ASS, 'Assumption');
+    static PREM = new DeductionRule(NDRule.PREM, 'Premise');
     static CONC = new DeductionRule(NDRule.CONC, 'Conclusion');
     static UNKNOWN = new DeductionRule(NDRule.UNKNOWN, 'Unknown');
     static ICON = new DeductionRule(

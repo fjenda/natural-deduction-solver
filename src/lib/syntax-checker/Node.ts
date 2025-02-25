@@ -149,7 +149,7 @@ export class Node {
             return this;
         }
 
-        // parenthesize the children recrusively
+        // parenthesize the children recursively
         this.children = this.children.map(child => child.parenthesize(false));
 
         // don't wrap the node if it's one of the following types:
@@ -349,5 +349,14 @@ export class Node {
         });
 
         return vars;
+    }
+
+    public replacePart(oldPart: Node, newPart: Node): Node {
+        if (this.equals(oldPart)) {
+            return newPart;
+        }
+
+        this.children = this.children.map(child => child.replacePart(oldPart, newPart));
+        return this;
     }
 }
