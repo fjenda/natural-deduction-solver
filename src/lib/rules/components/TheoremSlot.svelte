@@ -65,7 +65,7 @@
         padding: 1rem;
         background-color: var(--dark-element-color);
         border-radius: 0.5rem;
-        border: 1px solid var(--dark-border-color);
+        outline: 1px solid var(--dark-border-color);
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 1rem;
@@ -76,11 +76,11 @@
 
     .theorem-slot:hover,
     .theorem-slot:focus {
-        border: 1px solid var(--light-border-color);
+        outline: 1px solid var(--light-border-color);
     }
 
     .theorem-slot.invalid {
-        border-color: #ff0000;
+        outline-color: #ff0000;
     }
 
     .theorem-slot .name {
@@ -110,6 +110,7 @@
         justify-content: center;
         align-items: center;
         border: none;
+        outline: none;
         transition: color 0.2s;
     }
 
@@ -140,7 +141,7 @@
     @media (prefers-color-scheme: light) {
         .theorem-slot {
             background-color: var(--light-element-color);
-            border: 1px solid var(--light-border-color);
+            outline: 1px solid var(--light-border-color);
         }
 
         .theorem-slot .name input {
@@ -151,7 +152,7 @@
 
         .theorem-slot:hover,
         .theorem-slot:focus {
-            border: 1px solid var(--dark-border-color);
+            outline: 1px solid var(--dark-border-color);
         }
     }
 </style>

@@ -2,6 +2,7 @@ import { writable } from "svelte/store";
 import { Solution } from "../lib/solver/Solution";
 import { ParseStrategy } from "../types/ParseStrategy";
 import { DeductionRule } from "../lib/rules/DeductionRule";
+import type {TheoremData} from "../types/TheoremData";
 
 /**
  * Store for the logic mode
@@ -87,3 +88,21 @@ export const selectedRows = writable<number[]>([]);
  * Store that contains a boolean value indicating if we're solving using indirect proof
  */
 export const indirectSolving = writable<boolean>(false);
+
+/**
+ * Store that contains the theorem data needed for variable substitution
+ */
+export const theoremData = function () {
+    const {set, update, subscribe} = writable<TheoremData>({ theoremId: -1, vars: new Set(), varInputs: [] });
+
+    const reset = () => {
+        set({ theoremId: -1, vars: new Set(), varInputs: [] });
+    }
+
+    return {
+        set,
+        update,
+        subscribe,
+        reset,
+    }
+}();

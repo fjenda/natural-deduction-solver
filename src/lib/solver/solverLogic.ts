@@ -14,6 +14,7 @@ import {theorems} from "../../stores/theoremsStore";
 import { PrologController } from "../../prolog/PrologController";
 import { type Compound, compoundToString } from "../../types/prolog/Compound";
 import type { ContradictionResult, ProveResult, SubstitutionResult } from "../../types/prolog/PrologResult";
+import type {TheoremData} from "../../types/TheoremData";
 
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
@@ -154,14 +155,15 @@ export async function hasContradiction() {
     return result.Z;
 }
 
-export async function substitute(theoremId: number, oldVars: string[], newVars: string[]) {
-    const theoremPFL = get(theorems)[theoremId].conclusion.tree?.toPrologFormat() ?? "";
+export async function substitute(theoremData: TheoremData, newVars: string[]) {
+    const theorem = get(theorems)[theoremData.theoremId];
+    const theoremPFL = theorem.conclusion.tree?.toPrologFormat() ?? "";
 
-    const query = `substitute(${theoremPFL}, [${oldVars.join(",")}], [${newVars.join(",")}], X).`;
+    const query = `substitute(${theoremPFL}, [${Array.from(theoremData.vars).join(",")}], [${newVars.join(",")}], X).`;
     const result = (await PrologController.query(query)).once() as SubstitutionResult;
 
     const tmp = compoundToString(PrologController.parsePrologCompound(result.X));
-    addProof([tmp], "TH", []);
+    addProof([tmp], theorem.name, []);
 }
 
 // Adds all existing premises to the proof and checks if they are valid

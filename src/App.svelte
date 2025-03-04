@@ -12,7 +12,7 @@
         deductionRules,
         highlightedRows, indirectSolving,
         selectedRows,
-        solverContent
+        solverContent, theoremData
     } from "./stores/solverStore";
     import { Solution } from "./lib/solver/Solution";
     import { PremiseParser } from "./lib/solver/parsers/PremiseParser";
@@ -28,7 +28,6 @@
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
     import { onMount } from "svelte";
     import {
-        // checkProof,
         onChangeConclusion,
         onChangePremise,
         setupProof,
@@ -37,6 +36,7 @@
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
     import { lastHovered } from "./stores/modalStore";
+    import { Node } from "./lib/syntax-checker/Node";
     import SWIPL from "swipl-wasm";
     // import prologCode from "./prolog/ruleset.pl?raw";
     import { PrologController } from "./prolog/PrologController";
@@ -196,25 +196,28 @@
     }
 
     let showFillVariables: boolean = false;
-    let varCount: number = 3
-    let varInputs: string[] = [];
-    function fillVariables(vars: Set<string>, theoremId: number) {
-        varCount = vars.size;
-        console.log(vars);
+    function fillVariables() {
+        // console.log($theoremData.vars);
         setModalButton(0, "Confirm", () => {
             // get the lines selected
-            const proof = get(solverContent).proof;
-            const values = varInputs.map(v => {
-                const vIndex = parseInt(v);
-                if (isNaN(vIndex) || vIndex < 0 || vIndex > proof.length) {
-                    return null;
+            const formulas = get(theoremData).varInputs.map(v => {
+                const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
+                if (!formula.tree) {
+                    alert("Invalid formula");
+                    return "";
                 }
 
-                return proof[vIndex - 1].tree.toPrologFormat();
+                return formula.tree.toPrologFormat();
+            });
+            theoremData.update(td => {
+                td.varInputs = [];
+                return td;
             });
 
+            // console.log(formulas);
+
             // replace the variables with the values
-            substitute(theoremId, Array.from(vars), values);
+            substitute(get(theoremData), formulas);
 
             showFillVariables = false;
         });
@@ -278,8 +281,9 @@
   <Modal bind:show={showConclusionSelect} bind:buttons={modalButtons} header="Select Proof Type" />
   <Modal bind:show={showFillVariables} bind:buttons={modalButtons} header="Fill Variables">
       <div slot="body" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          {#each Array.from({ length: varCount }) as _, i}
-              <input type="text" placeholder={`Variable ${i + 1}`} bind:value={varInputs[i]} />
+          <MathMLViewer value={$theorems[$theoremData.theoremId]?.conclusion.value} />
+          {#each $theoremData.vars as v, i}
+              <input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
           {/each}
       </div>
   </Modal>
@@ -399,9 +403,14 @@
                     index="{i}"
                     valid={theorem.valid && theorem.complete}
                     onClick={() => {
-                        const vars = theorem.conclusion.tree?.variables;
-                        if (!vars) return;
-                        fillVariables(vars, i);
+                        const values = theorem.conclusion.tree?.variables;
+                        if (!values) return;
+                        theoremData.update(td => {
+                            td.theoremId = i;
+                            td.vars = new Set(values);
+                            return td;
+                        });
+                        fillVariables();
                     }}
                 />
             {/each}

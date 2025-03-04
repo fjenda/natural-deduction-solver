@@ -107,15 +107,6 @@
                 <i class="fas fa-plus"></i>
                 Proof
             </button>
-            <button
-                    on:click={addRow}
-                    aria-label="Add row"
-                    class:disabled={!canAddRow()}
-                    disabled={!canAddRow()}
-            >
-                <i class="fas fa-plus"></i>
-                Subproof
-            </button>
         </div>
     </div>
 </div>

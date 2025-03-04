@@ -340,5 +340,20 @@
             border-color: #ffcc00;
             outline: 1px solid #ffcc00;
         }
+
+        .operator-input button {
+            border: 1px solid var(--light-border-color);
+            background: var(--light-element-color);
+            color: var(--light-text-color);
+        }
+
+        .operator-input button:hover {
+            border: 1px solid var(--dark-border-color);
+        }
+
+        .operator-input {
+            background-color: var(--light-bg-color);
+            border: 1px solid var(--light-border-color);
+        }
     }
 </style>
