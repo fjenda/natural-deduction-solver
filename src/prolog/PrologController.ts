@@ -31,12 +31,12 @@ export class PrologController {
         return new PrologQueryWrapper(instance.prolog.query(query));
     }
 
-    public static parsePrologCompound(compound: unknown): Compound {
+    public static parsePrologCompound(compound: any): Compound {
         if (typeof compound === "object" && compound !== null) {
             const functor = (compound as { functor?: string }).functor;
 
             if (typeof functor === "string") {
-                const args = (compound as Record<string, unknown>)[functor];
+                const args = (compound as Record<string, any>)[functor];
 
                 return {
                     functor,

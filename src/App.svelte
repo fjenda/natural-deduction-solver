@@ -386,7 +386,7 @@
 
         <Separator />
 
-        <h2>Theorem</h2>
+        <h2>Theorems</h2>
         <button class="action-button" on:click={addTheorem}>Add Theorem</button>
         <TheoremsLayout>
             {#if $theorems.length === 0}

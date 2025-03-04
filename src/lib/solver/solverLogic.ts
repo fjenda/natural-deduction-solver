@@ -156,12 +156,12 @@ export async function hasContradiction() {
 
 export async function substitute(theoremId: number, oldVars: string[], newVars: string[]) {
     const theoremPFL = get(theorems)[theoremId].conclusion.tree?.toPrologFormat() ?? "";
-    console.log(newVars);
 
     const query = `substitute(${theoremPFL}, [${oldVars.join(",")}], [${newVars.join(",")}], X).`;
     const result = (await PrologController.query(query)).once() as SubstitutionResult;
-    // const result = await handlePost<SubstitutionRequest>('/substitute', { formula: theoremPFL, oldVars, newVars }) as SubstitutionResult;
-    console.log(result);
+
+    const tmp = compoundToString(PrologController.parsePrologCompound(result.X));
+    addProof([tmp], "TH", []);
 }
 
 // Adds all existing premises to the proof and checks if they are valid

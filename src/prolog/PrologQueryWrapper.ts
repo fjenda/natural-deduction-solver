@@ -7,7 +7,7 @@ export class PrologQueryWrapper {
         this.query = query;
     }
 
-    all(): unknown[] {
+    all(): any[] {
         const results = [];
         for (let r of this.query) {
             results.push(r);
@@ -16,11 +16,11 @@ export class PrologQueryWrapper {
         return results;
     }
 
-    once(): unknown {
+    once(): any {
         return this.query.once();
     }
 
-    next(): unknown {
+    next(): any {
         return this.query.next();
     }
 }
