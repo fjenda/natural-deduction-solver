@@ -9,13 +9,17 @@ import type { TreeRuleType } from "../../types/TreeRuleType";
 import type { IRule } from "../rules/IRule";
 import { editState, solving } from "../../stores/stateStore";
 import { EditState } from "../../types/EditState";
-import { TheoremParser } from "./parsers/TheoremParser";
 import {theorems} from "../../stores/theoremsStore";
 import { PrologController } from "../../prolog/PrologController";
-import { type Compound, compoundToString } from "../../types/prolog/Compound";
+import { compoundToString } from "../../types/prolog/Compound";
 import type { ContradictionResult, ProveResult, SubstitutionResult } from "../../types/prolog/PrologResult";
 import type {TheoremData} from "../../types/TheoremData";
 
+/**
+ * Parses the premise and adds it to the solver content
+ * @param value - the premise to parse
+ * @param index - the index of the premise
+ */
 export function onChangePremise(value: string, index: number) {
     solverContent.update(sc => {
         sc.premises[index] = PremiseParser.parsePremise(value);
@@ -23,6 +27,10 @@ export function onChangePremise(value: string, index: number) {
     });
 }
 
+/**
+ * Parses the conclusion and adds it to the solver content
+ * @param value - the theorem to parse
+ */
 export function onChangeConclusion(value: string) {
     solverContent.update(sc => {
         sc.conclusion = PremiseParser.parsePremise(value);
@@ -30,6 +38,11 @@ export function onChangeConclusion(value: string) {
     });
 }
 
+/**
+ * Queries Prolog to handle calculation of the result of the rule application
+ * @param premises - the premises used from the proof
+ * @param rule - the rule used
+ */
 async function queryProlog(premises: string[], rule: IRule): Promise<string[]> {
     // construct query
     const query = `prove_handler([${premises.join(',')}], X, '${rule.short}').`;
@@ -41,6 +54,12 @@ async function queryProlog(premises: string[], rule: IRule): Promise<string[]> {
     return results.map(r => compoundToString(PrologController.parsePrologCompound(r.X)));
 }
 
+/**
+ * Proves the selected row using the Prolog engine
+ * @param premises - the premises used from the proof
+ * @param rule - the rule used
+ * @param selected - the selected row
+ */
 export async function proveProlog(premises: string[], rule: IRule, selected: number[]) {
     // get results
     const resultsPFL: string[] = await queryProlog(premises, rule);
@@ -52,6 +71,12 @@ export async function proveProlog(premises: string[], rule: IRule, selected: num
     addProof(resultsPFL, rule.short, selected);
 }
 
+/**
+ * Verifies the proof using the Prolog engine
+ * @param premises - the premises used from the proof
+ * @param rule - the rule used
+ * @param result - the result to verify
+ */
 export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
     // get results
     const resultsPFL: string[] = await queryProlog(premises, rule);
@@ -64,6 +89,12 @@ export async function verifyProlog(premises: string[], rule: IRule, result: Node
     return resultsPFL.includes(tmp);
 }
 
+/**
+ * Adds the proof to the solver content, checking if it already exists
+ * @param results - the results to add
+ * @param rule - the rule used
+ * @param lines - the lines used
+ */
 export function addProof(results: string[], rule: string, lines: number[]) {
     solverContent.update(sc => {
         results.forEach(r => {
@@ -83,6 +114,11 @@ export function addProof(results: string[], rule: string, lines: number[]) {
     });
 }
 
+/**
+ * Checks for usable rows in the proof for the highlighted row and rule
+ * @param rule - the rule to check
+ * @param row - the row to check
+ */
 export async function usable(rule: IRule, row: number): Promise<{ highlighted: number[], applicable: boolean }> {
     const proof = get(solverContent).proof;
     const selected: string = proof[row - 1].tree?.toPrologFormat() ?? "";
@@ -108,10 +144,18 @@ export async function usable(rule: IRule, row: number): Promise<{ highlighted: n
     return { applicable: !!indices.length, highlighted: indices };
 }
 
+/**
+ * Returns a boolean indicating if the formula already exists in the proof
+ * @param formula - the formula to check
+ * @returns {boolean} true if the formula exists in the proof, false otherwise
+ */
 function existsInProof(formula: TreeRuleType): boolean {
     return get(solverContent).proof.findIndex(r => FormulaComparer.compare(r, formula)) !== -1;
 }
 
+/**
+ * Checks if the final proof is correct
+ */
 export async function checkProof() {
     const contradiction = await hasContradiction();
     const isIndirect = get(indirectSolving);
@@ -144,6 +188,9 @@ export async function checkProof() {
     alert(exists ? "Proof is correct" : "Proof does not contain a valid row with the conclusion");
 }
 
+/**
+ * Checks if the proof contains a contradiction using the Prolog engine
+ */
 export async function hasContradiction() {
     const proofPFL = get(solverContent).proof.map(p => p.tree?.toPrologFormat() ?? "");
     const query = `conflict_handler([${proofPFL.join(",")}], X, Y, Z).`;
@@ -155,6 +202,11 @@ export async function hasContradiction() {
     return result.Z;
 }
 
+/**
+ * Substitutes the theorem variables with the user's input using the Prolog engine
+ * @param theoremData - the theorem data
+ * @param newVars - the new variables to be added
+ */
 export async function substitute(theoremData: TheoremData, newVars: string[]) {
     const theorem = get(theorems)[theoremData.theoremId];
     const theoremPFL = theorem.whole.tree?.toPrologFormat() ?? "";
@@ -166,7 +218,10 @@ export async function substitute(theoremData: TheoremData, newVars: string[]) {
     addProof([tmp], theorem.name, []);
 }
 
-// Adds all existing premises to the proof and checks if they are valid
+/**
+ * Adds all the existing premises to the proof and checks if they are valid
+ * @returns {boolean} true if all premises are valid, false otherwise
+ */
 function initializeProof(): boolean {
     // add the premises to the proof
     solverContent.update(sc => {
@@ -184,6 +239,10 @@ function initializeProof(): boolean {
     return true;
 }
 
+/**
+ * Sets up the proof by adding the premises and the negated conclusion if we're solving indirectly
+ * @returns {boolean} true if the proof was set up successfully, false otherwise
+ */
 export function setupProof(): boolean {
     if (!initializeProof()) return false;
 
@@ -240,6 +299,10 @@ export function setupProof(): boolean {
     return true;
 }
 
+/**
+ * Switches the mode between propositional and predicate logic
+ * TODO: Predicate logic isn't supported yet
+ */
 export function switchMode() {
     logicMode.update(mode => mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL);
     deductionRules.set(DeductionRule.rules);
@@ -249,13 +312,14 @@ export function switchMode() {
     onChangeConclusion(get(solverContent).conclusion.value);
 }
 
-export function resetSolving(): boolean {
+/**
+ * Resets the solving state
+ */
+export function resetSolving(): void {
     selectedRows.set([]);
     solverContent.update(sc => {
         sc.proof = [];
         return sc;
     });
     solving.set(false);
-
-    return false;
 }

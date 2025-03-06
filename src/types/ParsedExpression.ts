@@ -1,4 +1,4 @@
-import type {Node} from "../lib/syntax-checker/Node";
+import type { Node } from "../lib/syntax-checker/Node";
 
 /**
  * ParsedExpression type

@@ -1,5 +1,5 @@
-import type {Node} from "../lib/syntax-checker/Node";
-import type {AppliedRule} from "./AppliedRule";
+import type { Node } from "../lib/syntax-checker/Node";
+import type { AppliedRule } from "./AppliedRule";
 
 /**
  * TreeRuleType type

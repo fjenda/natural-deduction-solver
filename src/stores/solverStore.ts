@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 import { Solution } from "../lib/solver/Solution";
 import { ParseStrategy } from "../types/ParseStrategy";
 import { DeductionRule } from "../lib/rules/DeductionRule";
-import type {TheoremData} from "../types/TheoremData";
+import type { TheoremData } from "../types/TheoremData";
 
 /**
  * Store for the logic mode

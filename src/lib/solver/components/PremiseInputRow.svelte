@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {removePremise} from "../../../stores/solverStore";
+    import { removePremise } from "../../../stores/solverStore";
 
     export let index: number;
     export let removable: boolean = true

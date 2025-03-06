@@ -1,8 +1,8 @@
-import {PrattParser} from "../../syntax-checker/PrattParser";
-import {Node} from "../../syntax-checker/Node";
-import type {ParsedExpression} from "../../../types/ParsedExpression";
+import { PrattParser } from "../../syntax-checker/PrattParser";
+import { Node } from "../../syntax-checker/Node";
 import { get } from "svelte/store";
 import { logicMode } from "../../../stores/solverStore";
+import type { ParsedExpression } from "../../../types/ParsedExpression";
 
 /**
  * This class is responsible for parsing the premises

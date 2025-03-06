@@ -1,4 +1,3 @@
-import { Operator } from "../syntax-checker/Operator";
 import { PrettySyntaxer } from "../solver/PrettySyntaxer";
 import { get } from "svelte/store";
 import { logicMode } from "../../stores/solverStore";
@@ -70,7 +69,6 @@ export class DeductionRule implements IRule {
         this.detail = detail;
     }
 
-    static ASS = new DeductionRule(NDRule.ASS, 'Assumption');
     static PREM = new DeductionRule(NDRule.PREM, 'Premise');
     static CONC = new DeductionRule(NDRule.CONC, 'Conclusion');
     static UNKNOWN = new DeductionRule(NDRule.UNKNOWN, 'Unknown');

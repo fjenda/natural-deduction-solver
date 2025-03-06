@@ -2,8 +2,6 @@ import type { TreeRuleType } from "../../types/TreeRuleType";
 import type { ParsedExpression } from "../../types/ParsedExpression";
 import { NDRule } from "../rules/DeductionRule";
 import { FormulaComparer } from "./FormulaComparer";
-import { TheoremParser } from "./parsers/TheoremParser";
-import { Node } from "../syntax-checker/Node";
 
 /**
  * Solution class
@@ -53,28 +51,22 @@ export class Solution {
         return this.proof.every((row) => row.rule.rule !== NDRule.UNKNOWN);
     }
 
+    /**
+     * Method that returns a boolean indicating if the proof is complete
+     * @returns {boolean} a boolean indicating if the proof is complete
+     */
     public get complete(): boolean {
         if (this.indirect && this.contradiction) return true;
-
-        // if (this.whole && this.whole.value !== "") {
-        //     return this.isCompleteTheorem();
-        // }
 
         return this.compareConclusion(this.conclusion);
     }
 
-    // private isCompleteTheorem(): boolean {
-    //     const [_, right] = TheoremParser.splitTheorem(this.conclusion.value);
-    //     if (!right) {
-    //         return false;
-    //     }
-    //
-    //     const conclusion = { value: Node.generateString(right), tree: right };
-    //     return this.compareConclusion(conclusion);
-    // }
-
+    /**
+     * Method that compares the conclusion of the proof with the desired conclusion
+     * @param conclusion - the desired conclusion
+     * @private
+     */
     private compareConclusion(conclusion: ParsedExpression): boolean {
-        console.log(conclusion);
         return this.proof
             .some(p => p.tree
                 && p.rule.rule !== NDRule.UNKNOWN

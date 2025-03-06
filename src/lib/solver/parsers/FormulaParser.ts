@@ -44,7 +44,7 @@ export class FormulaParser {
         // clean the rule string
         rule = PrettySyntaxer.cleanupRule(rule);
 
-        // TODO: assumptions will get added automatically, conclusion i don't know yet
+        // TODO: premises will get added automatically, conclusion i don't know yet
         // TODO: handle the case when we are proving the negation of the conclusion
         if (rule === "PREM") {
             return tmp;

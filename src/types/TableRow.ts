@@ -1,4 +1,4 @@
-import type {AppliedRule} from "./AppliedRule";
+import type { AppliedRule } from "./AppliedRule";
 
 /**
  * TableRowData type

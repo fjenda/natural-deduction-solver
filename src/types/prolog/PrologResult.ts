@@ -1,3 +1,6 @@
+/**
+ * Result interfaces for typechecking
+ */
 export interface ProveResult {
     X: unknown;
 }

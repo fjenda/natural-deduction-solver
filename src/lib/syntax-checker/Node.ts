@@ -188,20 +188,6 @@ export class Node {
     }
 
     /**
-     * Checks if the node is the negation of another node
-     * @param {Node} other the other node
-     * @returns {boolean} true if the node is the negation of the other node
-     */
-    public isNegationOf(other: Node): boolean {
-        // TODO: do i need to make this better? for example:
-        // -(A -> B) = -A v B
-        // -(A v B) = -A & -B
-        return this.type === NodeType.NEGATION
-            && this.children.length === 1
-            && this.children[0].equals(other);
-    }
-
-    /**
      * Returns all the operators used in the tree
      * @private
      */
@@ -336,6 +322,10 @@ export class Node {
         return [this.children[0], this.children[1]];
     }
 
+    /**
+     * Returns the variables used in the tree
+     * @returns {Set<string>} the variables used in the tree
+     */
     public get variables(): Set<string> {
         const vars = new Set<string>();
 
@@ -349,14 +339,5 @@ export class Node {
         });
 
         return vars;
-    }
-
-    public replacePart(oldPart: Node, newPart: Node): Node {
-        if (this.equals(oldPart)) {
-            return newPart;
-        }
-
-        this.children = this.children.map(child => child.replacePart(oldPart, newPart));
-        return this;
     }
 }

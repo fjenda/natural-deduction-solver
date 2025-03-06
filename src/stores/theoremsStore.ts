@@ -1,8 +1,8 @@
-import {get, writable} from "svelte/store";
-import {Solution} from "../lib/solver/Solution";
-import {indirectSolving, solverBackup, solverContent} from "./solverStore";
+import { get, writable } from "svelte/store";
+import { Solution } from "../lib/solver/Solution";
+import { indirectSolving, solverBackup, solverContent } from "./solverStore";
 import { editState, solving } from "./stateStore";
-import {EditState} from "../types/EditState";
+import { EditState } from "../types/EditState";
 
 /**
  * The theorems store.

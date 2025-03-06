@@ -1,16 +1,11 @@
 <script lang="ts">
     import TableRow from "./TableRow.svelte";
-    import {solverContent} from "../../../../stores/solverStore";
-    import type {TableRowData} from "../../../../types/TableRow";
-    import {FormulaParser} from "../../parsers/FormulaParser";
-    import type {TreeRuleType} from "../../../../types/TreeRuleType";
-    import {NDRule} from "../../../rules/DeductionRule";
-    import {FormulaComparer} from "../../FormulaComparer";
-    import { TheoremParser } from "../../parsers/TheoremParser";
-    import {get} from "svelte/store";
-    import {editState} from "../../../../stores/stateStore";
-    import {EditState} from "../../../../types/EditState";
-    import {indirectSolving} from "../../../../stores/solverStore.js";
+    import { solverContent } from "../../../../stores/solverStore";
+    import { FormulaParser } from "../../parsers/FormulaParser";
+    import { NDRule } from "../../../rules/DeductionRule";
+    import { FormulaComparer } from "../../FormulaComparer";
+    import type { TableRowData } from "../../../../types/TableRow";
+    import type { TreeRuleType } from "../../../../types/TreeRuleType";
 
     let container: HTMLDivElement;
 
@@ -24,6 +19,9 @@
         editable: false,
     }));
 
+    /**
+     * Adds a new row to the proof
+     */
     function addRow() {
         rows = [
             ...rows,
@@ -44,7 +42,11 @@
         });
     }
 
-    function canAddRow() {
+    /**
+     * Checks if we can add a new row to the proof
+     * @returns {boolean} true if we can add a new row, false otherwise
+     */
+    function canAddRow(): boolean {
         return rows.filter(r => r.editable).length < 1;
     }
 </script>

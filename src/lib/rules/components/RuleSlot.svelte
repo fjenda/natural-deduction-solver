@@ -54,9 +54,6 @@
     }
 
     .rule-slot {
-        /*display: flex;*/
-        /*justify-content: center;*/
-        /*align-items: center;*/
         font-size: 1.25rem;
         width: 100%;
         aspect-ratio: 1;

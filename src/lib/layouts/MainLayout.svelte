@@ -14,7 +14,6 @@
     }
 
     @media screen and (max-width: 950px) {
-    /*    switch to 2 rows instead of cols*/
         .grid-layout {
             grid-template-columns: none;
             grid-template-rows: repeat(2, 1fr);

@@ -1,5 +1,5 @@
-import type {TreeRuleType} from "../../types/TreeRuleType";
-import type {ParsedExpression} from "../../types/ParsedExpression";
+import type { TreeRuleType } from "../../types/TreeRuleType";
+import type { ParsedExpression } from "../../types/ParsedExpression";
 
 /**
  * Class that compares two formulas to check if they are equivalent
@@ -30,17 +30,6 @@ export class FormulaComparer {
         // then we check the trees
         const tree1 = f1.tree.simplify();
         const tree2 = f2.tree.simplify();
-
-        // TODO: Fact check this, I don't think it's true
-        // equivalence is commutative, so we check if the trees are equal
-        // when we swap the children of the equivalence operator
-        // if (tree1.type === NodeType.BINARY_OPERATION && tree1.value === Operator.EQUIVALENCE) {
-        //     const [left1, right1] = tree1.children;
-        //     const swapped1 = DeductionProcessor.introduceOperator(right1, left1, Operator.EQUIVALENCE)?.simplify();
-        //     if (swapped1?.equals(tree2)) {
-        //         return true;
-        //     }
-        // }
 
         // if they are the same, but one lacks the structure of the parentheses, for example:
         // `a ∧ b ⊃ c ∨ d` is the same as `((a ∧ b) ⊃ (c ∨ d))`
