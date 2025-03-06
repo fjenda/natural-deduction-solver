@@ -57,10 +57,10 @@
                 formula={row.formula}
                 rule={row.rule}
                 premise={(() => {
-                    if (get(editState) === EditState.SOLVER)
+                    // if (get(editState) === EditState.SOLVER)
                         return i <= $solverContent.premises.length - 1;
 
-                    return i === 0 || (get(indirectSolving) && i === 1);
+                    // return i === 0 || (get(indirectSolving) && i === 1);
                 })()}
                 editable={row.editable}
                 onSave={(content, rule) => {

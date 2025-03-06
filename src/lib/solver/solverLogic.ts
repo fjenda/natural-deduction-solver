@@ -157,7 +157,7 @@ export async function hasContradiction() {
 
 export async function substitute(theoremData: TheoremData, newVars: string[]) {
     const theorem = get(theorems)[theoremData.theoremId];
-    const theoremPFL = theorem.conclusion.tree?.toPrologFormat() ?? "";
+    const theoremPFL = theorem.whole.tree?.toPrologFormat() ?? "";
 
     const query = `substitute(${theoremPFL}, [${Array.from(theoremData.vars).join(",")}], [${newVars.join(",")}], X).`;
     const result = (await PrologController.query(query)).once() as SubstitutionResult;
@@ -190,24 +190,19 @@ export function setupProof(): boolean {
 
     const isIndirect = get(indirectSolving);
     if (get(editState) === EditState.THEOREM) {
-        let [left, right] = TheoremParser.splitTheorem(get(solverContent).conclusion.value);
-        if (!left) {
+        // if any of the premises isn't valid
+        if (!get(solverContent).premises.every(p => p.tree)) {
             alert('Failed to parse left side of the theorem');
             return false;
         }
 
         solverContent.update(sc => {
-           sc.proof.push({
-               line: sc.proof.length + 1,
-               tree: left,
-               value: Node.generateString(left),
-               rule: { rule: NDRule.PREM },
-           });
            sc.indirect = isIndirect;
            return sc;
         });
 
         if (isIndirect) {
+            const right = get(solverContent).conclusion.tree;
             if (!right) {
                 alert('Failed to parse right side of the theorem');
                 return false;

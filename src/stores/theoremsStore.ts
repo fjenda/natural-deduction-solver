@@ -89,7 +89,7 @@ export const editTheorem = (index: number): void => {
     indirectSolving.set(get(solverContent).indirect);
 
     // show the proof if conclusion isn't empty
-    if (get(solverContent).conclusion.value.length !== 0) {
+    if (get(solverContent).whole.value.length !== 0) {
         solving.set(true);
     }
 }

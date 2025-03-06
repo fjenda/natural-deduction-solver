@@ -6,41 +6,46 @@
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
-    import { addTheorem, theorems } from "./stores/theoremsStore";
+    import {addTheorem, theorems} from "./stores/theoremsStore";
     import {
         addPremise,
         deductionRules,
-        highlightedRows, indirectSolving,
+        highlightedRows,
+        indirectSolving,
         selectedRows,
-        solverContent, theoremData
+        solverContent,
+        theoremData
     } from "./stores/solverStore";
-    import { Solution } from "./lib/solver/Solution";
-    import { PremiseParser } from "./lib/solver/parsers/PremiseParser";
+    import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
-    import { DeductionRule, NDRule } from "./lib/rules/DeductionRule";
+    import {DeductionRule, NDRule} from "./lib/rules/DeductionRule";
     import Separator from "./lib/Separator.svelte";
-    import { EditState } from "./types/EditState";
-    import { editState, solving } from "./stores/stateStore";
+    import {EditState} from "./types/EditState";
+    import {editState, solving} from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
-    import type { ButtonContent } from "./types/ButtonContent";
-    import { get } from "svelte/store";
+    import type {ButtonContent} from "./types/ButtonContent";
+    import {get} from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import { onMount } from "svelte";
+    import {onMount} from "svelte";
     import {
+        checkProof,
         onChangeConclusion,
         onChangePremise,
+        proveProlog,
+        resetSolving,
         setupProof,
-        switchMode, resetSolving, proveProlog, usable, checkProof, substitute
+        substitute,
+        switchMode,
+        usable
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
-    import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
-    import { lastHovered } from "./stores/modalStore";
-    import { Node } from "./lib/syntax-checker/Node";
-    import SWIPL from "swipl-wasm";
+    import {PrettySyntaxer} from "./lib/solver/PrettySyntaxer";
+    import {lastHovered} from "./stores/modalStore";
+    import type {TheoremVariant} from "./types/TheoremVariant";
+    import {TheoremParser} from "./lib/solver/parsers/TheoremParser";
+    import {Node} from "./lib/syntax-checker/Node";
     // import prologCode from "./prolog/ruleset.pl?raw";
-    import { PrologController } from "./prolog/PrologController";
-    import { compoundToString } from "./types/prolog/Compound.js";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
     // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
@@ -173,6 +178,9 @@
         selectedRows.update(() => []);
     }
 
+    let showPickVariant: boolean = false;
+    let theoremVariants: TheoremVariant[] = [];
+    let theoremVariantButtons: ButtonContent[] = [];
     let showConclusionSelect: boolean = false;
     function startSolver() {
         // if the conclusion is invalid, return
@@ -184,9 +192,36 @@
 
         const setup = (isIndirect: boolean) => {
             indirectSolving.set(isIndirect);
-            const res = setupProof();
             showConclusionSelect = false;
-            solving.set(res);
+            // solving.set(res);
+
+            if ($editState === EditState.THEOREM) {
+                solverContent.update(sc => {
+                    sc.whole = sc.conclusion;
+                    return sc;
+                });
+                theoremVariants = TheoremParser.getVariants(get(solverContent).whole);
+                theoremVariantButtons = theoremVariants.map((variant, i) => ({
+                    text: variant.premises.map(p => Node.generateString(p)).join(", "),
+                    action: () => pickVariant(variant),
+                }));
+                showPickVariant = true;
+            } else {
+                const res = setupProof();
+                solving.set(res);
+            }
+        }
+
+        const pickVariant = (variant: TheoremVariant) => {
+            console.log(`pick variant ${variant}`);
+            solverContent.update(sc => {
+                sc.premises = variant.premises.map(p => ({ value: Node.generateString(p), tree: p }));
+                sc.conclusion = { value: Node.generateString(variant.conclusion), tree: variant.conclusion };
+                return sc;
+            });
+            const res = setupProof();
+            showPickVariant = false;
+            solving.set(true);
         }
 
         setModalButton(0, "Direct Proof", () => setup(false));
@@ -268,6 +303,9 @@
 
   <button on:click={switchMode} class="action-button">Switch Mode</button>
 
+  <Modal bind:show={showPickVariant} bind:buttons={theoremVariantButtons} header="Select the theorem variant" >
+
+  </Modal>
   <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
       <div slot="body">
           <input
@@ -281,7 +319,7 @@
   <Modal bind:show={showConclusionSelect} bind:buttons={modalButtons} header="Select Proof Type" />
   <Modal bind:show={showFillVariables} bind:buttons={modalButtons} header="Fill Variables">
       <div slot="body" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <MathMLViewer value={$theorems[$theoremData.theoremId]?.conclusion.value} />
+          <MathMLViewer value={$theorems[$theoremData.theoremId]?.whole.value} />
           {#each $theoremData.vars as v, i}
               <input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
           {/each}
@@ -312,17 +350,32 @@
                 </button>
             {/if}
             {#if !$solving}
-                <PremiseInput
-                    placeholder={$editState === EditState.SOLVER ? `Conclusion` : "Theorem"}
-                    bind:value="{$solverContent.conclusion.value}"
-                    error="{!$solverContent.conclusion.tree}"
-                    index={$solverContent.premises.length + 1}
-                    onChange={() => onChangeConclusion($solverContent.conclusion.value)}
-                />
+                {#if $editState === EditState.SOLVER}
+                    <PremiseInput
+                        placeholder={"Conclusion"}
+                        bind:value="{$solverContent.conclusion.value}"
+                        error="{!$solverContent.conclusion.tree}"
+                        index={$solverContent.premises.length + 1}
+                        onChange={() => onChangeConclusion($solverContent.conclusion.value)}
+                    />
+                {:else}
+                    <PremiseInput
+                        placeholder={"Theorem"}
+                        bind:value="{$solverContent.whole.value}"
+                        error="{!$solverContent.whole.tree}"
+                        index={$solverContent.premises.length + 1}
+                        onChange={() => onChangeConclusion($solverContent.whole.value)}
+                    />
+                {/if}
             {:else}
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     Find a proof for the following {$editState === EditState.SOLVER ? 'conclusion' : 'theorem'}:
-                    <MathMLViewer value={$solverContent.conclusion.value} />
+
+                    {#if $editState === EditState.SOLVER}
+                        <MathMLViewer value={$solverContent.conclusion.value} />
+                    {:else}
+                        <MathMLViewer value={$solverContent.whole.value} />
+                    {/if}
                 </div>
             {/if}
 
@@ -403,7 +456,7 @@
                     index="{i}"
                     valid={theorem.valid && theorem.complete}
                     onClick={() => {
-                        const values = theorem.conclusion.tree?.variables;
+                        const values = theorem.whole.tree?.variables;
                         if (!values) return;
                         theoremData.update(td => {
                             td.theoremId = i;

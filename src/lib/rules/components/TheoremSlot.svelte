@@ -36,8 +36,8 @@
     <div class="name">
         {#if index === $selectedTheorem}
             <input type="text" bind:value={$solverContent.name} on:click|stopPropagation class="name-input" placeholder="Theorem Name" />
-        {:else if hovered && $theorems[index].conclusion.value}
-            <MathMLViewer value={$theorems[index].conclusion.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
+        {:else if hovered && $theorems[index].whole.value}
+            <MathMLViewer value={$theorems[index].whole.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
         {:else}
             <p>{name}</p>
         {/if}

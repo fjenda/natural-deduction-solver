@@ -49,7 +49,7 @@
 <style>
     .wrapper {
         width: 25%;
-        max-width: 7.5rem;
+        max-width: 5rem;
         position: relative;
     }
 
