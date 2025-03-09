@@ -32,6 +32,11 @@ export class PrettySyntaxer {
         f = f.replace(/\s*∨\s*/g, " ∨ ");
         f = f.replace(/\s*⊃\s*/g, " ⊃ ");
         f = f.replace(/\s*≡\s*/g, " ≡ ");
+
+        // Quantifiers should have a space before them and after the variable
+        // f = f.replace(/\s*∀\s*/g, " ∀");
+        // f = f.replace(/\s*∃\s*/g, " ∃");
+
         return f;
     }
 
@@ -49,6 +54,8 @@ export class PrettySyntaxer {
         f = f.replace(/=/g, "≡");
         f = f.replace(/!/g, "¬");
         f = f.replace(/-/g, "¬");
+        f = f.replace(/@/g, "∀");
+        f = f.replace(/\?/g, "∃");
 
         return f;
     }
@@ -97,6 +104,8 @@ export class PrettySyntaxer {
                                     .replace(/≡/g, '<mo>≡</mo>')
                                     .replace(/,/g, '<mo>,</mo>')
                                     .replace(/⊢/g, '<mo>⊢</mo>')
+                                    .replace(/∀/g, '<mo>∀</mo>')
+                                    .replace(/∃/g, '<mo>∃</mo>')
                                     .replace(/\s/g, '')
                                     .replace(/\(/g, '<mo stretchy="false">(</mo>')
                                     .replace(/\)/g, '<mo stretchy="false">)</mo>')
