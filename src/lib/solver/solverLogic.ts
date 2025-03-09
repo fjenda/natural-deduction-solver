@@ -38,6 +38,13 @@ export function onChangeConclusion(value: string) {
     });
 }
 
+export function onChangeTheorem(value: string) {
+    solverContent.update(sc => {
+        sc.whole = PremiseParser.parsePremise(value);
+        return sc;
+    });
+}
+
 /**
  * Queries Prolog to handle calculation of the result of the rule application
  * @param premises - the premises used from the proof

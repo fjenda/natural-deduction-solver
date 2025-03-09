@@ -31,7 +31,7 @@
     import {
         checkProof,
         onChangeConclusion,
-        onChangePremise,
+        onChangePremise, onChangeTheorem,
         proveProlog,
         resetSolving,
         setupProof,
@@ -197,7 +197,8 @@
 
             if ($editState === EditState.THEOREM) {
                 solverContent.update(sc => {
-                    sc.whole = sc.conclusion;
+                    if (!sc.whole.tree)
+                        sc.whole = sc.conclusion;
                     return sc;
                 });
                 theoremVariants = TheoremParser.getVariants(get(solverContent).whole);
@@ -364,7 +365,7 @@
                         bind:value="{$solverContent.whole.value}"
                         error="{!$solverContent.whole.tree}"
                         index={$solverContent.premises.length + 1}
-                        onChange={() => onChangeConclusion($solverContent.whole.value)}
+                        onChange={() => onChangeTheorem($solverContent.whole.value)}
                     />
                 {/if}
             {:else}
