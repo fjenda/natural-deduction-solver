@@ -133,6 +133,10 @@ export class Node {
             case NodeType.FUNCTION:
                 return `${node.value}(${childrenStrings.join(", ")})`;
 
+            case NodeType.QUANTIFIER:
+                console.log(node);
+                return `${childrenStrings[0]}${childrenStrings[1]} ${childrenStrings[2]}`;
+
             default:
                 return node.value ? `${node.value}` : `${node.type}`;
         }
