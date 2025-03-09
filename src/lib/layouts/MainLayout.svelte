@@ -10,7 +10,9 @@
         grid-template-columns: 2fr 1fr;
         grid-gap: 1rem;
         width: 100%;
+        max-width: 1920px;
         height: 100vh;
+        margin: 0 auto;
     }
 
     @media screen and (max-width: 950px) {
