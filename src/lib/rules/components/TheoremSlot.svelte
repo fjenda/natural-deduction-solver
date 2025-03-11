@@ -31,7 +31,7 @@
     on:focus={handleMouseOver}
     on:mouseleave={handleMouseOut}
     on:blur={handleMouseOut}
-    on:click={onClick}
+    on:click={valid ? onClick : null}
 >
     <div class="name">
         {#if index === $selectedTheorem}

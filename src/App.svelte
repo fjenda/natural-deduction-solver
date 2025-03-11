@@ -465,6 +465,8 @@
                     index="{i}"
                     valid={theorem.valid && theorem.complete}
                     onClick={() => {
+                        if (!$solving) return;
+
                         const values = theorem.whole.tree?.variables;
                         if (!values) return;
                         theoremData.update(td => {
