@@ -8,18 +8,18 @@ import substitute from "./substitute.pl?raw";
 /**
  * PrologController is a singleton class that manages the SWIPL instance
  * and provides utility methods to interact with it.
- * @property {SWIPLModule | null} instance - The SWIPL instance.
+ * @property {SWIPLModule | null} module - The SWIPL instance.
  */
 export class PrologController {
-    private static instance: SWIPLModule | null = null;
+    private static module: SWIPLModule | null = null;
 
     /**
      * Get the SWIPL instance.
      * If the instance does not exist, create it.
      */
-    public static async getInstance(): Promise<SWIPLModule> {
-        if (!PrologController.instance) {
-            PrologController.instance = await SWIPL({
+    public static async instance(): Promise<SWIPLModule> {
+        if (!PrologController.module) {
+            PrologController.module = await SWIPL({
                 arguments: ["-q", "-O"],
             });
 
@@ -27,7 +27,7 @@ export class PrologController {
             await PrologController.loadString(substitute, 'substitute');
         }
 
-        return PrologController.instance;
+        return PrologController.module;
     }
 
     /**
@@ -36,7 +36,7 @@ export class PrologController {
      * @param id - id of the program
      */
     public static async loadString(content: string, id: string) {
-        const instance = await PrologController.getInstance();
+        const instance = await PrologController.instance();
         return instance.prolog.load_string(content, id);
     }
 
@@ -45,7 +45,7 @@ export class PrologController {
      * @param query - the query to run
      */
     public static async query(query: string): Promise<PrologQueryWrapper> {
-        const instance = await PrologController.getInstance();
+        const instance = await PrologController.instance();
         return new PrologQueryWrapper(instance.prolog.query(query));
     }
 

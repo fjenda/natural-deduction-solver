@@ -6,7 +6,7 @@
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
     import TheoremSlot from "./lib/rules/components/TheoremSlot.svelte";
-    import {addTheorem, theorems} from "./stores/theoremsStore";
+    import { addTheorem, theorems } from "./stores/theoremsStore";
     import {
         addPremise,
         deductionRules,
@@ -16,22 +16,23 @@
         solverContent,
         theoremData
     } from "./stores/solverStore";
-    import {PremiseParser} from "./lib/solver/parsers/PremiseParser";
+    import { PremiseParser } from "./lib/solver/parsers/PremiseParser";
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
-    import {DeductionRule, NDRule} from "./lib/rules/DeductionRule";
+    import { DeductionRule, NDRule } from "./lib/rules/DeductionRule";
     import Separator from "./lib/Separator.svelte";
-    import {EditState} from "./types/EditState";
-    import {editState, solving} from "./stores/stateStore";
+    import { EditState } from "./types/EditState";
+    import { editState, solving } from "./stores/stateStore";
     import Modal from "./lib/Modal.svelte";
-    import type {ButtonContent} from "./types/ButtonContent";
-    import {get} from "svelte/store";
+    import type { ButtonContent } from "./types/ButtonContent";
+    import { get } from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
-    import {onMount} from "svelte";
+    import { onMount } from "svelte";
     import {
         checkProof,
         onChangeConclusion,
-        onChangePremise, onChangeTheorem,
+        onChangePremise,
+        onChangeTheorem,
         proveProlog,
         resetSolving,
         setupProof,
@@ -40,11 +41,12 @@
         usable
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
-    import {PrettySyntaxer} from "./lib/solver/PrettySyntaxer";
-    import {lastHovered} from "./stores/modalStore";
-    import type {TheoremVariant} from "./types/TheoremVariant";
-    import {TheoremParser} from "./lib/solver/parsers/TheoremParser";
-    import {Node} from "./lib/syntax-checker/Node";
+    import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
+    import { lastHovered } from "./stores/modalStore";
+    import type { TheoremVariant } from "./types/TheoremVariant";
+    import { TheoremParser } from "./lib/solver/parsers/TheoremParser";
+    import { Node } from "./lib/syntax-checker/Node";
+    import { PrologController } from "./prolog/PrologController";
     // import prologCode from "./prolog/ruleset.pl?raw";
 
     // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
@@ -184,10 +186,12 @@
     let showConclusionSelect: boolean = false;
     function startSolver() {
         // if the conclusion is invalid, return
-        if (!$solverContent.conclusion.tree) {
-            return $editState === EditState.SOLVER
-                ? alert("Invalid conclusion")
-                : alert("Invalid theorem");
+        if ($editState === EditState.SOLVER && !$solverContent.conclusion.tree) {
+            return alert("Invalid conclusion");
+        }
+
+        if ($editState === EditState.THEOREM && !$solverContent.whole.tree) {
+            return alert("Invalid theorem");
         }
 
         const setup = (isIndirect: boolean) => {
@@ -214,7 +218,6 @@
         }
 
         const pickVariant = (variant: TheoremVariant) => {
-            console.log(`pick variant ${variant}`);
             solverContent.update(sc => {
                 sc.premises = variant.premises.map(p => ({ value: Node.generateString(p), tree: p }));
                 sc.conclusion = { value: Node.generateString(variant.conclusion), tree: variant.conclusion };
@@ -222,7 +225,7 @@
             });
             const res = setupProof();
             showPickVariant = false;
-            solving.set(true);
+            solving.set(res);
         }
 
         setModalButton(0, "Direct Proof", () => setup(false));
@@ -270,6 +273,11 @@
         });
 
         onChangeConclusion($solverContent.conclusion.value);
+
+        // load the Prolog module
+        PrologController.instance().then(() => {
+            console.log("[DEBUG] Prolog module loaded!");
+        });
     });
     //
     // async function test() {

@@ -253,7 +253,6 @@ function initializeProof(): boolean {
 export function setupProof(): boolean {
     if (!initializeProof()) return false;
 
-
     const isIndirect = get(indirectSolving);
     if (get(editState) === EditState.THEOREM) {
         // if any of the premises isn't valid
