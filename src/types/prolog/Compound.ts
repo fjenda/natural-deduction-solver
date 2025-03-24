@@ -12,7 +12,7 @@ export interface Compound {
  */
 export function compoundToString(compound: Compound): string {
     if (compound.args.length === 0) {
-        return compound.functor;
+        return compound.functor === compound.functor.toUpperCase() ? `'${compound.functor}'` : compound.functor;
     }
 
     return `${compound.functor}(${compound.args.map(compoundToString).join(", ")})`;

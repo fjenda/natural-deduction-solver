@@ -65,8 +65,8 @@
                     // return i === 0 || (get(indirectSolving) && i === 1);
                 })()}
                 editable={row.editable}
-                onSave={(content, rule) => {
-                    const res = FormulaParser.parseFormula(content, i + 1, rule);
+                onSave={async (content, rule) => {
+                    const res = await FormulaParser.parseFormula(content, i + 1, rule);
 
                     // check if the formula already exist in any other row
                     const formulaExists = $solverContent.proof

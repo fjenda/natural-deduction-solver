@@ -1,8 +1,8 @@
-import { Operator, operatorFromProlog, operatorToProlog } from "./Operator";
-import { NodeType } from "./NodeType";
-import { get } from "svelte/store";
-import { logicMode } from "../../stores/solverStore";
-import { ParseStrategy } from "../../types/ParseStrategy";
+import {Operator, operatorFromProlog, operatorToProlog} from "./Operator";
+import {NodeType} from "./NodeType";
+import {get} from "svelte/store";
+import {logicMode} from "../../stores/solverStore";
+import {ParseStrategy} from "../../types/ParseStrategy";
 
 /**
  * Node class that represents a node in the abstract syntax tree
@@ -200,7 +200,17 @@ export class Node {
             return new Set(this.type === NodeType.BINARY_OPERATION ? [this.value as Operator] : []);
         }
 
-        const operators = new Set(this.type === NodeType.BINARY_OPERATION ? [this.value as Operator] : []);
+        // const operators = new Set(this.type === NodeType.BINARY_OPERATION ? [this.value as Operator] : []);
+        const operators = new Set<Operator>();
+        if (this.type === NodeType.BINARY_OPERATION) {
+            operators.add(this.value as Operator);
+        }
+
+        // TODO: This check might not be enough, maybe we need to check more things
+        if (this.type === NodeType.NEGATION && this.children.length === 1 && this.children[0].type === NodeType.BINARY_OPERATION) {
+            operators.add(Operator.NEGATION);
+        }
+
         this.children.forEach(child => {
             child.operators().forEach(op => operators.add(op));
         });

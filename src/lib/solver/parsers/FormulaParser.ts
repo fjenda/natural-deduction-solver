@@ -22,7 +22,7 @@ export class FormulaParser {
      * @param line - the line number of the formula
      * @param rule - the rule that was applied to the formula
      */
-    static parseFormula(formula: string, line: number, rule: string): TreeRuleType {
+    static async parseFormula(formula: string, line: number, rule: string): Promise<TreeRuleType> {
         // checks the syntax of the formula
         let parser = new PrattParser(get(logicMode));
         let res = parser.parse(formula);
@@ -113,7 +113,7 @@ export class FormulaParser {
                 // @ts-ignore
                 prem = [first.tree.toPrologFormat(), second.tree.toPrologFormat()];
             }
-            result = verifyProlog(prem, usedRule, tmp.tree);
+            result = await verifyProlog(prem, usedRule, tmp.tree);
         }
 
         // if the result is false, it's not correct

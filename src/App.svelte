@@ -276,7 +276,7 @@
 
         // load the Prolog module
         PrologController.instance().then(() => {
-            console.log("[DEBUG] Prolog module loaded!");
+            console.log("[DEBUG] Prolog module loaded.");
         });
     });
     //

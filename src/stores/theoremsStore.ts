@@ -88,10 +88,10 @@ export const editTheorem = (index: number): void => {
     // indirect solving
     indirectSolving.set(get(solverContent).indirect);
 
+    console.log(get(solverContent).whole.value.length);
+
     // show the proof if conclusion isn't empty
-    if (get(solverContent).whole.value.length !== 0) {
-        solving.set(true);
-    }
+    solving.set(get(solverContent).whole.value.length !== 0);
 }
 
 /**

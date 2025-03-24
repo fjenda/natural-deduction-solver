@@ -1,7 +1,6 @@
 % Rule format: rule(Name, PremiseCount, ApplyPredicate)
 rule('IC', 2, and_intro).
 rule('EC', 1, and_elim).
-%rule('ID', 1, or_intro).
 rule('ID', 2, or_intro).
 rule('ED', 2, or_elim).
 rule('II', 2, imp_intro).
@@ -25,8 +24,6 @@ and_elim([and(_, B)], B).
 
 % Disjunction
 or_intro([A, B], or(A, B)).
-%or_intro([B], or(_, B)).
-%or_intro([A], or(A, _)).
 or_elim([or(A, B), not(A)], B).
 or_elim([or(A, B), not(B)], A).
 
@@ -50,20 +47,12 @@ prove_handler(Premises, Conclusion, Rule) :-
     length(Premises, PremiseCount),
     call(Predicate, Premises, Conclusion).
 
-%has_conflict([A | Rest]) :- member(not(A), Rest), !.
-%has_conflict([not(A) | Rest]) :- member(A, Rest), !.
-%has_conflict([_ | Rest]) :- has_conflict(Rest).
 find_conflict([A | Rest], A, not(A)) :- member(not(A), Rest), !.
 find_conflict([not(A) | Rest], not(A), A) :- member(A, Rest), !.
 find_conflict([_ | Rest], X, Y) :- find_conflict(Rest, X, Y).
 
 has_conflict_with_rows(Proof, Conflict1, Conflict2) :-
     find_conflict(Proof, Conflict1, Conflict2).
-
-% conflict checker
-%conflict_handler(Proof, Conflict1, Conflict2, Result) :-
-%    has_conflict_with_rows(Proof, Conflict1, Conflict2),
-%    Result = true.
 
 conflict_handler(Proof, Conflict1, Conflict2, Result) :-
     (   has_conflict_with_rows(Proof, Conflict1, Conflict2)
