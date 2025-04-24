@@ -3,6 +3,7 @@ import { Solution } from "../lib/solver/Solution";
 import { indirectSolving, solverBackup, solverContent } from "./solverStore";
 import { editState, solving } from "./stateStore";
 import { EditState } from "../types/EditState";
+import { TheoremRegistry } from "../lib/rules/TheoremRegistry";
 
 /**
  * The theorems store.
@@ -13,6 +14,26 @@ export const theorems = function () {
 
     const reset = () => {
         set([]);
+    }
+
+    return {
+        set,
+        update,
+        subscribe,
+        reset,
+    }
+}();
+
+/**
+ * The TheoremRegistry store.
+ * This store is used to store the theorems that the user has saved in a graph-like structure.
+ * It's used to detect circular dependencies in the theorem proofs.
+ */
+export const theoremRegistry = function () {
+    const {set, update, subscribe} = writable<TheoremRegistry>(new TheoremRegistry());
+
+    const reset = () => {
+        set(new TheoremRegistry());
     }
 
     return {
@@ -42,6 +63,19 @@ export const addTheorem = (): void => {
  * Saves a theorem to the theorems store.
  */
 export const saveTheorem = (index: number): void => {
+    // check for circular dependencies
+    let isValid: boolean = true;
+    theoremRegistry.update(registry => {
+        isValid = registry.registerTheorem(get(solverContent));
+        return registry;
+    });
+
+    // if the theorem is not valid, show an error message
+    if (!isValid) {
+        alert("The theorem contains circular dependencies.");
+        return;
+    }
+
     // save the new theorem to the theorems store
     theorems.update((theorems: Solution[]) => {
         // if the solver content name is empty, set it to "Unnamed Theorem"
@@ -88,7 +122,7 @@ export const editTheorem = (index: number): void => {
     // indirect solving
     indirectSolving.set(get(solverContent).indirect);
 
-    console.log(get(solverContent).whole.value.length);
+    // console.log(get(solverContent).whole.value.length);
 
     // show the proof if conclusion isn't empty
     solving.set(get(solverContent).whole.value.length !== 0);

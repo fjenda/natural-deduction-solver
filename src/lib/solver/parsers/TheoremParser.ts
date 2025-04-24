@@ -4,6 +4,7 @@ import { NodeType } from "../../syntax-checker/NodeType";
 import { Operator } from "../../syntax-checker/Operator";
 import type { TheoremVariant } from "../../../types/TheoremVariant";
 import type { ParsedExpression } from "../../../types/ParsedExpression";
+import type {TreeRuleType} from "../../../types/TreeRuleType";
 
 /**
  * The TheoremParser class is used to parse a theorem and check if it is valid

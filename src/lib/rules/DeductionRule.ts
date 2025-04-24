@@ -204,6 +204,10 @@ export class DeductionRule implements IRule {
      * @param short - abbreviation of the rule
      */
     public static getRule(short: string): DeductionRule {
+        if (short === "PREM" || short === "CONC") {
+            return short === "PREM" ? DeductionRule.PREM : DeductionRule.CONC;
+        }
+
         return DeductionRule.rules.find((rule) => rule.short === short) || DeductionRule.UNKNOWN;
     }
 }
