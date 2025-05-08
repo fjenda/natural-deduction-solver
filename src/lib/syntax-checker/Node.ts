@@ -15,16 +15,28 @@ export class Node {
     value?: Operator | string;
     children: Array<Node>;
 
+    // /**
+    //  * Constructor for the Node class
+    //  * @param type - the type of the node
+    //  * @param value - the value of the node
+    //  * @constructor
+    //  */
+    // constructor(type: NodeType, value?: Operator | string) {
+    //     this.type = type;
+    //     this.value = value;
+    //     this.children = [];
+    // }
+
     /**
      * Constructor for the Node class
      * @param type - the type of the node
      * @param value - the value of the node
-     * @constructor
+     * @param children - the children of the node
      */
-    constructor(type: NodeType, value?: Operator | string) {
+    constructor(type: NodeType, value: Operator | string = "", children: Node[] = []) {
         this.type = type;
         this.value = value;
-        this.children = [];
+        this.children = children;
     }
 
     /**

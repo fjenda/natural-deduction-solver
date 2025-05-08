@@ -34,11 +34,4 @@ export class PrologQueryWrapper {
     once(): any {
         return this.query.once();
     }
-
-    /**
-     * Get the next result of the Prolog Query
-     */
-    next(): any {
-        return this.query.next();
-    }
 }
