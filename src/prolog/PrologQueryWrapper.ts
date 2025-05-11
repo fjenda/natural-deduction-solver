@@ -5,33 +5,34 @@ import type { Query } from "swipl-wasm";
  * @property {Query} query - the Prolog Query
  */
 export class PrologQueryWrapper {
-    private readonly query: Query;
+  private readonly query: Query;
 
-    /**
-     * Constructor for the PrologQueryWrapper
-     * @param query - the Prolog Query
-     * @constructor
-     */
-    constructor(query: Query) {
-        this.query = query;
+  /**
+   * Constructor for the PrologQueryWrapper
+   * @param query - the Prolog Query
+   * @constructor
+   */
+  constructor(query: Query) {
+    this.query = query;
+  }
+
+  /**
+   * Get all the results of the Prolog Query
+   */
+  all(): any[] {
+    const results = [];
+    // @ts-ignore
+    for (let r of this.query) {
+      results.push(r);
     }
 
-    /**
-     * Get all the results of the Prolog Query
-     */
-    all(): any[] {
-        const results = [];
-        for (let r of this.query) {
-            results.push(r);
-        }
+    return results;
+  }
 
-        return results;
-    }
-
-    /**
-     * Get the first result of the Prolog Query
-     */
-    once(): any {
-        return this.query.once();
-    }
+  /**
+   * Get the first result of the Prolog Query
+   */
+  once(): any {
+    return this.query.once();
+  }
 }
