@@ -253,4 +253,14 @@ test("Parse Token Brackets not closed", () => {
   expect(res).toBeNull();
 });
 
-test("Parse Led");
+test("Parse Led Unknown Operator", () => {
+  const parser = new PrattParser(ParseStrategy.PROPOSITIONAL);
+  const res = parser.parse("((A + B) ∧ (C ∧ D))");
+  expect(res).toBeNull();
+});
+
+test("Parse PL TermList no term after comma", () => {
+  const parser = new PrattParser(ParseStrategy.PREDICATE);
+  const res = parser.parse("f(x, , y)");
+  expect(res).toBeNull();
+});
