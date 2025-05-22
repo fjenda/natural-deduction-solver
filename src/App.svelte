@@ -279,38 +279,10 @@
             console.log("[DEBUG] Prolog module loaded.");
         });
     });
-    //
-    // async function test() {
-    //     // await PrologController.loadString(prologCode, 'ruleset');
-    //     const results = (await PrologController.query("prove_handler([and(imp('A', and('B', 'C')), or('B', eq('C', 'D')))], X, 'EC').")).all();
-    //
-    //     console.log(results);
-    //     if (results.length === 0) return;
-    //
-    //     results.forEach(r => {
-    //         console.log(PrologController.parsePrologCompound(r.X));
-    //     });
-    // }
-    // let result;
-    // let premises: string = "";
-    // let conclusion: string = "";
-    // let rule: string = "";
-    //
-    // async function test() {
-    //     const res = await handlePost('/prove', premises.split('\n'), conclusion, rule);
-    //     console.log(res);
-    // }
-
 </script>
 
 <main>
-<!--    <textarea bind:value={premises}></textarea>-->
-<!--    <input bind:value={conclusion} />-->
-<!--    <input bind:value={rule} />-->
-<!--    <button on:click={test}>Test</button>-->
-<!--    <pre>{result}</pre>-->
-
-  <button on:click={switchMode} class="action-button">Switch Mode</button>
+<!--  <button on:click={switchMode} class="action-button">Switch Mode</button>-->
 
   <Modal bind:show={showPickVariant} bind:buttons={theoremVariantButtons} header="Select the theorem variant" >
 

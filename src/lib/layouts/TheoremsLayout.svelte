@@ -8,7 +8,7 @@
 <style>
     .theorem-wrapper {
         width: 100%;
-        min-height: 3.5rem;
+        /*flex-grow: 1;*/
         max-height: 300px;
         padding: 0.5rem;
         overflow-y: auto;

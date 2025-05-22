@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1746972821952" clover="3.2.0">
-  <project timestamp="1746972821952" name="All files">
+<coverage generated="1746987838984" clover="3.2.0">
+  <project timestamp="1746987838984" name="All files">
     <metrics statements="792" coveredstatements="775" conditionals="271" coveredconditionals="250" methods="59" coveredmethods="58" elements="1122" coveredelements="1083" complexity="0" loc="792" ncloc="792" packages="5" files="13" classes="13"/>
     <package name="lib.rules">
       <metrics statements="152" coveredstatements="140" conditionals="7" coveredconditionals="6" methods="6" coveredmethods="5"/>
-      <file name="DeductionRule.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/rules/DeductionRule.ts">
+      <file name="DeductionRule.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\rules\DeductionRule.ts">
         <metrics statements="152" coveredstatements="140" conditionals="6" coveredconditionals="5" methods="5" coveredmethods="4"/>
         <line num="1" count="1" type="stmt"/>
         <line num="11" count="1" type="cond" truecount="1" falsecount="0"/>
@@ -159,13 +159,13 @@
         <line num="212" count="0" type="stmt"/>
         <line num="213" count="75" type="stmt"/>
       </file>
-      <file name="IRule.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/rules/IRule.ts">
+      <file name="IRule.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\rules\IRule.ts">
         <metrics statements="0" coveredstatements="0" conditionals="1" coveredconditionals="1" methods="1" coveredmethods="1"/>
       </file>
     </package>
     <package name="lib.solver">
       <metrics statements="80" coveredstatements="79" conditionals="15" coveredconditionals="13" methods="6" coveredmethods="6"/>
-      <file name="FormulaComparer.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/solver/FormulaComparer.ts">
+      <file name="FormulaComparer.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\solver\FormulaComparer.ts">
         <metrics statements="22" coveredstatements="21" conditionals="9" coveredconditionals="7" methods="1" coveredmethods="1"/>
         <line num="8" count="1" type="stmt"/>
         <line num="15" count="1" type="cond" truecount="1" falsecount="0"/>
@@ -190,7 +190,7 @@
         <line num="54" count="4" type="stmt"/>
         <line num="55" count="1" type="stmt"/>
       </file>
-      <file name="PrettySyntaxer.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/solver/PrettySyntaxer.ts">
+      <file name="PrettySyntaxer.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\solver\PrettySyntaxer.ts">
         <metrics statements="58" coveredstatements="58" conditionals="6" coveredconditionals="6" methods="5" coveredmethods="5"/>
         <line num="4" count="1" type="stmt"/>
         <line num="12" count="1" type="cond" truecount="1" falsecount="0"/>
@@ -254,7 +254,7 @@
     </package>
     <package name="lib.solver.parsers">
       <metrics statements="44" coveredstatements="44" conditionals="7" coveredconditionals="7" methods="2" coveredmethods="2"/>
-      <file name="PremiseParser.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/solver/parsers/PremiseParser.ts">
+      <file name="PremiseParser.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\solver\parsers\PremiseParser.ts">
         <metrics statements="20" coveredstatements="20" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
@@ -277,7 +277,7 @@
         <line num="46" count="3" type="stmt"/>
         <line num="47" count="1" type="stmt"/>
       </file>
-      <file name="TheoremParser.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/solver/parsers/TheoremParser.ts">
+      <file name="TheoremParser.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\solver\parsers\TheoremParser.ts">
         <metrics statements="24" coveredstatements="24" conditionals="3" coveredconditionals="3" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
@@ -307,7 +307,7 @@
     </package>
     <package name="lib.syntax-checker">
       <metrics statements="465" coveredstatements="461" conditionals="227" coveredconditionals="210" methods="36" coveredmethods="36"/>
-      <file name="Node.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/syntax-checker/Node.ts">
+      <file name="Node.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\syntax-checker\Node.ts">
         <metrics statements="190" coveredstatements="187" conditionals="120" coveredconditionals="106" methods="17" coveredmethods="17"/>
         <line num="1" count="1" type="stmt"/>
         <line num="13" count="1" type="cond" truecount="1" falsecount="0"/>
@@ -500,7 +500,7 @@
         <line num="368" count="5" type="stmt"/>
         <line num="369" count="636" type="stmt"/>
       </file>
-      <file name="NodeType.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/syntax-checker/NodeType.ts">
+      <file name="NodeType.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\syntax-checker\NodeType.ts">
         <metrics statements="14" coveredstatements="14" conditionals="1" coveredconditionals="1" methods="0" coveredmethods="0"/>
         <line num="5" count="1" type="cond" truecount="1" falsecount="0"/>
         <line num="6" count="1" type="stmt"/>
@@ -517,7 +517,7 @@
         <line num="17" count="1" type="stmt"/>
         <line num="18" count="1" type="stmt"/>
       </file>
-      <file name="Operator.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/syntax-checker/Operator.ts">
+      <file name="Operator.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\syntax-checker\Operator.ts">
         <metrics statements="53" coveredstatements="53" conditionals="19" coveredconditionals="19" methods="2" coveredmethods="2"/>
         <line num="5" count="1" type="cond" truecount="1" falsecount="0"/>
         <line num="6" count="1" type="stmt"/>
@@ -573,7 +573,7 @@
         <line num="64" count="13" type="stmt"/>
         <line num="65" count="13" type="stmt"/>
       </file>
-      <file name="PrattParser.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/syntax-checker/PrattParser.ts">
+      <file name="PrattParser.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\syntax-checker\PrattParser.ts">
         <metrics statements="178" coveredstatements="177" conditionals="74" coveredconditionals="71" methods="9" coveredmethods="9"/>
         <line num="1" count="1" type="stmt"/>
         <line num="31" count="1" type="stmt"/>
@@ -754,7 +754,7 @@
         <line num="373" count="40" type="stmt"/>
         <line num="374" count="25" type="stmt"/>
       </file>
-      <file name="TokenStream.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/lib/syntax-checker/TokenStream.ts">
+      <file name="TokenStream.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\lib\syntax-checker\TokenStream.ts">
         <metrics statements="30" coveredstatements="30" conditionals="13" coveredconditionals="13" methods="8" coveredmethods="8"/>
         <line num="6" count="1" type="cond" truecount="1" falsecount="0"/>
         <line num="7" count="25" type="stmt"/>
@@ -790,7 +790,7 @@
     </package>
     <package name="prolog">
       <metrics statements="51" coveredstatements="51" conditionals="15" coveredconditionals="14" methods="9" coveredmethods="9"/>
-      <file name="PrologController.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/prolog/PrologController.ts">
+      <file name="PrologController.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\prolog\PrologController.ts">
         <metrics statements="35" coveredstatements="35" conditionals="10" coveredconditionals="9" methods="5" coveredmethods="5"/>
         <line num="1" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
@@ -828,7 +828,7 @@
         <line num="71" count="26" type="stmt"/>
         <line num="72" count="1" type="stmt"/>
       </file>
-      <file name="PrologQueryWrapper.ts" path="/Users/honza/Documents/Programming/natural-deduction-solver/src/prolog/PrologQueryWrapper.ts">
+      <file name="PrologQueryWrapper.ts" path="C:\Users\Honza\WebstormProjects\natural-deduction-solver\src\prolog\PrologQueryWrapper.ts">
         <metrics statements="16" coveredstatements="16" conditionals="5" coveredconditionals="5" methods="4" coveredmethods="4"/>
         <line num="7" count="1" type="cond" truecount="1" falsecount="0"/>
         <line num="8" count="11" type="stmt"/>
