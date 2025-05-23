@@ -49,10 +49,11 @@ export function onChangeTheorem(value: string) {
  * Queries Prolog to handle calculation of the result of the rule application
  * @param premises - the premises used from the proof
  * @param rule - the rule used
+ * @param params - the parameters used
  */
-async function queryProlog(premises: string[], rule: IRule): Promise<string[]> {
+async function queryProlog(premises: string[], rule: IRule, params: string[]): Promise<string[]> {
     // construct query
-    const query = `prove_handler([${premises.join(',')}], X, '${rule.short}').`;
+    const query = `prove_handler([${premises.join(',')}], X, '${rule.short}', [${params.join(',')}]).`;
 
     // query prolog
     const results = (await PrologController.query(query)).all() as ProveResult[];
@@ -66,10 +67,12 @@ async function queryProlog(premises: string[], rule: IRule): Promise<string[]> {
  * @param premises - the premises used from the proof
  * @param rule - the rule used
  * @param selected - the selected row
+ * @param params - the parameters used
  */
-export async function proveProlog(premises: string[], rule: IRule, selected: number[]) {
+export async function proveProlog(premises: string[], rule: IRule, selected: number[], params: string[]) {
+
     // get results
-    const resultsPFL: string[] = await queryProlog(premises, rule);
+    const resultsPFL: string[] = await queryProlog(premises, rule, params);
 
     // no results
     if (resultsPFL.length === 0) return;
@@ -86,7 +89,7 @@ export async function proveProlog(premises: string[], rule: IRule, selected: num
  */
 export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
     // get results
-    const resultsPFL: string[] = await queryProlog(premises, rule);
+    const resultsPFL: string[] = await queryProlog(premises, rule, []);
 
     // no results
     if (resultsPFL.length === 0) return false;
@@ -132,7 +135,12 @@ export async function usable(rule: IRule, row: number): Promise<{ highlighted: n
     const indices: number[] = [];
 
     if (rule.inputSize === 1) {
-        const success = (await queryProlog([selected], rule)).length > 0;
+        const params = ["EEX", "EU"].includes(rule.short) ? ["a"]
+            : ["IEX", "IU"].includes(rule.short) ? ["var(x)"] : [];
+
+        const premises = ["IEX", "IU"].includes(rule.short) ? ["a", selected] : [selected];
+
+        const success = (await queryProlog(premises, rule, params)).length > 0;
         if (success) indices.push(row);
         return { applicable: !!indices.length, highlighted: indices };
     }
@@ -142,7 +150,7 @@ export async function usable(rule: IRule, row: number): Promise<{ highlighted: n
         if (i === row - 1) continue;
 
         const other: string = r.tree?.toPrologFormat() ?? "";
-        const results = await queryProlog([selected, other], rule);
+        const results = await queryProlog([selected, other], rule, []);
         if (results.length === 0) continue;
 
         indices.push(r.line);

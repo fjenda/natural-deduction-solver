@@ -4,6 +4,7 @@ import type { Compound } from "../types/prolog/Compound";
 
 import ruleset from "./ruleset.pl?raw";
 import substitute from "./substitute.pl?raw";
+import test_rules from "./test_rules.pl?raw";
 
 /**
  * PrologController is a singleton class that manages the SWIPL instance
@@ -23,7 +24,8 @@ export class PrologController {
         arguments: ["-q", "-O"],
       });
 
-      await PrologController.loadString(ruleset, "rules");
+      // await PrologController.loadString(ruleset, "rules");
+      await PrologController.loadString(test_rules, "test_rules");
       await PrologController.loadString(substitute, "substitute");
     }
 

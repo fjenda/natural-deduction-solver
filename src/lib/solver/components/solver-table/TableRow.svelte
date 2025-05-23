@@ -1,8 +1,9 @@
 <script lang="ts">
     import { PrettySyntaxer } from "../../PrettySyntaxer";
-    import { highlightedRows, selectedRows } from "../../../../stores/solverStore";
+    import { highlightedRows, logicMode, selectedRows } from "../../../../stores/solverStore";
     import {type AppliedRule, appliedRuleToString} from "../../../../types/AppliedRule";
     import { NDRule } from "../../../rules/DeductionRule";
+    import { ParseStrategy } from "../../../../types/ParseStrategy";
 
     export let line: number;
     export let formula: string;
@@ -44,11 +45,10 @@
         });
     }
 
-    // Predicate Logic
-    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+    $: operators = $logicMode === ParseStrategy.PROPOSITIONAL
+        ? ['¬', '∧', '∨', '⊃', '≡']
+        : ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
 
-    // Propositional Logic
-    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
 
     function insertOperator(operator: string) {
         // insert the operator at the current cursor position

@@ -47,20 +47,21 @@
     import { TheoremParser } from "./lib/solver/parsers/TheoremParser";
     import { Node } from "./lib/syntax-checker/Node";
     import { PrologController } from "./prolog/PrologController";
-    // import prologCode from "./prolog/ruleset.pl?raw";
-
-    // $solverContent.premises = ["∀x [L(x) ⊃ ¬S(x)]", "∃y [L(y) ∧ P(y)]"];
-    // $solverContent.conclusion = "∃z [¬S(z) ∧ P(z)]";
-    // $solverContent.proof = "∀x [L(x) ⊃ ¬S(x)]\n∃y [L(y) ∧ P(y)]";
 
     // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
 
+    // $solverContent.premises = [
+    //     { value: "A ∧ B", tree: null },
+    //     { value: "B ⊃ C", tree: null }
+    // ];
+    // $solverContent.conclusion = { value: "C", tree: null };
+
     $solverContent.premises = [
-        { value: "A ∧ B", tree: null },
-        { value: "B ⊃ C", tree: null }
+        { value: "∀x [L(x) ⊃ ¬S(x)]", tree: null },
+        { value: "∃x [L(x) ∧ P(x)]", tree: null }
     ];
-    $solverContent.conclusion = { value: "C", tree: null };
+    $solverContent.conclusion = { value: "∃x [¬S(x) ∧ P(x)]", tree: null };
 
     // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
     // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
@@ -109,7 +110,13 @@
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
         if (selected.length === rule.inputSize) {
-            await proveProlog(premises, rule, selected);
+            const params = [NDRule.EEX, NDRule.EALL].includes(rule.short) ? ["a"]
+                         : [NDRule.IEX, NDRule.IALL].includes(rule.short) ? ["var(x)"] : [];
+
+            // put "a" at the start of premises
+            const pr: string[] = [NDRule.IEX, NDRule.IALL].includes(rule.short) ? ["a"] : [];
+            premises.unshift(...pr);
+            await proveProlog(premises, rule, selected, params);
             selectedRows.update(() => []);
             return;
         }
@@ -129,7 +136,7 @@
                     }
 
                     premises.push(formula.tree.toPrologFormat());
-                    proveProlog(premises, rule, selected);
+                    proveProlog(premises, rule, selected, []);
                     closeModal();
                 }
             );
@@ -154,7 +161,7 @@
                 selected.push(other);
                 premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? "");
                 // queryProlog(rule, premises, selected);
-                proveProlog(premises, rule, selected);
+                proveProlog(premises, rule, selected, []);
                 closeModal();
             }
         );
@@ -282,7 +289,7 @@
 </script>
 
 <main>
-<!--  <button on:click={switchMode} class="action-button">Switch Mode</button>-->
+  <button on:click={switchMode} class="action-button">Switch Mode</button>
 
   <Modal bind:show={showPickVariant} bind:buttons={theoremVariantButtons} header="Select the theorem variant" >
 
@@ -394,7 +401,7 @@
         </SolverLayout>
     </Panel>
 
-    <Panel>
+    <Panel variant="small">
         <h2>Deduction Rules</h2>
         <RuleGridLayout>
             {#each $deductionRules as rule}

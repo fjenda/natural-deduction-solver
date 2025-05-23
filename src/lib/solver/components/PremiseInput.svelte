@@ -1,6 +1,8 @@
 <script lang="ts">
-    import {PrettySyntaxer} from "../PrettySyntaxer";
+    import { PrettySyntaxer } from "../PrettySyntaxer";
     import MathMLViewer from "./MathMLViewer.svelte";
+    import { logicMode } from "../../../stores/solverStore";
+    import { ParseStrategy } from "../../../types/ParseStrategy";
 
     export let placeholder: string;
     export let value: string | null = "";
@@ -17,11 +19,9 @@
         "Functions - [a-z](par1, par2)\n" +
         "Predicates - [A-Z]()\n";
 
-    // Predicate Logic
-    // let operators: string[] = ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
-
-    // Propositional Logic
-    let operators: string[] = ['¬', '∧', '∨', '⊃', '≡'];
+    $: operators = $logicMode === ParseStrategy.PROPOSITIONAL
+        ? ['¬', '∧', '∨', '⊃', '≡']
+        : ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
 
     function insertOperator(operator: string) {
         // insert the operator at the current cursor position

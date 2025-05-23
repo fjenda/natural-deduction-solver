@@ -1,8 +1,8 @@
-import {Operator, operatorFromProlog, operatorToProlog} from "./Operator";
-import {NodeType} from "./NodeType";
-import {get} from "svelte/store";
-import {logicMode} from "../../stores/solverStore";
-import {ParseStrategy} from "../../types/ParseStrategy";
+import { Operator, operatorFromProlog, operatorToProlog } from "./Operator";
+import { NodeType } from "./NodeType";
+import { get } from "svelte/store";
+import { logicMode } from "../../stores/solverStore";
+import { ParseStrategy } from "../../types/ParseStrategy";
 
 /**
  * Node class that represents a node in the abstract syntax tree
@@ -136,6 +136,9 @@ export class Node {
             case NodeType.PARENTHESES_BLOCK:
                 return `(${childrenStrings[1]})`;
 
+            case NodeType.BRACKETS_BLOCK:
+                return `[${childrenStrings[1]}]`;
+
             case NodeType.PREDICATE:
                 return `${node.value}(${childrenStrings.join(", ")})`;
 
@@ -146,7 +149,7 @@ export class Node {
                 return `${node.value}(${childrenStrings.join(", ")})`;
 
             case NodeType.QUANTIFIER:
-                console.log(node);
+                // console.log(node);
                 return `${childrenStrings[0]}${childrenStrings[1]} ${childrenStrings[2]}`;
 
             default:
@@ -172,6 +175,7 @@ export class Node {
         // - variable, constant, negation block, parentheses block
         if (this.children.length === 0
             || this.type === NodeType.PARENTHESES_BLOCK
+            || this.type === NodeType.BRACKETS_BLOCK
             || this.type === NodeType.NEGATION
             || this.type === NodeType.TERM_LIST
             || this.type === NodeType.PREDICATE
@@ -197,6 +201,11 @@ export class Node {
         if (this.type === NodeType.PARENTHESES_BLOCK && this.children.length === 3) {
             return this.children[1].simplify();
         }
+
+        // // if the node is a BracketsBlock, replace it with its middle child
+        // if (this.type === NodeType.BRACKETS_BLOCK && this.children.length === 3) {
+        //     return this.children[1].simplify();
+        // }
 
         // otherwise, simplify the children recursively
         this.children = this.children.map(child => child.simplify());
@@ -244,8 +253,12 @@ export class Node {
             return this.children[1].toPrologFormat();
         }
 
+        if (this.type === NodeType.BRACKETS_BLOCK) {
+            return this.children[1].toPrologFormat();
+        }
+
         if (this.type === NodeType.PREDICATE) {
-            return `${this.value}(${this.children.map(child => child.toPrologFormat()).join(", ")})`;
+            return `predicate(${this.value?.toLowerCase()}(${this.children.map(child => child.toPrologFormat()).join(", ")}))`;
         }
 
         if (this.type === NodeType.BINARY_OPERATION && this.value) {
@@ -254,6 +267,22 @@ export class Node {
 
         if (this.type === NodeType.NEGATION) {
             return `${operatorToProlog(this.value as Operator)}(${this.children[0].toPrologFormat()})`;
+        }
+
+        if (this.type === NodeType.TERM_LIST) {
+            return this.children.map(child => child.toPrologFormat()).join(", ");
+        }
+
+        if (this.type === NodeType.QUANTIFIER) {
+            const quantifier = this.children[0].value === Operator.UNIVERSAL ? "forall" : "exists";
+            const variable = this.children[1].toPrologFormat();
+            const rest = this.children[2].toPrologFormat();
+
+            return `${quantifier}(${variable}, ${rest})`;
+        }
+
+        if (this.type === NodeType.VARIABLE) {
+            return `var(${this.value})`;
         }
 
         if (!this.value) return "";
@@ -297,11 +326,37 @@ export class Node {
 
         const children = Node.parseArgs(args).map(Node.fromPrologFormat);
 
+        if (op === "var") {
+            return new Node(NodeType.VARIABLE, children[0].value);
+        }
+
         if (op === "not") {
             const node = new Node(NodeType.NEGATION, operatorFromProlog(op));
             node.setChildren(children);
             return node;
         }
+
+        if (op === "predicate") {
+            const node = new Node(NodeType.PREDICATE, children[0].value?.toUpperCase());
+            node.setChildren(children[0].children);
+            node.simplify().parenthesize();
+            return node;
+        }
+
+        if (op === "exists") {
+            const node = new Node(NodeType.QUANTIFIER);
+            node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, Operator.EXISTENTIAL));
+            node.children.push(children[0]);
+            const br = new Node(NodeType.BRACKETS_BLOCK, "", [
+                new Node(NodeType.BRACKET, Operator.LBRACKET),
+                children[1],
+                new Node(NodeType.BRACKET, Operator.RBRACKET)
+            ]);
+            node.children.push(br);
+            return node;
+        }
+
+        // TODO: forall, function
 
         const node = new Node(NodeType.BINARY_OPERATION, operatorFromProlog(op));
         node.setChildren(children);

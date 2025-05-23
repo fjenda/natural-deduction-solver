@@ -79,6 +79,14 @@
         outline: 1px solid var(--light-border-color);
     }
 
+    .theorem-slot:hover {
+        cursor: pointer;
+    }
+
+    .theorem-slot.invalid:hover {
+        cursor: not-allowed;
+    }
+
     .theorem-slot.invalid {
         outline-color: #ff0000;
     }

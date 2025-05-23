@@ -1,4 +1,8 @@
-<div class="wrapper">
+<script lang="ts">
+    export let variant: "fullwidth" | "small" = "fullwidth";
+</script>
+
+<div class="wrapper {variant}">
     <div class="content">
         <slot />
     </div>
@@ -33,5 +37,20 @@
         border-radius: 0.5rem;
         padding: 1.5rem;
         text-align: center;
+    }
+
+    .fullwidth {
+        width: 100%;
+    }
+
+    .small {
+        max-width: 600px;
+    }
+
+    @media screen and (max-width: 950px) {
+        .small {
+            /*width: 100%;*/
+            max-width: none;
+        }
     }
 </style>

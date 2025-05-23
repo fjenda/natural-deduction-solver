@@ -20,10 +20,10 @@ export enum NDRule {
     EEQ = 'EE', // Elimination of Equivalence
 
     // Predicate Logic
-    IALL = 'I∀', // Introduction of General Quantifier
-    EALL = 'E∀', // Elimination of General Quantifier
-    IEX = 'I∃', // Introduction of Existential Quantifier
-    EEX = 'E∃', // Elimination of Existential Quantifier
+    IALL = 'IU', // Introduction of Universal Quantifier
+    EALL = 'EU', // Elimination of Universal Quantifier
+    IEX = 'IEX', // Introduction of Existential Quantifier
+    EEX = 'EEX', // Elimination of Existential Quantifier
 
     UNKNOWN = 'x',
     PREM = 'PREM',
@@ -139,7 +139,7 @@ export class DeductionRule implements IRule {
 
     static IALL = new DeductionRule(
         NDRule.IALL,
-        'Introduction of General Quantifier',
+        'Introduction of Universal Quantifier',
         1,
         1,
         PrettySyntaxer.toMathML("A(x) ⊢ ∀xA(x)"),
@@ -147,7 +147,7 @@ export class DeductionRule implements IRule {
 
     static EALL = new DeductionRule(
         NDRule.EALL,
-        'Elimination of General Quantifier',
+        'Elimination of Universal Quantifier',
         1,
         1,
         PrettySyntaxer.toMathML("∀xA(x) ⊢ A(x/t)"),
