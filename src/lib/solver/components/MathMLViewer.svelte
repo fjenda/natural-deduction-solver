@@ -2,14 +2,11 @@
     import { PrettySyntaxer } from "../PrettySyntaxer";
 
     export let value: string | null = "";
-    export let fontSize: string = "1.35rem";
-    export let padding: string = "1rem 0.5rem";
-    export let justifyContent: string = "center";
 
     $: mathml = PrettySyntaxer.toMathML(value ?? "");
 </script>
 
-<div class="mathml-viewer" style="font-size: {fontSize}; padding: {padding}; justify-content: {justifyContent}">
+<div class="mathml-viewer">
     {@html mathml}
 </div>
 
@@ -18,5 +15,14 @@
         display: flex;
         align-items: center;
         height: 100%;
+        padding: 1rem 0.5rem;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    @media screen and (max-width: 950px) {
+        .mathml-viewer {
+            padding: 0.5rem;
+        }
     }
 </style>

@@ -94,6 +94,7 @@
     on:click={selectRow}
     role="button"
 >
+    <div class="formula-container">
     <div class="line-number">
         {line}.
     </div>
@@ -127,9 +128,11 @@
             {rule.rule} {rule.lines ? `${rule.lines.join(",")}` : ""}
         {/if}
     </div>
+    </div>
 
     <div class="separator">&nbsp;</div>
 
+    <div class="actions-container">
     {#if editable}
         <button
             class="action-button check-button"
@@ -158,6 +161,7 @@
             <i class="fas fa-times"></i>
         </button>
     {/if}
+    </div>
 </a>
 
 <style>
@@ -195,6 +199,19 @@
     .row.invalid {
         outline: 1px solid #ff0000;
         border-color: #ff0000;
+    }
+
+    .formula-container {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+    }
+
+    .actions-container {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-grow: 0;
     }
 
     .used-rule,
@@ -354,6 +371,33 @@
         .operator-input {
             background-color: var(--light-bg-color);
             border: 1px solid var(--light-border-color);
+        }
+    }
+
+    @media screen and (max-width: 1150px) {
+        .used-rule,
+        .line-number,
+        .line-content {
+            font-size: 0.8em;
+        }
+    }
+
+    @media screen and (max-width: 950px) {
+        .row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .separator {
+            width: 100%;
+            height: 1px;
+            border-right: none;
+            border-bottom: 1px solid var(--dark-border-color);
+        }
+
+        .actions-container {
+            justify-content: flex-end;
+            width: 100%;
         }
     }
 </style>

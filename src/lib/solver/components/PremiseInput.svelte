@@ -187,4 +187,16 @@
             border: 1px solid var(--light-border-color);
         }
     }
+
+    @media screen and (max-width: 950px) {
+        .operator-input {
+            padding: 0.15rem;
+        }
+
+        .operator-input button {
+            padding: 0.35em 0.62em;
+            font-size: 1.15em;
+            border-radius: 0.35rem;
+        }
+    }
 </style>

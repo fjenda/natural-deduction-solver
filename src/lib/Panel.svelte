@@ -52,5 +52,10 @@
             /*width: 100%;*/
             max-width: none;
         }
+
+        .content {
+            padding: 0.5rem;
+            gap: 0.5rem;
+        }
     }
 </style>

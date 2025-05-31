@@ -356,7 +356,7 @@
                     />
                 {/if}
             {:else}
-                <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="assignment-container">
                     Find a proof for the following {$editState === EditState.SOLVER ? 'conclusion' : 'theorem'}:
 
                     {#if $editState === EditState.SOLVER}
@@ -486,6 +486,25 @@
     .action-button.reset:hover {
         color: #ff0000;
         border: 1px solid #ff0000;
+    }
+
+    .assignment-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    @media screen and (max-width: 950px) {
+        .assignment-container {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-button {
+            font-size: 0.9rem;
+            height: auto;
+        }
     }
 
     @media (prefers-color-scheme: light) {

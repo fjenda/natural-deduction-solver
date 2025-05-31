@@ -106,7 +106,7 @@ export class PrettySyntaxer {
                                     .replace(/⊢/g, '<mo>⊢</mo>')
                                     .replace(/∀/g, '<mo>∀</mo>')
                                     .replace(/∃/g, '<mo>∃</mo>')
-                                    .replace(/\s/g, '')
+                                    .replace(/\s/g, '<mi>&nbsp</mi>')
                                     .replace(/\(/g, '<mo stretchy="false">(</mo>')
                                     .replace(/\)/g, '<mo stretchy="false">)</mo>')
                                     .replace(/\b([A-Za-z])\b/g, '<mi>$1</mi>')}

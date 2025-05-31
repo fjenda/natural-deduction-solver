@@ -24,7 +24,7 @@
     /*}*/
 
     .grid-layout {
-        padding: 2rem;
+        padding: 1rem;
         display: flex;
         width: 100%;
         max-width: 1920px;
@@ -37,6 +37,7 @@
         .grid-layout {
             flex-direction: column;
             height: auto;
+            padding: 0.5rem;
         }
     }
 </style>
