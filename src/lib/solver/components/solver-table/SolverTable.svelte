@@ -6,6 +6,7 @@
     import { FormulaComparer } from "../../FormulaComparer";
     import type { TableRowData } from "../../../../types/TableRow";
     import type { TreeRuleType } from "../../../../types/TreeRuleType";
+    import { showToast } from "../../../utils/showToast";
 
     let container: HTMLDivElement;
 
@@ -74,7 +75,7 @@
                         .some(p => FormulaComparer.compare(p, res));
 
                     if (formulaExists) {
-                        alert("Formula already exists in the proof.");
+                        showToast("Formula already exists in the proof.", "error");
                         return;
                     }
 

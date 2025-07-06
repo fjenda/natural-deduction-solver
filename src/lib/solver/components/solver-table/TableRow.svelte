@@ -4,6 +4,7 @@
     import {type AppliedRule, appliedRuleToString} from "../../../../types/AppliedRule";
     import { NDRule } from "../../../rules/DeductionRule";
     import { ParseStrategy } from "../../../../types/ParseStrategy";
+    import { showToast } from "../../../utils/showToast";
 
     export let line: number;
     export let formula: string;
@@ -26,8 +27,7 @@
 
         // if the row is invalid, do not highlight
         if (invalid) {
-            alert("Cannot highlight invalid row.\n" +
-                  "Make sure the formula and rule are valid.");
+            showToast("Cannot highlight invalid row.\n Make sure the formula and rule are valid.", "error");
             return;
         }
 

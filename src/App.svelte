@@ -47,6 +47,8 @@
     import { TheoremParser } from "./lib/solver/parsers/TheoremParser";
     import { Node } from "./lib/syntax-checker/Node";
     import { PrologController } from "./prolog/PrologController";
+    import { BootstrapToast, FlatToast, ToastContainer } from "svelte-toasts";
+    import { showToast } from "./lib/utils/showToast";
 
     // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
@@ -98,12 +100,12 @@
 
         // make the user select at least one row
         if (selected.length === 0) {
-            return alert("Select at least one row");
+            return showToast("Select at least one row", "warning");
         }
 
         // if the user selected more rows than needed for the rule
         if (selected.length > rule.inputSize) {
-            return alert("Too many rows selected");
+            return showToast("Too many rows selected", "warning");
         }
 
         // get the premises
@@ -131,7 +133,7 @@
                     const formula = PremiseParser.parsePremise(modalInput.value);
                     console.log(formula);
                     if (!formula.tree) {
-                        alert("Invalid formula");
+                        showToast("Invalid formula", "error");
                         return;
                     }
 
@@ -151,11 +153,11 @@
             () => {
                 const other = parseInt(modalInput.value);
                 if (isNaN(other) || other < 1 || other > proof.length) {
-                    return alert("Invalid row number");
+                    return showToast("Invalid row number", "error");
                 }
 
                 if (selected.includes(other)) {
-                    return alert("Cannot select the same row");
+                    return showToast("Row already selected", "warning");
                 }
 
                 selected.push(other);
@@ -194,11 +196,11 @@
     function startSolver() {
         // if the conclusion is invalid, return
         if ($editState === EditState.SOLVER && !$solverContent.conclusion.tree) {
-            return alert("Invalid conclusion");
+            return showToast("Invalid conclusion", "error");
         }
 
         if ($editState === EditState.THEOREM && !$solverContent.whole.tree) {
-            return alert("Invalid theorem");
+            return showToast("Invalid theorem", "error");
         }
 
         const setup = (isIndirect: boolean) => {
@@ -249,7 +251,7 @@
             const formulas = get(theoremData).varInputs.map(v => {
                 const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
                 if (!formula.tree) {
-                    alert("Invalid formula");
+                    showToast("Invalid formula", "error");
                     return "";
                 }
 
@@ -290,6 +292,10 @@
 
 <main>
   <button on:click={switchMode} class="action-button">Switch Mode</button>
+
+  <ToastContainer placement="top-right" let:data={data}>
+      <FlatToast {data} />
+  </ToastContainer>
 
   <Modal bind:show={showPickVariant} bind:buttons={theoremVariantButtons} header="Select the theorem variant" >
 
