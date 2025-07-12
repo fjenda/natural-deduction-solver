@@ -54,6 +54,8 @@
     import PickTheoremVariantModal from "./lib/modals/PickTheoremVariantModal.svelte";
     import InputModal from "./lib/modals/InputModal.svelte";
     import FillVariablesModal from "./lib/modals/FillVariablesModal.svelte";
+    import ReplaceQuantifierVariableModal from "./lib/modals/ReplaceQuantifierVariableModal.svelte";
+    import { NodeType } from "./lib/syntax-checker/NodeType";
 
     // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
@@ -89,13 +91,44 @@
         const premises: string[] = selected.map(index => proof[index - 1]?.tree?.toPrologFormat() ?? "");
 
         if (selected.length === rule.inputSize) {
-            const params = [NDRule.EEX, NDRule.EALL].includes(rule.short) ? ["a"]
-                         : [NDRule.IEX, NDRule.IALL].includes(rule.short) ? ["var(x)"] : [];
+            if ([NDRule.EEX, NDRule.EALL].includes(rule.short)) {
+                await modals.open(ReplaceQuantifierVariableModal, {
+                    title: "Replace Variable in Quantifier",
+                    row: proof[selected[0] - 1],
+                    placeholder: proof[selected[0] - 1].tree?.children[1].value,
+                    onConfirm: (modalInput: HTMLInputElement) => {
+                        const formula = validateFormulaInput(modalInput);
+                        if (!formula) return;
 
-            // put "a" at the start of premises
-            const pr: string[] = [NDRule.IEX, NDRule.IALL].includes(rule.short) ? ["a"] : [];
-            premises.unshift(...pr);
-            await proveProlog(premises, rule, selected, params);
+                        if (formula.tree!.type !== NodeType.CONSTANT) {
+                            return showToast("Invalid formula", "error");
+                        }
+
+                        proveProlog(premises, rule, selected, [formula.tree!.toPrologFormat()]);
+                    },
+                });
+            } else if ([NDRule.IEX, NDRule.IALL].includes(rule.short)) {
+
+                // TODO: Check how this will be done for different formulas.
+                //  e.g. for "L(a()) ∧ P(b())", what will we replace?
+                //  For now its hardcoded.
+
+                // modals.open(ReplaceQuantifierVariableModal, {
+                //     title: "Introduce Variable for Quantifier",
+                //     row: proof[selected[0] - 1],
+                //     placeholder: proof[selected[0] - 1].tree?.children[1].value,
+                //     onConfirm: (modalInput: HTMLInputElement) => {
+                //         const formula = validateFormulaInput(modalInput);
+                //         if (!formula) return;
+                //
+                //     },
+                // });
+                premises.unshift("a");
+                await proveProlog(premises, rule, selected, ["var(x)"]);
+            } else {
+                await proveProlog(premises, rule, selected, []);
+            }
+
             selectedRows.update(() => []);
             return;
         }
@@ -106,15 +139,9 @@
                 body: "Write the formula to insert into the disjunction",
                 placeholder: "Enter the formula",
                 onConfirm: (modalInput: HTMLInputElement) => {
-                    modalInput.value = PrettySyntaxer.clean(modalInput.value);
-                    const formula = PremiseParser.parsePremise(modalInput.value);
-                    console.log(formula);
-                    if (!formula.tree) {
-                        showToast("Invalid formula", "error");
-                        return;
-                    }
-
-                    premises.push(formula.tree.toPrologFormat());
+                    const formula = validateFormulaInput(modalInput);
+                    if (!formula) return;
+                    premises.push(formula.tree!.toPrologFormat());
                     proveProlog(premises, rule, selected, []);
                 }
             });
@@ -142,6 +169,18 @@
                 proveProlog(premises, rule, selected, []);
             }
         });
+    }
+
+    function validateFormulaInput(modalInput: HTMLInputElement) {
+        modalInput.value = PrettySyntaxer.clean(modalInput.value);
+        const formula = PremiseParser.parsePremise(modalInput.value);
+        // console.log(formula);
+        if (!formula.tree) {
+            showToast("Invalid formula", "error");
+            return null;
+        }
+
+        return formula;
     }
 
     let theoremVariants: TheoremVariant[] = [];
