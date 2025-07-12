@@ -1,0 +1,3 @@
+- [ ] Monitor free variables in the current scope
+- [ ] Select a variable to replace with a new value
+- [ ] Make sure we replace the constant in the current scope for the variable that was used to create the constant

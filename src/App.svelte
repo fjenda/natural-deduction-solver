@@ -42,13 +42,18 @@
     } from "./lib/solver/solverLogic";
     import MathMLViewer from "./lib/solver/components/MathMLViewer.svelte";
     import { PrettySyntaxer } from "./lib/solver/PrettySyntaxer";
-    import { lastHovered } from "./stores/modalStore";
+    import { lastHovered } from "./stores/lastHoveredStore";
     import type { TheoremVariant } from "./types/TheoremVariant";
     import { TheoremParser } from "./lib/solver/parsers/TheoremParser";
     import { Node } from "./lib/syntax-checker/Node";
     import { PrologController } from "./prolog/PrologController";
-    import { BootstrapToast, FlatToast, ToastContainer } from "svelte-toasts";
+    import { FlatToast, ToastContainer } from "svelte-toasts";
     import { showToast } from "./lib/utils/showToast";
+    import { modals, Modals } from "svelte-modals";
+    import SelectProofTypeModal from "./lib/modals/SelectProofTypeModal.svelte";
+    import PickTheoremVariantModal from "./lib/modals/PickTheoremVariantModal.svelte";
+    import InputModal from "./lib/modals/InputModal.svelte";
+    import FillVariablesModal from "./lib/modals/FillVariablesModal.svelte";
 
     // $solverContent.premises = ["L(a) ⊃ ¬S(a)", "L(a) ∧ P(a)"];
     // $solverContent.conclusion = "P(a) ∧ ¬S(a)";
@@ -64,34 +69,6 @@
         { value: "∃x [L(x) ∧ P(x)]", tree: null }
     ];
     $solverContent.conclusion = { value: "∃x [¬S(x) ∧ P(x)]", tree: null };
-
-    // $solverContent.premises = ["∀x [(P(x,a) ∧ P(x,b)) ⊃ Q(x,b)]", "∃x [¬Q(x,b) ∧ P(x,b)]"];
-    // $solverContent.premises = ["P(x,a)", "Q(x,b)"];
-    // $solverContent.conclusion = "∃x [P(x,a) ⊃ Q(x,b)]";
-
-    let modalInput: HTMLInputElement;
-    let showModal = false;
-    let modalHeader = "Select row";
-    let modalContent = "Select the second row with which to execute the rule";
-    let modalButtons: ButtonContent[] = [
-        {
-            text: "Confirm",
-            action: () => {
-                showModal = false;
-            }
-        },
-        {
-            text: "Cancel",
-            action: () => {
-                showModal = false;
-            }
-        }
-    ];
-
-    function setModalButton(index: number, text: string, action: () => void) {
-        modalButtons[index].text = text;
-        modalButtons[index].action = action;
-    }
 
     async function onRuleClick(rule: DeductionRule): Promise<void> {
         // get selected rows
@@ -124,11 +101,11 @@
         }
 
         if (rule.short === NDRule.IDIS) {
-            showModalWithInput(
-                "Insert formula",
-                "Write the formula to insert into the disjunction",
-                "Enter the formula",
-                () => {
+            await modals.open(InputModal, {
+                title: "Insert Formula",
+                body: "Write the formula to insert into the disjunction",
+                placeholder: "Enter the formula",
+                onConfirm: (modalInput: HTMLInputElement) => {
                     modalInput.value = PrettySyntaxer.clean(modalInput.value);
                     const formula = PremiseParser.parsePremise(modalInput.value);
                     console.log(formula);
@@ -139,18 +116,17 @@
 
                     premises.push(formula.tree.toPrologFormat());
                     proveProlog(premises, rule, selected, []);
-                    closeModal();
                 }
-            );
+            });
             return;
         }
 
         // if the user selected fewer rows than needed for the rule
-        showModalWithInput(
-            "Select row",
-            "Select the second row with which to execute the rule",
-            "Enter row number",
-            () => {
+        await modals.open(InputModal, {
+            title: "Select row",
+            body: "Select the second row with which to execute the rule",
+            placeholder: "Enter the row number",
+            onConfirm: (modalInput: HTMLInputElement) => {
                 const other = parseInt(modalInput.value);
                 if (isNaN(other) || other < 1 || other > proof.length) {
                     return showToast("Invalid row number", "error");
@@ -164,35 +140,12 @@
                 premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? "");
                 // queryProlog(rule, premises, selected);
                 proveProlog(premises, rule, selected, []);
-                closeModal();
             }
-        );
+        });
     }
 
-    // Utility function to show a modal with an input field
-    function showModalWithInput(header: string, content: string, placeholder: string, onConfirm: () => void) {
-        modalHeader = header;
-        modalContent = content;
-        modalInput.placeholder = placeholder;
-
-        setModalButton(0, "Confirm", onConfirm);
-        setModalButton(1, "Cancel", closeModal);
-
-        showModal = true;
-        setTimeout(() => modalInput.focus(), 50);
-    }
-
-    // Closes the modal and resets the input
-    function closeModal() {
-        modalInput.value = "";
-        showModal = false;
-        selectedRows.update(() => []);
-    }
-
-    let showPickVariant: boolean = false;
     let theoremVariants: TheoremVariant[] = [];
     let theoremVariantButtons: ButtonContent[] = [];
-    let showConclusionSelect: boolean = false;
     function startSolver() {
         // if the conclusion is invalid, return
         if ($editState === EditState.SOLVER && !$solverContent.conclusion.tree) {
@@ -205,8 +158,6 @@
 
         const setup = (isIndirect: boolean) => {
             indirectSolving.set(isIndirect);
-            showConclusionSelect = false;
-            // solving.set(res);
 
             if ($editState === EditState.THEOREM) {
                 solverContent.update(sc => {
@@ -219,7 +170,12 @@
                     text: variant.premises.map(p => Node.generateString(p)).join(", "),
                     action: () => pickVariant(variant),
                 }));
-                showPickVariant = true;
+
+                modals.open(PickTheoremVariantModal, {
+                    title: "Select the theorem variant",
+                    theoremVariantButtons: theoremVariantButtons,
+                });
+
             } else {
                 const res = setupProof();
                 solving.set(res);
@@ -233,46 +189,40 @@
                 return sc;
             });
             const res = setupProof();
-            showPickVariant = false;
             solving.set(res);
         }
 
-        setModalButton(0, "Direct Proof", () => setup(false));
-        setModalButton(1, "Indirect Proof", () => setup(true));
-
-        showConclusionSelect = true;
+        modals.open(SelectProofTypeModal, {
+            title: "Select Proof Type",
+            message: "Choose the type of proof you want to perform.",
+            directProof: () => setup(false),
+            indirectProof: () => setup(true),
+        });
     }
 
-    let showFillVariables: boolean = false;
     function fillVariables() {
-        // console.log($theoremData.vars);
-        setModalButton(0, "Confirm", () => {
-            // get the lines selected
-            const formulas = get(theoremData).varInputs.map(v => {
-                const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
-                if (!formula.tree) {
-                    showToast("Invalid formula", "error");
-                    return "";
-                }
+        modals.open(FillVariablesModal, {
+            title: "Fill Variables",
+            onConfirm: () => {
+                // get the lines selected
+                const formulas = get(theoremData).varInputs.map(v => {
+                    const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
+                    if (!formula.tree) {
+                        showToast("Invalid formula", "error");
+                        return "";
+                    }
 
-                return formula.tree.toPrologFormat();
-            });
-            theoremData.update(td => {
-                td.varInputs = [];
-                return td;
-            });
+                    return formula.tree.toPrologFormat();
+                });
+                theoremData.update(td => {
+                    td.varInputs = [];
+                    return td;
+                });
 
-            // console.log(formulas);
-
-            // replace the variables with the values
-            substitute(get(theoremData), formulas);
-
-            showFillVariables = false;
+                // replace the variables with the values
+                substitute(get(theoremData), formulas);
+            },
         });
-        setModalButton(1, "Cancel", () => {
-            showFillVariables = false;
-        });
-        showFillVariables = true;
     }
 
     onMount(() => {
@@ -297,28 +247,8 @@
       <FlatToast {data} />
   </ToastContainer>
 
-  <Modal bind:show={showPickVariant} bind:buttons={theoremVariantButtons} header="Select the theorem variant" >
+  <Modals />
 
-  </Modal>
-  <Modal bind:show={showModal} bind:content={modalContent} bind:buttons={modalButtons} bind:header={modalHeader}>
-      <div slot="body">
-          <input
-              type="text"
-              placeholder="Enter the row number"
-              name="modal-input"
-              bind:this={modalInput}
-          />
-      </div>
-  </Modal>
-  <Modal bind:show={showConclusionSelect} bind:buttons={modalButtons} header="Select Proof Type" />
-  <Modal bind:show={showFillVariables} bind:buttons={modalButtons} header="Fill Variables">
-      <div slot="body" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <MathMLViewer value={$theorems[$theoremData.theoremId]?.whole.value} />
-          {#each $theoremData.vars as v, i}
-              <input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
-          {/each}
-      </div>
-  </Modal>
   <MainLayout>
     <Panel>
         <SolverLayout>

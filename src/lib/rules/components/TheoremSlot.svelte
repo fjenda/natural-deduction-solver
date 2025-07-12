@@ -36,10 +36,11 @@
     <div class="name">
         {#if index === $selectedTheorem}
             <input type="text" bind:value={$solverContent.name} on:click|stopPropagation class="name-input" placeholder="Theorem Name" />
-        {:else if hovered && $theorems[index].whole.value}
-            <MathMLViewer value={$theorems[index].whole.value} fontSize="1rem" padding="0" justifyContent="flex-start" />
         {:else}
-            <p>{name}</p>
+            <p class:visible={!hovered}>{name}</p>
+            <div class="mathml-viewer" class:visible={hovered}>
+                <MathMLViewer value={$theorems[index].whole.value} />
+            </div>
         {/if}
     </div>
     <div class="actions">
@@ -59,6 +60,26 @@
 </div>
 
 <style>
+    .mathml-viewer {
+        opacity: 0;
+        transform: translateY(-0.5rem);
+        transition: opacity 200ms ease, transform 200ms ease;
+        pointer-events: none;
+        max-height: 0;
+        overflow: hidden;
+    }
+
+    .mathml-viewer.visible {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+        max-height: 500px; /* arbitrary large enough value */
+    }
+
+    p:not(.visible) {
+        opacity: 0;
+    }
+
     .theorem-slot {
         width: 100%;
         height: 100%;

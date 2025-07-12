@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "eslint": "^8.57.1",
+    "svelte-modals": "^2.0.1",
     "svelte-toasts": "^1.1.2",
     "swipl-wasm": "^5.0.0",
     "typedoc": "^0.27.6"
