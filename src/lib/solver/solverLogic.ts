@@ -25,7 +25,6 @@ import type {
 } from "../../types/prolog/PrologResult";
 import type { TheoremData } from "../../types/TheoremData";
 import { showToast } from "../utils/showToast";
-import { toasts } from "svelte-toasts";
 
 /**
  * Parses the premise and adds it to the solver content
@@ -41,7 +40,7 @@ export function onChangePremise(value: string, index: number) {
 
 /**
  * Parses the conclusion and adds it to the solver content
- * @param value - the theorem to parse
+ * @param value - the conclusion to parse
  */
 export function onChangeConclusion(value: string) {
   solverContent.update((sc) => {
@@ -50,6 +49,10 @@ export function onChangeConclusion(value: string) {
   });
 }
 
+/**
+ * Parses the theorem and adds it to the solver content
+ * @param value - the theorem to parse
+ */
 export function onChangeTheorem(value: string) {
   solverContent.update((sc) => {
     sc.whole = PremiseParser.parsePremise(value);
@@ -78,6 +81,60 @@ async function queryProlog(
   return results.map((r) =>
     compoundToString(PrologController.parsePrologCompound(r.X)),
   );
+}
+
+/**
+ * Writes the term to the args_table in Prolog
+ * @param term - the term to write
+ */
+async function writeToArgsTable(term: string) {
+  // construct query
+  const query = `extract_and_add_args(${term}).`;
+
+  // query prolog
+  (await PrologController.query(query)).once();
+}
+
+/**
+ * Clears the args_table in Prolog
+ */
+async function clearArgsTable() {
+  // construct query
+  const query = `clear_args_table.`;
+
+  // query prolog
+  (await PrologController.query(query)).once();
+}
+
+/**
+ * Writes the row to the proof_table in Prolog
+ * @param term - the term to write
+ * @param rule - the rule used
+ * @param lines - the lines used
+ * @param replacements - the replacements used
+ */
+async function writeToProofTable(
+  term: string,
+  rule: string,
+  lines: number[],
+  replacements: string[] = [],
+) {
+  // construct query
+  const query = `add_proof(${term}, '${rule}', [${lines.join(",")}], [${replacements.join(",")}]).`;
+
+  // query prolog
+  (await PrologController.query(query)).once();
+}
+
+/**
+ * Clears the proof_table in Prolog
+ */
+async function clearProofTable() {
+  // construct query
+  const query = `clear_proof_table.`;
+
+  // query prolog
+  (await PrologController.query(query)).once();
 }
 
 /**
@@ -148,6 +205,12 @@ export function addProof(results: string[], rule: string, lines: number[]) {
     });
     return sc;
   });
+
+  // write to args_table and proof_table in prolog
+  results.forEach(async (r) => {
+    await writeToProofTable(r, rule, lines);
+    await writeToArgsTable(r);
+  });
 }
 
 /**
@@ -164,19 +227,20 @@ export async function usable(
   const indices: number[] = [];
 
   if (rule.inputSize === 1) {
-    const params = ["EEX", "EU"].includes(rule.short)
-      ? ["a"]
-      : ["IEX", "IU"].includes(rule.short)
-        ? ["var(x)"]
-        : [];
-
-    const premises = ["IEX", "IU"].includes(rule.short)
-      ? ["a", selected]
-      : [selected];
-
-    const success = (await queryProlog(premises, rule, params)).length > 0;
-    if (success) indices.push(row);
-    return { applicable: !!indices.length, highlighted: indices };
+    return { applicable: true, highlighted: [] };
+    // const params = ["EEX", "EU"].includes(rule.short)
+    //   ? ["a"]
+    //   : ["IEX", "IU"].includes(rule.short)
+    //     ? ["var(x)"]
+    //     : [];
+    //
+    // const premises = ["IEX", "IU"].includes(rule.short)
+    //   ? ["a", selected]
+    //   : [selected];
+    //
+    // const success = (await queryProlog(premises, rule, params)).length > 0;
+    // if (success) indices.push(row);
+    // return { applicable: !!indices.length, highlighted: indices };
   }
 
   for (const r of proof) {
@@ -289,25 +353,34 @@ export async function substitute(theoremData: TheoremData, newVars: string[]) {
  * @returns {boolean} true if all premises are valid, false otherwise
  */
 function initializeProof(): boolean {
-  // add the premises to the proof
-  solverContent.update((sc) => {
-    sc.proof = sc.premises.map((p, i) => ({
-      line: i + 1,
-      tree: p.tree,
-      value: p.value,
-      rule: { rule: NDRule.PREM },
-    }));
-    return sc;
-  });
+  // solverContent.update((sc) => {
+  //   sc.proof = sc.premises.map((p, i) => ({
+  //     line: i + 1,
+  //     tree: p.tree,
+  //     value: p.value,
+  //     rule: { rule: NDRule.PREM },
+  //   }));
+  //   return sc;
+  // });
 
   // check if premises in proof are all valid
-  const invalidPremise = get(solverContent).premises.some(
-    (_, i) => !get(solverContent).proof[i].tree,
-  );
+  const invalidPremise = get(solverContent).premises.some((p, i) => !p.tree);
   if (invalidPremise) {
     showToast("One or more premises are not valid", "error");
     return false;
   }
+
+  // add the premises to the proof
+  const premises = get(solverContent).premises.map((p) =>
+    p.tree?.toPrologFormat(),
+  );
+
+  if (premises.some((p) => !p)) return false;
+  addProof(
+    premises.filter((p): p is string => !!p),
+    NDRule.PREM,
+    [],
+  );
 
   return true;
 }
@@ -391,11 +464,21 @@ export function switchMode() {
 /**
  * Resets the solving state
  */
-export function resetSolving(): void {
+export async function resetSolving() {
   selectedRows.set([]);
   solverContent.update((sc) => {
     sc.proof = [];
     return sc;
   });
+
+  await clearProofTable();
+  await clearArgsTable();
   solving.set(false);
+}
+
+export function removeRow(index: number): void {
+  solverContent.update((content) => {
+    content.proof.splice(index, 1);
+    return content;
+  });
 }

@@ -7,6 +7,7 @@
     import type { TableRowData } from "../../../../types/TableRow";
     import type { TreeRuleType } from "../../../../types/TreeRuleType";
     import { showToast } from "../../../utils/showToast";
+    import { removeRow } from "../../solverLogic";
 
     let container: HTMLDivElement;
 
@@ -91,11 +92,7 @@
                     $solverContent.proof.splice(i, 1);
                 }}
                 onDelete={() => {
-                    solverContent.update(content => {
-                        // remove the row from the proof
-                        $solverContent.proof.splice(i, 1);
-                        return content;
-                    });
+                    removeRow(i);
                 }}
             />
         {/each}

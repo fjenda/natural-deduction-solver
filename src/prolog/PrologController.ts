@@ -5,6 +5,8 @@ import type { Compound } from "../types/prolog/Compound";
 import ruleset from "./ruleset.pl?raw";
 import substitute from "./substitute.pl?raw";
 import test_rules from "./test_rules.pl?raw";
+import proof_table from "./proof_table.pl?raw";
+import args_table from "./args_table.pl?raw";
 
 /**
  * PrologController is a singleton class that manages the SWIPL instance
@@ -22,11 +24,19 @@ export class PrologController {
     if (!PrologController.module) {
       PrologController.module = await SWIPL({
         arguments: ["-q", "-O"],
+        print(str: string) {
+          console.log(`[Prolog] ${str}`);
+        },
+        printErr(str: string) {
+          console.error(`[Prolog Error] ${str}`);
+        },
       });
 
       // await PrologController.loadString(ruleset, "rules");
       await PrologController.loadString(test_rules, "test_rules");
       await PrologController.loadString(substitute, "substitute");
+      await PrologController.loadString(proof_table, "proof_table");
+      await PrologController.loadString(args_table, "args_table");
     }
 
     return PrologController.module;
