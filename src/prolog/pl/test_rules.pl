@@ -14,7 +14,7 @@ rule('NI', 1, is_negation).
 % Predicate logic
 rule('EU', 1, forall_elim).   % Universal Elimination
 rule('IU', 1, forall_intro).  % Universal Introduction
-rule('IEX', 2, exists_intro).  % Existential Introduction
+rule('IEX', 1, exists_intro).  % Existential Introduction
 rule('EEX', 1, exists_elim).   % Existential Elimination
 
 is_var(var(_)).
@@ -33,17 +33,49 @@ collect_vars(Term, Acc, Vars) :-
     ;
     Vars = Acc).
 
-forall_elim([forall(Var, Formula), Term], Result) :-
+% Helper functions for Universal Introduction
+% Collect all ancestor line numbers recursively
+proof_all_ancestors(Line, Ancestors) :-
+    proof_row(Line, _, _, Parents, _),
+    ( Parents = [] ->
+        Ancestors = []
+    ;
+        maplist(proof_all_ancestors, Parents, NestedLists),
+        append(NestedLists, NestedFlat),
+        append(Parents, NestedFlat, Combined),
+        sort(Combined, Ancestors)  % remove duplicates
+    ).
+
+% IU restriction: fail if any ancestor used EEX
+iu_allowed(Line) :-
+    proof_all_ancestors(Line, Ancestors),
+    \+ (member(L, Ancestors), proof_row(L, _, 'EEX', _, _)).
+
+
+forall_elim([forall(Var, Formula), Var, Term], Result) :-
     substitute_free(Var, Term, Formula, Result).
 
-forall_intro([Formula], forall(Var, Formula)) :-
-    collect_vars(Formula, Vars),
-    \+ member(Var, Vars).  % Var must not be free in Formula
+%forall_intro([Formula], forall(Var, Formula)) :-
+%    collect_vars(Formula, Vars),
+%    \+ member(Var, Vars).  % Var must not be free in Formula
 
-exists_elim([exists(Var, Formula), Term], Result) :-
+%forall_intro([Formula, Term, Var], forall(Var, Result)) :-
+%    %collect_vars(Formula, Vars),
+%    %\+ member(Var, Vars).  % Var must not be free in Formula
+%    substitute_free(Var, Term, Formula, Result).
+
+forall_intro([Formula, Term, Var], forall(Var, Result)) :-
+    % Ensure IU is allowed based on leaf ancestry
+    proof_row(Line, Formula, _, _, _),
+    iu_allowed(Line),  % restriction check
+    write('IU allowed for line: '), write(Line), nl,
+    substitute(Formula, [Term], [Var], Result).
+
+
+exists_elim([exists(Var, Formula), Var, Term], Result) :-
     substitute_free(Var, Term, Formula, Result).
 
-exists_intro([Term, Formula, Var], exists(Var, Result)) :-
+exists_intro([Formula, Term, Var], exists(Var, Result)) :-
     substitute(Formula, [Term], [Var], Result).
 
 % Helper predicates

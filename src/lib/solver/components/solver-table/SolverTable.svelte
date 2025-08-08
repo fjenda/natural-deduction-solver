@@ -7,12 +7,11 @@
     import type { TableRowData } from "../../../../types/TableRow";
     import type { TreeRuleType } from "../../../../types/TreeRuleType";
     import { showToast } from "../../../utils/showToast";
-    import { removeRow } from "../../solverLogic";
-
-    let container: HTMLDivElement;
+    import { removeRow } from "../../actions/proofActions";
 
     export let data: TreeRuleType[] = []
     let rows: TableRowData[] = [];
+    let container: HTMLDivElement;
 
     $: rows = data.map((d) => ({
         line: d.line,
@@ -60,12 +59,7 @@
                 line={row.line}
                 formula={row.formula}
                 rule={row.rule}
-                premise={(() => {
-                    // if (get(editState) === EditState.SOLVER)
-                        return i <= $solverContent.premises.length - 1;
-
-                    // return i === 0 || (get(indirectSolving) && i === 1);
-                })()}
+                premise={i <= $solverContent.premises.length - 1}
                 editable={row.editable}
                 onSave={async (content, rule) => {
                     const res = await FormulaParser.parseFormula(content, i + 1, rule);
@@ -97,17 +91,15 @@
             />
         {/each}
 
-        <div class="button-wrapper">
-            <button
-                on:click={addRow}
-                aria-label="Add row"
-                class:disabled={!canAddRow()}
-                disabled={!canAddRow()}
-            >
-                <i class="fas fa-plus"></i>
-                Proof
-            </button>
-        </div>
+        <button
+            on:click={addRow}
+            aria-label="Add row"
+            class:disabled={!canAddRow()}
+            disabled={!canAddRow()}
+        >
+            <i class="fas fa-plus"></i>
+            Proof
+        </button>
     </div>
 </div>
 
@@ -147,12 +139,5 @@
             border: 1px solid var(--light-border-color);
             background: #efefef4d;
         }
-    }
-
-    .button-wrapper {
-        display: flex;
-        justify-content: center;
-        align-content: center;
-        gap: 0.5rem;
     }
 </style>

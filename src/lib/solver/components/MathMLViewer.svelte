@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PrettySyntaxer } from "../PrettySyntaxer";
+    import { PrettySyntaxer } from "../parsers/PrettySyntaxer";
 
     export let value: string | null = "";
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { PrettySyntaxer } from "../../PrettySyntaxer";
+    import { PrettySyntaxer } from "../../parsers/PrettySyntaxer";
     import { highlightedRows, logicMode, selectedRows } from "../../../../stores/solverStore";
     import {type AppliedRule, appliedRuleToString} from "../../../../types/AppliedRule";
     import { NDRule } from "../../../rules/DeductionRule";
@@ -125,7 +125,7 @@
                 bind:value={ruleText}
             />
         {:else}
-            {rule.rule} {rule.lines ? `${rule.lines.join(",")}` : ""}
+            {appliedRuleToString(rule)}
         {/if}
     </div>
     </div>

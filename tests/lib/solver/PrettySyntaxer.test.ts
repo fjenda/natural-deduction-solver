@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { PrettySyntaxer } from "../../../src/lib/solver/PrettySyntaxer";
+import { PrettySyntaxer } from "../../../src/lib/solver/parsers/PrettySyntaxer";
 
 test("PrettySyntaxer clean", () => {
   const str = "   - p   | q   &  r  -> s  ";

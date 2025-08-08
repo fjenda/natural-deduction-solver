@@ -2,13 +2,14 @@ import { DeductionRule, NDRule } from "../../rules/DeductionRule";
 import { PrattParser } from "../../syntax-checker/PrattParser";
 import type { TreeRuleType } from "../../../types/TreeRuleType";
 import { get } from "svelte/store";
-import { PrettySyntaxer } from "../PrettySyntaxer";
+import { PrettySyntaxer } from "./PrettySyntaxer";
 import { logicMode, solverContent } from "../../../stores/solverStore";
 import { Node } from "../../syntax-checker/Node";
-import { proveProlog, verifyProlog } from "../solverLogic";
 import { Theorem } from "../../rules/Theorem";
 import type { IRule } from "../../rules/IRule";
 import { showToast } from "../../utils/showToast";
+import { proveProlog, verifyProlog } from "../services/proofService";
+import { appliedRuleFromString } from "../../../types/AppliedRule";
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid
@@ -62,32 +63,30 @@ export class FormulaParser {
 
     // split the rule into its parts
     if (!rule) return tmp;
-    const ruleParts = rule.split(" ");
-    const ruleName = ruleParts[0];
+
+    const appliedRule = appliedRuleFromString(rule);
 
     // no lines specified
-    if (!ruleParts[1]) return tmp;
-
-    const lines = ruleParts[1].split(",");
-    const linesNumbers = lines.map((s) => parseInt(s));
-    const line1 = parseInt(lines[0]);
-    const line2 = lines[1] ? parseInt(lines[1]) : null;
+    if (!appliedRule.lines) return tmp;
 
     // check if the lines mentioned exist
-    if (line1 > get(solverContent).proof.length) {
-      showToast(`Row ${line1} doesn't exist`, "error");
+    if (appliedRule.lines[0] > get(solverContent).proof.length) {
+      showToast(`Row ${appliedRule.lines[0]} doesn't exist`, "error");
       return tmp;
     }
 
-    if (line2 && line2 > get(solverContent).proof.length) {
-      showToast(`Row ${line2} doesn't exist`, "error");
+    if (
+      appliedRule.lines[1] &&
+      appliedRule.lines[1] > get(solverContent).proof.length
+    ) {
+      showToast(`Row ${appliedRule.lines[1]} doesn't exist`, "error");
       return tmp;
     }
 
     // now that we have the name of the rule and the rows it was used with, check if a rule like this exists
-    let usedRule: IRule = DeductionRule.getRule(ruleName);
+    let usedRule: IRule = DeductionRule.getRule(appliedRule.rule);
     if (usedRule === DeductionRule.UNKNOWN) {
-      usedRule = Theorem.getRule(ruleName);
+      usedRule = Theorem.getRule(appliedRule.rule);
     }
     // console.log(usedRule);
     // if the rule wasn't found, return the unknown rule
@@ -99,9 +98,9 @@ export class FormulaParser {
     // if we found the rule, try to apply it and check if the results differ
     let first = null;
     let second = null;
-    first = get(solverContent).proof[line1 - 1];
-    if (line2) {
-      second = get(solverContent).proof[line2 - 1];
+    first = get(solverContent).proof[appliedRule.lines[0] - 1];
+    if (appliedRule.lines[1]) {
+      second = get(solverContent).proof[appliedRule.lines[1] - 1];
     }
 
     // apply the rule
@@ -128,7 +127,7 @@ export class FormulaParser {
 
     // if the result is false, it's not correct
     if (!result) return tmp;
-    tmp.rule = { rule: usedRule.short, lines: linesNumbers };
+    tmp.rule = { rule: usedRule.short, lines: appliedRule.lines };
     return tmp;
   }
 }

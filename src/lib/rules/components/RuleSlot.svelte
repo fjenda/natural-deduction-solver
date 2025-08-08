@@ -2,8 +2,9 @@
     import { type DeductionRule, NDRule } from "../DeductionRule";
     import { highlightedRows, selectedRows } from "../../../stores/solverStore";
     import Tooltip from "../../Tooltip.svelte";
-    import { usable } from "../../solver/solverLogic";
     import { get } from "svelte/store";
+    import { showToast } from "../../utils/showToast";
+    import { usable } from "../../solver/services/proofService";
 
     export let rule: DeductionRule;
     export let onClick: () => void;
@@ -12,6 +13,9 @@
     let showTooltip: boolean = false;
 
     async function handleClick() {
+        if (get(selectedRows).length === 0) {
+            return showToast("Select at least one row", "warning");
+        }
         const result = await usable(rule, get(selectedRows)[0]);
         if (!result.applicable && rule.short !== NDRule.IDIS) return;
 
