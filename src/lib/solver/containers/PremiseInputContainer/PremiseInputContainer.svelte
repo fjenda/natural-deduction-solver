@@ -1,10 +1,10 @@
 <script lang="ts">
-    import PremiseInputRow from "../../solver/components/PremiseInputRow.svelte";
-    import PremiseInput from "../../solver/components/PremiseInput.svelte";
-    import { EditState } from "../../../types/EditState";
-    import { editState } from "../../../stores/stateStore";
-    import { solverContent } from "../../../stores/solverStore";
-    import { onChangePremise } from "../../solver/actions/proofActions";
+    import PremiseInputRow from "../../components/PremiseInputRow.svelte";
+    import PremiseInput from "../../components/PremiseInput.svelte";
+    import { EditState } from "../../../../types/EditState";
+    import { editState } from "../../../../stores/stateStore";
+    import { solverContent } from "../../../../stores/solverStore";
+    import { onChangePremise } from "../../actions/proofActions";
 
     export let index: number;
     export let placeholder: string = "";

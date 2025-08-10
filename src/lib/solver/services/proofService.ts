@@ -8,6 +8,7 @@ import { Node } from "../../syntax-checker/Node";
 import { ProofTable } from "../../../prolog/queries/ProofTable";
 import { ArgsTable } from "../../../prolog/queries/ArgsTable";
 import { addProofToStore } from "../utils/proofUtils";
+import { showToast } from "../../utils/showToast";
 
 /**
  * Proves the selected row the user selected using the Prolog engine
@@ -26,7 +27,12 @@ export async function proveProlog(
   const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
 
   // no results
-  if (resultsPFL.length === 0) return;
+  if (resultsPFL.length === 0) {
+    if (rule.short === "IU") {
+      showToast("Universal Introduction not applicable", "error");
+    }
+    return;
+  }
 
   // add to proof
   await addProof(resultsPFL, rule.short, selected, params);
@@ -124,7 +130,7 @@ export async function addProof(
     await ArgsTable.write(r);
   }
 
-  // await ProofTable.print();
-  // await ArgsTable.print();
-  // await ArgsTable.getMatching("predicate(p)", 1);
+  await ProofTable.print();
+  await ArgsTable.print();
+  await ArgsTable.getMatching("predicate(p)", 1);
 }

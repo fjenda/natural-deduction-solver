@@ -1,11 +1,11 @@
 <script lang="ts">
-    import TheoremsLayout from "../../layouts/TheoremsLayout.svelte";
-    import { addTheorem, theorems } from "../../../stores/theoremsStore";
-    import { theoremData } from "../../../stores/solverStore";
-    import TheoremSlot from "../../rules/components/TheoremSlot.svelte";
-    import StyledButton from "../../components/StyledButton/StyledButton.svelte";
-    import { solving } from "../../../stores/stateStore";
-    import { fillVariables } from "../../solver/actions/proofActions";
+    import TheoremsLayout from "../../../layouts/TheoremsLayout.svelte";
+    import { addTheorem, theorems } from "../../../../stores/theoremsStore";
+    import { theoremData } from "../../../../stores/solverStore";
+    import TheoremSlot from "../../../rules/components/TheoremSlot.svelte";
+    import StyledButton from "../../../components/StyledButton/StyledButton.svelte";
+    import { solving } from "../../../../stores/stateStore";
+    import { fillVariables } from "../../actions/proofActions";
 </script>
 
 <h2>Theorems</h2>

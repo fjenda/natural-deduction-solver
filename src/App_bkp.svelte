@@ -1,7 +1,7 @@
 <script lang="ts">
     import PremiseInput from "./lib/solver/components/PremiseInput.svelte";
     import MainLayout from "./lib/layouts/MainLayout.svelte";
-    import Panel from "./lib/Panel.svelte";
+    import Panel from "./lib/components/Panel/Panel.svelte";
     import SolverLayout from "./lib/layouts/SolverLayout.svelte";
     import PremiseInputRow from "./lib/solver/components/PremiseInputRow.svelte";
     import TheoremsLayout from "./lib/layouts/TheoremsLayout.svelte";
@@ -20,10 +20,10 @@
     import RuleGridLayout from "./lib/layouts/RuleGridLayout.svelte";
     import RuleSlot from "./lib/rules/components/RuleSlot.svelte";
     import { DeductionRule, NDRule } from "./lib/rules/DeductionRule";
-    import Separator from "./lib/Separator.svelte";
+    import Separator from "./lib/components/Separator/Separator.svelte";
     import { EditState } from "./types/EditState";
     import { editState, solving } from "./stores/stateStore";
-    import Modal from "./lib/Modal.svelte";
+    import Modal from "./lib/components/Modal/Modal.svelte";
     import type { ButtonContent } from "./types/ButtonContent";
     import { get } from "svelte/store";
     import SolverTable from "./lib/solver/components/solver-table/SolverTable.svelte";
