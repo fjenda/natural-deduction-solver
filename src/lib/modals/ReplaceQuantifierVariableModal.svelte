@@ -1,49 +1,54 @@
 <script lang="ts">
-    import CustomModal, { type CustomModalProps } from "./CustomModal.svelte";
-    import MathMLViewer from "../solver/components/MathMLViewer.svelte";
-    import { selectedRows } from "../../stores/solverStore";
-    import type { TreeRuleType } from "../../types/TreeRuleType";
+	import CustomModal, { type CustomModalProps } from './CustomModal.svelte';
+	import MathMLViewer from '../solver/components/MathMLViewer.svelte';
+	import type { TreeRuleType } from '../../types/TreeRuleType';
 
-    interface ReplaceQuantifierVariableModalProps extends CustomModalProps {
-        row: TreeRuleType;
-        placeholder: string;
-        onConfirm: (modalInput: HTMLInputElement) => void;
-    }
+	interface ReplaceQuantifierVariableModalProps extends CustomModalProps {
+		row: TreeRuleType;
+		placeholder: string;
+		onConfirm: (modalInput: HTMLInputElement) => void;
+	}
 
-    const {
-        id,
-        index,
-        isOpen,
-        close,
-        title,
-        row,
-        placeholder,
-        onConfirm,
-    }: ReplaceQuantifierVariableModalProps = $props();
+	const {
+		id,
+		index,
+		isOpen,
+		close,
+		title,
+		row,
+		placeholder,
+		onConfirm
+	}: ReplaceQuantifierVariableModalProps = $props();
 
-    let modalInput: HTMLInputElement;
+	let modalInput: HTMLInputElement;
 </script>
 
 <CustomModal {isOpen} {close} {title} {id} {index}>
-    <div slot="body" class="body">
-        <MathMLViewer value={row.value} />
-        <input
-                type="text"
-                placeholder={placeholder}
-                name="modal-input"
-                bind:this={modalInput}
-        />
-    </div>
-    <div slot="buttons">
-        <button class="button" on:click={() => { close(); }}>Cancel</button>
-        <button class="button" on:click={() => { onConfirm(modalInput); close(); }}>Confirm</button>
-    </div>
+	<div slot="body" class="body">
+		<MathMLViewer value={row.value} />
+		<input type="text" {placeholder} name="modal-input" bind:this={modalInput} />
+	</div>
+	<div slot="buttons">
+		<button
+			class="button"
+			on:click={() => {
+				close();
+			}}>Cancel</button
+		>
+		<button
+			class="button"
+			on:click={() => {
+				onConfirm(modalInput);
+				close();
+			}}>Confirm</button
+		>
+	</div>
 </CustomModal>
 
 <style>
-    .body {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
 </style>

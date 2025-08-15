@@ -1,5 +1,5 @@
-import type { Node } from "../lib/syntax-checker/Node";
-import type { AppliedRule } from "./AppliedRule";
+import type { Node } from '../lib/syntax-checker/Node';
+import type { AppliedRule } from './AppliedRule';
 
 /**
  * TreeRuleType type
@@ -10,8 +10,8 @@ import type { AppliedRule } from "./AppliedRule";
  * @param value: string - the value of the rule
  */
 export type TreeRuleType = {
-    line: number;
-    tree: Node | null;
-    rule: AppliedRule;
-    value: string;
-}
+	line: number;
+	tree: Node | null;
+	rule: AppliedRule;
+	value: string;
+};

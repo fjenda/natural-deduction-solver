@@ -5,6 +5,6 @@
  * @param text: string - text to be displayed on button
  */
 export interface ButtonContent {
-    action: () => void;
-    text: string;
+	action: () => void;
+	text: string;
 }

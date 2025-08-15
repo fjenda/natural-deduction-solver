@@ -1,4 +1,4 @@
-import type { AppliedRule } from "./AppliedRule";
+import type { AppliedRule } from './AppliedRule';
 
 /**
  * TableRowData type
@@ -9,8 +9,8 @@ import type { AppliedRule } from "./AppliedRule";
  * @param editable: boolean - whether the row is editable or not
  */
 export type TableRowData = {
-    line: number;
-    formula: string;
-    rule: AppliedRule;
-    editable: boolean;
-}
+	line: number;
+	formula: string;
+	rule: AppliedRule;
+	editable: boolean;
+};

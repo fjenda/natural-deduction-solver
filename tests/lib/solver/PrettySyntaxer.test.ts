@@ -1,26 +1,26 @@
-import { expect, test } from "vitest";
-import { PrettySyntaxer } from "../../../src/lib/solver/parsers/PrettySyntaxer";
+import { expect, test } from 'vitest';
+import { PrettySyntaxer } from '../../../src/lib/solver/parsers/PrettySyntaxer';
 
-test("PrettySyntaxer clean", () => {
-  const str = "   - p   | q   &  r  -> s  ";
-  const expected = "¬p ∨ q ∧ r ⊃ s";
-  const result = PrettySyntaxer.clean(str);
+test('PrettySyntaxer clean', () => {
+	const str = '   - p   | q   &  r  -> s  ';
+	const expected = '¬p ∨ q ∧ r ⊃ s';
+	const result = PrettySyntaxer.clean(str);
 
-  expect(result).toBe(expected);
+	expect(result).toBe(expected);
 });
 
-test("PrettySyntaxer cleanupRule", () => {
-  const str = "  IC 1    , 3  ";
-  const expected = "IC 1,3";
-  const result = PrettySyntaxer.cleanupRule(str);
+test('PrettySyntaxer cleanupRule', () => {
+	const str = '  IC 1    , 3  ';
+	const expected = 'IC 1,3';
+	const result = PrettySyntaxer.cleanupRule(str);
 
-  expect(result).toBe(expected);
+	expect(result).toBe(expected);
 });
 
-test("PrettySyntaxer toMathML", () => {
-  const str = "¬p ∨ q ∧ r ⊃ s";
-  const result = PrettySyntaxer.toMathML(str);
-  const expected = `
+test('PrettySyntaxer toMathML', () => {
+	const str = '¬p ∨ q ∧ r ⊃ s';
+	const result = PrettySyntaxer.toMathML(str);
+	const expected = `
     <math xmlns="http://www.w3.org/1998/Math/MathML">
         <mtable>
             <mtr>
@@ -32,8 +32,8 @@ test("PrettySyntaxer toMathML", () => {
     </math>
   `;
 
-  // normalize whitespace for comparison
-  const normalizedResult = result.replace(/\s+/g, " ");
-  const normalizedExpected = expected.replace(/\s+/g, " ");
-  expect(normalizedResult).toEqual(normalizedExpected);
+	// normalize whitespace for comparison
+	const normalizedResult = result.replace(/\s+/g, ' ');
+	const normalizedExpected = expected.replace(/\s+/g, ' ');
+	expect(normalizedResult).toEqual(normalizedExpected);
 });

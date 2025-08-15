@@ -1,14 +1,14 @@
-import type { IRule } from "../../rules/IRule";
-import { ProofHandler } from "../../../prolog/queries/ProofHandler";
-import { get } from "svelte/store";
-import { solverContent } from "../../../stores/solverStore";
-import type { TheoremData } from "../../../types/TheoremData";
-import { theorems } from "../../../stores/theoremsStore";
-import { Node } from "../../syntax-checker/Node";
-import { ProofTable } from "../../../prolog/queries/ProofTable";
-import { ArgsTable } from "../../../prolog/queries/ArgsTable";
-import { addProofToStore } from "../utils/proofUtils";
-import { showToast } from "../../utils/showToast";
+import type { IRule } from '../../rules/IRule';
+import { ProofHandler } from '../../../prolog/queries/ProofHandler';
+import { get } from 'svelte/store';
+import { solverContent } from '../../../stores/solverStore';
+import type { TheoremData } from '../../../types/TheoremData';
+import { theorems } from '../../../stores/theoremsStore';
+import { Node } from '../../syntax-checker/Node';
+import { ProofTable } from '../../../prolog/queries/ProofTable';
+import { ArgsTable } from '../../../prolog/queries/ArgsTable';
+import { addProofToStore } from '../utils/proofUtils';
+import { showToast } from '../../utils/showToast';
 
 /**
  * Proves the selected row the user selected using the Prolog engine
@@ -18,24 +18,24 @@ import { showToast } from "../../utils/showToast";
  * @param params - the parameters used
  */
 export async function proveProlog(
-  premises: string[],
-  rule: IRule,
-  selected: number[],
-  params: string[],
+	premises: string[],
+	rule: IRule,
+	selected: number[],
+	params: string[]
 ) {
-  // get results
-  const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
+	// get results
+	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
 
-  // no results
-  if (resultsPFL.length === 0) {
-    if (rule.short === "IU") {
-      showToast("Universal Introduction not applicable", "error");
-    }
-    return;
-  }
+	// no results
+	if (resultsPFL.length === 0) {
+		if (rule.short === 'IU') {
+			showToast('Universal Introduction not applicable', 'error');
+		}
+		return;
+	}
 
-  // add to proof
-  await addProof(resultsPFL, rule.short, selected, params);
+	// add to proof
+	await addProof(resultsPFL, rule.short, selected, params);
 }
 
 /**
@@ -44,20 +44,16 @@ export async function proveProlog(
  * @param rule - the rule used
  * @param result - the result to verify
  */
-export async function verifyProlog(
-  premises: string[],
-  rule: IRule,
-  result: Node,
-) {
-  // get results
-  const resultsPFL: string[] = await ProofHandler.prove(premises, rule, []);
+export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
+	// get results
+	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, []);
 
-  // no results
-  if (resultsPFL.length === 0) return false;
+	// no results
+	if (resultsPFL.length === 0) return false;
 
-  // check if exists
-  const tmp = result.toPrologFormat();
-  return resultsPFL.includes(tmp);
+	// check if exists
+	const tmp = result.toPrologFormat();
+	return resultsPFL.includes(tmp);
 }
 
 /**
@@ -66,29 +62,29 @@ export async function verifyProlog(
  * @param row - the row to check
  */
 export async function usable(
-  rule: IRule,
-  row: number,
+	rule: IRule,
+	row: number
 ): Promise<{ highlighted: number[]; applicable: boolean }> {
-  const proof = get(solverContent).proof;
-  const selected: string = proof[row - 1].tree?.toPrologFormat() ?? "";
-  const indices: number[] = [];
+	const proof = get(solverContent).proof;
+	const selected: string = proof[row - 1].tree?.toPrologFormat() ?? '';
+	const indices: number[] = [];
 
-  if (rule.inputSize === 1) {
-    return { applicable: true, highlighted: [] };
-  }
+	if (rule.inputSize === 1) {
+		return { applicable: true, highlighted: [] };
+	}
 
-  for (const r of proof) {
-    const i = proof.indexOf(r);
-    if (i === row - 1) continue;
+	for (const r of proof) {
+		const i = proof.indexOf(r);
+		if (i === row - 1) continue;
 
-    const other: string = r.tree?.toPrologFormat() ?? "";
-    const results = await ProofHandler.prove([selected, other], rule, []);
-    if (results.length === 0) continue;
+		const other: string = r.tree?.toPrologFormat() ?? '';
+		const results = await ProofHandler.prove([selected, other], rule, []);
+		if (results.length === 0) continue;
 
-    indices.push(r.line);
-  }
+		indices.push(r.line);
+	}
 
-  return { applicable: !!indices.length, highlighted: indices };
+	return { applicable: !!indices.length, highlighted: indices };
 }
 
 /**
@@ -97,15 +93,11 @@ export async function usable(
  * @param newVars - the new variables to be added
  */
 export async function substitute(theoremData: TheoremData, newVars: string[]) {
-  const theorem = get(theorems)[theoremData.theoremId];
-  const theoremPFL = theorem.whole.tree?.toPrologFormat() ?? "";
-  const parsed = await ProofHandler.substitute(
-    theoremPFL,
-    Array.from(theoremData.vars),
-    newVars,
-  );
+	const theorem = get(theorems)[theoremData.theoremId];
+	const theoremPFL = theorem.whole.tree?.toPrologFormat() ?? '';
+	const parsed = await ProofHandler.substitute(theoremPFL, Array.from(theoremData.vars), newVars);
 
-  await addProof([parsed], theorem.name, []);
+	await addProof([parsed], theorem.name, []);
 }
 
 /**
@@ -117,20 +109,20 @@ export async function substitute(theoremData: TheoremData, newVars: string[]) {
  * @param trees - the trees used in the proof (optional)
  */
 export async function addProof(
-  results: string[],
-  rule: string,
-  lines: number[],
-  replacements: string[] = [],
-  trees?: Node[] | null,
+	results: string[],
+	rule: string,
+	lines: number[],
+	replacements: string[] = [],
+	trees?: Node[] | null
 ) {
-  addProofToStore(results, rule, lines, replacements, trees);
+	addProofToStore(results, rule, lines, replacements, trees);
 
-  for (const r of results) {
-    await ProofTable.write(r, rule, lines, replacements);
-    await ArgsTable.write(r);
-  }
+	for (const r of results) {
+		await ProofTable.write(r, rule, lines, replacements);
+		await ArgsTable.write(r);
+	}
 
-  await ProofTable.print();
-  await ArgsTable.print();
-  await ArgsTable.getMatching("predicate(p)", 1);
+	await ProofTable.print();
+	await ArgsTable.print();
+	await ArgsTable.getMatching('predicate(p)', 1);
 }

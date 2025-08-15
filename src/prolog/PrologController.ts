@@ -1,12 +1,12 @@
-import SWIPL, { type SWIPLModule } from "swipl-wasm";
-import { PrologQueryWrapper } from "./PrologQueryWrapper";
-import type { Compound } from "../types/prolog/Compound";
+import SWIPL, { type SWIPLModule } from 'swipl-wasm';
+import { PrologQueryWrapper } from './PrologQueryWrapper';
+import type { Compound } from '../types/prolog/Compound';
 
-import ruleset from "./pl/ruleset.pl?raw";
-import substitute from "./pl/substitute.pl?raw";
-import test_rules from "./pl/test_rules.pl?raw";
-import proof_table from "./pl/proof_table.pl?raw";
-import args_table from "./pl/args_table.pl?raw";
+import ruleset from './pl/ruleset.pl?raw';
+import substitute from './pl/substitute.pl?raw';
+import test_rules from './pl/test_rules.pl?raw';
+import proof_table from './pl/proof_table.pl?raw';
+import args_table from './pl/args_table.pl?raw';
 
 /**
  * PrologController is a singleton class that manages the SWIPL instance
@@ -14,74 +14,72 @@ import args_table from "./pl/args_table.pl?raw";
  * @property {SWIPLModule | null} module - The SWIPL instance.
  */
 export class PrologController {
-  private static module: SWIPLModule | null = null;
+	private static module: SWIPLModule | null = null;
 
-  /**
-   * Get the SWIPL instance.
-   * If the instance does not exist, create it.
-   */
-  public static async instance(): Promise<SWIPLModule> {
-    if (!PrologController.module) {
-      PrologController.module = await SWIPL({
-        arguments: ["-q", "-O"],
-        print(str: string) {
-          console.log(`[Prolog] ${str}`);
-        },
-        printErr(str: string) {
-          console.error(`[Prolog Error] ${str}`);
-        },
-      });
+	/**
+	 * Get the SWIPL instance.
+	 * If the instance does not exist, create it.
+	 */
+	public static async instance(): Promise<SWIPLModule> {
+		if (!PrologController.module) {
+			PrologController.module = await SWIPL({
+				arguments: ['-q', '-O'],
+				print(str: string) {
+					console.log(`[Prolog] ${str}`);
+				},
+				printErr(str: string) {
+					console.error(`[Prolog Error] ${str}`);
+				}
+			});
 
-      // await PrologController.loadString(ruleset, "rules");
-      await PrologController.loadString(substitute, "substitute");
-      await PrologController.loadString(proof_table, "proof_table");
-      await PrologController.loadString(args_table, "args_table");
-      await PrologController.loadString(test_rules, "test_rules");
-    }
+			// await PrologController.loadString(ruleset, "rules");
+			await PrologController.loadString(substitute, 'substitute');
+			await PrologController.loadString(proof_table, 'proof_table');
+			await PrologController.loadString(args_table, 'args_table');
+			await PrologController.loadString(test_rules, 'test_rules');
+		}
 
-    return PrologController.module;
-  }
+		return PrologController.module;
+	}
 
-  /**
-   * Load a string program into the SWIPL instance.
-   * @param content - the program to load
-   * @param id - id of the program
-   */
-  public static async loadString(content: string, id: string) {
-    const instance = await PrologController.instance();
-    // @ts-ignore
-    return instance.prolog.load_string(content, id);
-  }
+	/**
+	 * Load a string program into the SWIPL instance.
+	 * @param content - the program to load
+	 * @param id - id of the program
+	 */
+	public static async loadString(content: string, id: string) {
+		const instance = await PrologController.instance();
+		// @ts-expect-error: `load_string` is not typed in the SWIPL module
+		return instance.prolog.load_string(content, id);
+	}
 
-  /**
-   * Queries the Prolog instance with the given query.
-   * @param query - the query to run
-   */
-  public static async query(query: string): Promise<PrologQueryWrapper> {
-    const instance = await PrologController.instance();
-    return new PrologQueryWrapper(instance.prolog.query(query));
-  }
+	/**
+	 * Queries the Prolog instance with the given query.
+	 * @param query - the query to run
+	 */
+	public static async query(query: string): Promise<PrologQueryWrapper> {
+		const instance = await PrologController.instance();
+		return new PrologQueryWrapper(instance.prolog.query(query));
+	}
 
-  /**
-   * Parses a Prolog compound term into a Compound object.
-   * @param compound - the compound term to parse
-   */
-  public static parsePrologCompound(compound: any): Compound {
-    if (typeof compound === "object" && compound !== null) {
-      const functor = (compound as { functor?: string }).functor;
+	/**
+	 * Parses a Prolog compound term into a Compound object.
+	 * @param compound - the compound term to parse
+	 */
+	public static parsePrologCompound(compound: unknown): Compound {
+		if (typeof compound === 'object' && compound !== null) {
+			const functor = (compound as { functor?: string }).functor;
 
-      if (typeof functor === "string") {
-        const args = (compound as Record<string, any>)[functor];
+			if (functor) {
+				const args = (compound as Record<string, unknown>)[functor];
 
-        return {
-          functor,
-          args: Array.isArray(args)
-            ? args.map(PrologController.parsePrologCompound)
-            : [],
-        };
-      }
-    }
+				return {
+					functor,
+					args: Array.isArray(args) ? args.map(PrologController.parsePrologCompound) : []
+				};
+			}
+		}
 
-    return { functor: String(compound), args: [] };
-  }
+		return { functor: String(compound), args: [] };
+	}
 }

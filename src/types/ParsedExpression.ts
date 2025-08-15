@@ -1,4 +1,4 @@
-import type { Node } from "../lib/syntax-checker/Node";
+import type { Node } from '../lib/syntax-checker/Node';
 
 /**
  * ParsedExpression type
@@ -7,6 +7,6 @@ import type { Node } from "../lib/syntax-checker/Node";
  * @param value: string - the value of the expression
  */
 export type ParsedExpression = {
-    tree: Node | null;
-    value: string;
-}
+	tree: Node | null;
+	value: string;
+};

@@ -1,9 +1,9 @@
-import { writable } from "svelte/store";
-import { Solution } from "../lib/solver/Solution";
-import { ParseStrategy } from "../types/ParseStrategy";
-import { DeductionRule } from "../lib/rules/DeductionRule";
-import type { TheoremData } from "../types/TheoremData";
-import type { ParsedExpression } from "../types/ParsedExpression";
+import { writable } from 'svelte/store';
+import { Solution } from '../lib/solver/Solution';
+import { ParseStrategy } from '../types/ParseStrategy';
+import { DeductionRule } from '../lib/rules/DeductionRule';
+import type { TheoremData } from '../types/TheoremData';
+import type { ParsedExpression } from '../types/ParsedExpression';
 
 /**
  * Store for the logic mode
@@ -19,23 +19,23 @@ export const deductionRules = writable<DeductionRule[]>(DeductionRule.rules);
  * Default premises for the solver
  */
 const defaultPremises: ParsedExpression[] = [
-  { value: "∀x [L(x) ⊃ ¬S(x)]", tree: null },
-  { value: "∃x [L(x) ∧ P(x)]", tree: null },
-  // { value: "∀x [L(x) ∧ P(x)]", tree: null },
+	{ value: '∀x [L(x) ⊃ ¬S(x)]', tree: null },
+	{ value: '∃x [L(x) ∧ P(x)]', tree: null }
+	// { value: "∀x [L(x) ∧ P(x)]", tree: null },
 ];
 
 /**
  * Default conclusion for the solver
  */
 const defaultConclusion: ParsedExpression = {
-  value: "∃x [¬S(x) ∧ P(x)]",
-  // value: "∀x ¬S(x)",
-  tree: null,
+	value: '∃x [¬S(x) ∧ P(x)]',
+	// value: "∀x ¬S(x)",
+	tree: null
 };
 
 export const defaultProof = {
-  premises: defaultPremises,
-  conclusion: defaultConclusion,
+	premises: defaultPremises,
+	conclusion: defaultConclusion
 };
 
 /**
@@ -43,30 +43,28 @@ export const defaultProof = {
  * This store contains the solution that is displayed in the solver
  */
 export const solverContent = (function () {
-  const { set, update, subscribe } = writable<Solution>(
-    new Solution("Solution 1"),
-  );
+	const { set, update, subscribe } = writable<Solution>(new Solution('Solution 1'));
 
-  const reset = () => {
-    set(new Solution("Solution 1"));
-  };
+	const reset = () => {
+		set(new Solution('Solution 1'));
+	};
 
-  return {
-    set,
-    update,
-    subscribe,
-    reset,
-  };
+	return {
+		set,
+		update,
+		subscribe,
+		reset
+	};
 })();
 
 /**
  * Add a premise to the solver
  */
 export const addPremise = () => {
-  solverContent.update((content) => {
-    content.premises = [...content.premises, { value: "", tree: null }];
-    return content;
-  });
+	solverContent.update((content) => {
+		content.premises = [...content.premises, { value: '', tree: null }];
+		return content;
+	});
 };
 
 /**
@@ -74,10 +72,10 @@ export const addPremise = () => {
  * @param index - the index of the premise to remove
  */
 export const removePremise = (index: number) => {
-  solverContent.update((content) => {
-    content.premises.splice(index, 1);
-    return content;
-  });
+	solverContent.update((content) => {
+		content.premises.splice(index, 1);
+		return content;
+	});
 };
 
 /**
@@ -86,20 +84,18 @@ export const removePremise = (index: number) => {
  * This is used to restore the solution after the user has made changes
  */
 export const solverBackup = (function () {
-  const { set, update, subscribe } = writable<Solution>(
-    new Solution("Backup Solution"),
-  );
+	const { set, update, subscribe } = writable<Solution>(new Solution('Backup Solution'));
 
-  const reset = () => {
-    set(new Solution("Backup Solution"));
-  };
+	const reset = () => {
+		set(new Solution('Backup Solution'));
+	};
 
-  return {
-    set,
-    update,
-    subscribe,
-    reset,
-  };
+	return {
+		set,
+		update,
+		subscribe,
+		reset
+	};
 })();
 
 /**
@@ -121,20 +117,20 @@ export const indirectSolving = writable<boolean>(false);
  * Store that contains the theorem data needed for variable substitution
  */
 export const theoremData = (function () {
-  const { set, update, subscribe } = writable<TheoremData>({
-    theoremId: -1,
-    vars: new Set(),
-    varInputs: [],
-  });
+	const { set, update, subscribe } = writable<TheoremData>({
+		theoremId: -1,
+		vars: new Set(),
+		varInputs: []
+	});
 
-  const reset = () => {
-    set({ theoremId: -1, vars: new Set(), varInputs: [] });
-  };
+	const reset = () => {
+		set({ theoremId: -1, vars: new Set(), varInputs: [] });
+	};
 
-  return {
-    set,
-    update,
-    subscribe,
-    reset,
-  };
+	return {
+		set,
+		update,
+		subscribe,
+		reset
+	};
 })();
