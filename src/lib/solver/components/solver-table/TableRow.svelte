@@ -89,14 +89,7 @@
 
 	$: ruleText = appliedRuleToString(rule);
 
-	let removable = false;
-	$: if (!premise) {
-		removable = false;
-	} else {
-		canDeleteRow(line).then((result) => {
-			removable = result;
-		});
-	}
+	$: removable = premise ? false : canDeleteRow(line);
 </script>
 
 <a class="row" class:highlighted class:usable class:invalid on:click={selectRow} role="button">

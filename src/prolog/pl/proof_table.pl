@@ -35,3 +35,24 @@ proof_table_print_rows([[Line, Term, Rule, LinesUsed, Replacements]|Rest]) :-
 proof_table_can_delete_row(LineNumber) :-
     % Check if any other row uses this line number as a parent
     \+ (proof_row(_, _, _, Parents, _), member(LineNumber, Parents)).
+
+
+% Succeeds if all existential eliminations have a corresponding introduction
+proof_table_existential_elimination_valid :-
+    findall(Line-Repl, proof_row(Line, _, 'EEX', _, Repl), EliminatedLines),
+    findall(Line-Repl, proof_row(Line, _, 'IEX', _, Repl), IntroducedLines),
+    existential_elimination_valid(EliminatedLines, IntroducedLines).
+
+% Base case: no eliminations left
+existential_elimination_valid([], _).
+
+% Recursive case
+existential_elimination_valid([_Line-[Var, Repl] | Rest], IntroducedLines) :-
+    % Check if there is a matching introduction
+    ( member(_Line2-[Repl, Var], IntroducedLines) ->
+        existential_elimination_valid(Rest, IntroducedLines)
+    ).
+
+% Case when there was no replacement (should not happen, but safe)
+existential_elimination_valid([_Line-[] | Rest], IntroducedLines) :-
+    existential_elimination_valid(Rest, IntroducedLines).

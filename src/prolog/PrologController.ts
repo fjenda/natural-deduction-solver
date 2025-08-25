@@ -57,6 +57,34 @@ export class PrologController {
 	}
 
 	/**
+	 * Queries the Prolog instance once and returns the first result or null if no result is found.
+	 * @param q - the query to run
+	 */
+	public static queryOnce<T = unknown>(q: string): Promise<T | null> {
+		PrologController.queryLock = PrologController.queryLock.then(async () => {
+			const instance = await PrologController.instance();
+			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
+			return wrapper.once() as Promise<T | null>;
+		});
+
+		return PrologController.queryLock as Promise<T | null>;
+	}
+
+	/**
+	 * Queries the Prolog instance and returns all results as an array.
+	 * @param q - the query to run
+	 */
+	public static queryAll<T = unknown>(q: string): Promise<T[]> {
+		PrologController.queryLock = PrologController.queryLock.then(async () => {
+			const instance = await PrologController.instance();
+			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
+			return wrapper.all() as unknown as Promise<T[]>;
+		});
+
+		return PrologController.queryLock as Promise<T[]>;
+	}
+
+	/**
 	 * Queries the Prolog instance with the given query.
 	 * @param query - the query to run
 	 */
@@ -91,25 +119,5 @@ export class PrologController {
 		}
 
 		return { functor: String(compound), args: [] };
-	}
-
-	public static queryOnce<T = unknown>(q: string): Promise<T | null> {
-		PrologController.queryLock = PrologController.queryLock.then(async () => {
-			const instance = await PrologController.instance();
-			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
-			return wrapper.once() as Promise<T | null>;
-		});
-
-		return PrologController.queryLock as Promise<T | null>;
-	}
-
-	public static queryAll<T = unknown>(q: string): Promise<T[]> {
-		PrologController.queryLock = PrologController.queryLock.then(async () => {
-			const instance = await PrologController.instance();
-			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
-			return wrapper.all() as unknown as Promise<T[]>;
-		});
-
-		return PrologController.queryLock as Promise<T[]>;
 	}
 }

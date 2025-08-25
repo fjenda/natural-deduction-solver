@@ -142,7 +142,7 @@ export async function addProof(
 	}
 
 	await ProofTable.print();
-	await ArgsTable.print();
+	// await ArgsTable.print();
 	// await ArgsTable.getMatching('predicate(p)', 1);
 }
 
@@ -151,5 +151,12 @@ export async function addProof(
  * @param line - the line to check
  */
 export async function canDeleteRow(line: number) {
-	return (await ProofTable.canDeleteRow(line)).success;
+	return await ProofTable.canDeleteRow(line);
+}
+
+/**
+ * Checks if existential elimination is valid in the current proof
+ */
+export async function isExistentialEliminationValid() {
+	return await ProofTable.isExistentialEliminationValid();
 }

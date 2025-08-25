@@ -9,7 +9,8 @@ const Queries = {
 	GET: (line: number) => `proof_table_get(${line}, X).`,
 	CLEAR: `proof_table_clear.`,
 	PRINT: `proof_table_print.`,
-	CAN_DELETE_ROW: (line: number) => `proof_table_can_delete_row(${line}).`
+	CAN_DELETE_ROW: (line: number) => `proof_table_can_delete_row(${line}).`,
+	EXISTENTIAL_ELIMINATION_VALID: `proof_table_existential_elimination_valid.`
 };
 
 export const ProofTable = {
@@ -66,6 +67,23 @@ export const ProofTable = {
 	 * @param line - the line number to check
 	 */
 	async canDeleteRow(line: number) {
-		return await PrologController.queryOnce<BooleanResult>(Queries.CAN_DELETE_ROW(line));
+		const result = await PrologController.queryOnce<BooleanResult>(Queries.CAN_DELETE_ROW(line));
+
+		if (!result) return false;
+
+		return result.success;
+	},
+
+	/**
+	 * Checks if the existential elimination rule is valid in the current proof_table
+	 */
+	async isExistentialEliminationValid() {
+		const result = await PrologController.queryOnce<BooleanResult>(
+			Queries.EXISTENTIAL_ELIMINATION_VALID
+		);
+
+		if (!result) return false;
+
+		return result.success;
 	}
 };

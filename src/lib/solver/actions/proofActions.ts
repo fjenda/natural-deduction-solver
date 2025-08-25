@@ -132,6 +132,15 @@ export async function removeRow(index: number) {
 export async function checkProof() {
 	const contradiction = await ProofHandler.hasContradiction();
 	const isIndirect = get(indirectSolving);
+	const isPredicateLogic = get(logicMode) === ParseStrategy.PREDICATE;
+
+	if (isPredicateLogic) {
+		const validProof = await ProofTable.isExistentialEliminationValid();
+		if (!validProof) {
+			showToast('Proof contains an invalid use of Existential Elimination', 'error');
+			return;
+		}
+	}
 
 	if (contradiction) {
 		if (isIndirect) {
