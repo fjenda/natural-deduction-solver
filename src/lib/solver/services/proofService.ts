@@ -70,6 +70,11 @@ export async function usable(
 	const indices: number[] = [];
 
 	if (rule.inputSize === 1) {
+		// special case for quantifier rules
+		if (['EU', 'EEX'].includes(rule.short)) {
+			return usableQuantifier(rule, selected);
+		}
+
 		return { applicable: true, highlighted: [] };
 	}
 
@@ -85,6 +90,20 @@ export async function usable(
 	}
 
 	return { applicable: !!indices.length, highlighted: indices };
+}
+
+// special case for quantifier elimination rules, helper function for usable
+async function usableQuantifier(
+	rule: IRule,
+	formula: string
+): Promise<{ highlighted: number[]; applicable: boolean }> {
+	const res = await ProofHandler.prove([formula], rule, ['var(Y)', 'Z']);
+
+	if (res.length === 0) {
+		return { applicable: false, highlighted: [] };
+	}
+
+	return { applicable: true, highlighted: [] };
 }
 
 /**
@@ -124,5 +143,13 @@ export async function addProof(
 
 	await ProofTable.print();
 	await ArgsTable.print();
-	await ArgsTable.getMatching('predicate(p)', 1);
+	// await ArgsTable.getMatching('predicate(p)', 1);
+}
+
+/**
+ * Checks if a row can be deleted from the proof
+ * @param line - the line to check
+ */
+export async function canDeleteRow(line: number) {
+	return (await ProofTable.canDeleteRow(line)).success;
 }

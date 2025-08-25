@@ -31,3 +31,7 @@ proof_table_print_rows([]).
 proof_table_print_rows([[Line, Term, Rule, LinesUsed, Replacements]|Rest]) :-
     format("~d~t~6|~w~t~80|~w~t~10|~w~t~15|~w~n", [Line, Term, Rule, LinesUsed, Replacements]),
     proof_table_print_rows(Rest).
+
+proof_table_can_delete_row(LineNumber) :-
+    % Check if any other row uses this line number as a parent
+    \+ (proof_row(_, _, _, Parents, _), member(LineNumber, Parents)).

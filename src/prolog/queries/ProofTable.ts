@@ -1,5 +1,5 @@
 import { PrologController } from '../PrologController';
-import type { ProofTableResult } from '../../types/prolog/PrologResult';
+import type { BooleanResult, ProofTableResult } from '../../types/prolog/PrologResult';
 import { compoundToString } from '../../types/prolog/Compound';
 
 const Queries = {
@@ -8,7 +8,8 @@ const Queries = {
 	REMOVE: (line: number) => `proof_table_remove(${line}).`,
 	GET: (line: number) => `proof_table_get(${line}, X).`,
 	CLEAR: `proof_table_clear.`,
-	PRINT: `proof_table_print.`
+	PRINT: `proof_table_print.`,
+	CAN_DELETE_ROW: (line: number) => `proof_table_can_delete_row(${line}).`
 };
 
 export const ProofTable = {
@@ -20,7 +21,7 @@ export const ProofTable = {
 	 * @param replacements - the replacements made in the proof (optional)
 	 */
 	async write(term: string, rule: string, lines: number[], replacements: string[] = []) {
-		(await PrologController.query(Queries.WRITE(term, rule, lines, replacements))).once();
+		await PrologController.queryOnce(Queries.WRITE(term, rule, lines, replacements));
 	},
 
 	/**
@@ -28,7 +29,7 @@ export const ProofTable = {
 	 * @param line - the line number to remove
 	 */
 	async remove(line: number) {
-		(await PrologController.query(Queries.REMOVE(line))).once();
+		await PrologController.queryOnce(Queries.REMOVE(line));
 	},
 
 	/**
@@ -36,7 +37,7 @@ export const ProofTable = {
 	 * @param line - the line number of the proof to retrieve
 	 */
 	async get(line: number) {
-		const result = (await PrologController.query(Queries.GET(line))).once() as ProofTableResult;
+		const result = await PrologController.queryOnce<ProofTableResult>(Queries.GET(line));
 
 		if (!result) {
 			console.warn(`No proof found for line ${line}`);
@@ -50,13 +51,21 @@ export const ProofTable = {
 	 * Clears the proof_table in Prolog
 	 */
 	async clear() {
-		(await PrologController.query(Queries.CLEAR)).once();
+		await PrologController.queryOnce(Queries.CLEAR);
 	},
 
 	/**
 	 * Prints the proof_table from Prolog
 	 */
 	async print() {
-		(await PrologController.query(Queries.PRINT)).once();
+		await PrologController.queryOnce(Queries.PRINT);
+	},
+
+	/**
+	 * Checks if a row can be deleted from the proof_table in Prolog
+	 * @param line - the line number to check
+	 */
+	async canDeleteRow(line: number) {
+		return await PrologController.queryOnce<BooleanResult>(Queries.CAN_DELETE_ROW(line));
 	}
 };

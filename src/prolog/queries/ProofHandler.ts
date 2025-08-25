@@ -25,9 +25,9 @@ export const ProofHandler = {
 	 * @param params - Array of parameters to use with the rule
 	 */
 	async prove(premises: string[], rule: IRule, params: string[]) {
-		const results = (
-			await PrologController.query(Queries.PROVE(premises, rule, params))
-		).all() as ProveResult[];
+		const results = await PrologController.queryAll<ProveResult>(
+			Queries.PROVE(premises, rule, params)
+		);
 
 		return results.map((r) => compoundToString(PrologController.parsePrologCompound(r.X)));
 	},
@@ -38,9 +38,11 @@ export const ProofHandler = {
 	async hasContradiction() {
 		const proofPFL = get(solverContent).proof.map((p) => p.tree?.toPrologFormat() ?? '');
 
-		const result = (
-			await PrologController.query(Queries.CONFLICT(proofPFL))
-		).once() as ContradictionResult;
+		const result = await PrologController.queryOnce<ContradictionResult>(
+			Queries.CONFLICT(proofPFL)
+		);
+
+		if (!result) return false;
 
 		if (typeof result.Z === 'string') {
 			result.Z = result.Z === 'true';
@@ -50,9 +52,11 @@ export const ProofHandler = {
 	},
 
 	async substitute(theoremPFL: string, oldVars: string[], newVars: string[]) {
-		const result = (
-			await PrologController.query(Queries.SUBSTITUTE(theoremPFL, oldVars, newVars))
-		).once() as SubstitutionResult;
+		const result = await PrologController.queryOnce<SubstitutionResult>(
+			Queries.SUBSTITUTE(theoremPFL, oldVars, newVars)
+		);
+
+		if (!result) return '';
 
 		return compoundToString(PrologController.parsePrologCompound(result.X));
 	}

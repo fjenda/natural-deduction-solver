@@ -5,6 +5,7 @@
 	import { NDRule } from '../../../rules/DeductionRule';
 	import { ParseStrategy } from '../../../../types/ParseStrategy';
 	import { showToast } from '../../../utils/showToast';
+	import { canDeleteRow } from '../../services/proofService';
 
 	export let line: number;
 	export let formula: string;
@@ -87,6 +88,15 @@
 	$: mathmlFormula = PrettySyntaxer.toMathML(formula);
 
 	$: ruleText = appliedRuleToString(rule);
+
+	let removable = false;
+	$: if (!premise) {
+		removable = false;
+	} else {
+		canDeleteRow(line).then((result) => {
+			removable = result;
+		});
+	}
 </script>
 
 <a class="row" class:highlighted class:usable class:invalid on:click={selectRow} role="button">
@@ -145,8 +155,8 @@
 			</button>
 			<button
 				class="action-button delete-button"
-				class:disabled={premise}
-				disabled={premise}
+				class:disabled={!removable}
+				disabled={!removable}
 				aria-label="Delete"
 				on:click|stopPropagation={onDelete}
 			>

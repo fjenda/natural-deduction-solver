@@ -19,10 +19,10 @@
 		<input type="text" {placeholder} name="modal-input" bind:this={modalInput} />
 	</div>
 	<div slot="buttons">
-		<button class="button" on:click={close}>Cancel</button>
+		<button class="button" onclick={close}>Cancel</button>
 		<button
 			class="button"
-			on:click={() => {
+			onclick={() => {
 				onConfirm(modalInput);
 				close();
 			}}>Confirm</button

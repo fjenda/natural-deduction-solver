@@ -28,16 +28,17 @@
 		<MathMLViewer value={row.value} />
 		<input type="text" {placeholder} name="modal-input" bind:this={modalInput} />
 	</div>
+	<a href="javascript:;">Help</a>
 	<div slot="buttons">
 		<button
 			class="button"
-			on:click={() => {
+			onclick={() => {
 				close();
 			}}>Cancel</button
 		>
 		<button
 			class="button"
-			on:click={() => {
+			onclick={() => {
 				onConfirm(modalInput);
 				close();
 			}}>Confirm</button

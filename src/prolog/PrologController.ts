@@ -12,9 +12,12 @@ import args_table from './pl/args_table.pl?raw';
  * PrologController is a singleton class that manages the SWIPL instance
  * and provides utility methods to interact with it.
  * @property {SWIPLModule | null} module - The SWIPL instance.
+ * @property {Promise<unknown>} queryLock - A lock to ensure queries are executed sequentially.
  */
 export class PrologController {
 	private static module: SWIPLModule | null = null;
+
+	private static queryLock: Promise<unknown> = Promise.resolve();
 
 	/**
 	 * Get the SWIPL instance.
@@ -59,7 +62,14 @@ export class PrologController {
 	 */
 	public static async query(query: string): Promise<PrologQueryWrapper> {
 		const instance = await PrologController.instance();
-		return new PrologQueryWrapper(instance.prolog.query(query));
+
+		// chain queries through queryLock
+		PrologController.queryLock = PrologController.queryLock.then(async () => {
+			return new PrologQueryWrapper(instance.prolog.query(query));
+		});
+
+		// wait for this query wrapper
+		return PrologController.queryLock as Promise<PrologQueryWrapper>;
 	}
 
 	/**
@@ -81,5 +91,25 @@ export class PrologController {
 		}
 
 		return { functor: String(compound), args: [] };
+	}
+
+	public static queryOnce<T = unknown>(q: string): Promise<T | null> {
+		PrologController.queryLock = PrologController.queryLock.then(async () => {
+			const instance = await PrologController.instance();
+			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
+			return wrapper.once() as Promise<T | null>;
+		});
+
+		return PrologController.queryLock as Promise<T | null>;
+	}
+
+	public static queryAll<T = unknown>(q: string): Promise<T[]> {
+		PrologController.queryLock = PrologController.queryLock.then(async () => {
+			const instance = await PrologController.instance();
+			const wrapper = new PrologQueryWrapper(instance.prolog.query(q));
+			return wrapper.all() as unknown as Promise<T[]>;
+		});
+
+		return PrologController.queryLock as Promise<T[]>;
 	}
 }

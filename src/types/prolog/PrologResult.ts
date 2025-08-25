@@ -19,6 +19,10 @@ export interface ProofTableResult {
 	X: unknown;
 }
 
+export interface BooleanResult {
+	success: boolean;
+}
+
 export interface ArgsTableResult {
 	X: ArgsTableRow[];
 }

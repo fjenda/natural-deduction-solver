@@ -17,7 +17,7 @@ export const ArgsTable = {
 	 * @param term - the term to write
 	 */
 	async write(term: string) {
-		(await PrologController.query(Queries.WRITE(term))).once();
+		await PrologController.queryOnce(Queries.WRITE(term));
 	},
 
 	/**
@@ -27,7 +27,7 @@ export const ArgsTable = {
 	 * @param args - the arguments to remove
 	 */
 	async remove(term: string, argsCount: number, args: string[]) {
-		(await PrologController.query(Queries.REMOVE(term, argsCount, args))).once();
+		await PrologController.queryOnce(Queries.REMOVE(term, argsCount, args));
 	},
 
 	/**
@@ -36,9 +36,9 @@ export const ArgsTable = {
 	 * @param argsCount - the number of arguments to filter by
 	 */
 	async getMatching(functor: string, argsCount: number) {
-		const results = (
-			await PrologController.query(Queries.GET(functor, argsCount))
-		).once() as ArgsTableResult;
+		const results = await PrologController.queryOnce<ArgsTableResult>(
+			Queries.GET(functor, argsCount)
+		);
 
 		if (!results) {
 			console.warn(`No results found for get_matching(${functor}, ${argsCount})`);
@@ -60,13 +60,13 @@ export const ArgsTable = {
 	 * Clears the args_table in Prolog
 	 */
 	async clear() {
-		(await PrologController.query(Queries.CLEAR)).once();
+		await PrologController.queryOnce(Queries.CLEAR);
 	},
 
 	/**
 	 * Prints the args_table from Prolog
 	 */
 	async print() {
-		(await PrologController.query(Queries.PRINT)).once();
+		await PrologController.queryOnce(Queries.PRINT);
 	}
 };

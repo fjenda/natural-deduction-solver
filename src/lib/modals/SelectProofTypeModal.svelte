@@ -14,14 +14,14 @@
 	<div slot="buttons">
 		<button
 			class="button"
-			on:click={() => {
+			onclick={() => {
 				directProof();
 				close();
 			}}>Direct Proof</button
 		>
 		<button
 			class="button"
-			on:click={() => {
+			onclick={() => {
 				indirectProof();
 				close();
 			}}>Indirect Proof</button
