@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { PrettySyntaxer } from '../../parsers/PrettySyntaxer';
-	import { highlightedRows, logicMode, selectedRows } from '../../../../stores/solverStore';
+	import {
+		highlightedRows,
+		logicMode,
+		selectedRows,
+		solverContent
+	} from '../../../../stores/solverStore';
 	import { type AppliedRule, appliedRuleToString } from '../../../../types/AppliedRule';
 	import { NDRule } from '../../../rules/DeductionRule';
 	import { ParseStrategy } from '../../../../types/ParseStrategy';
@@ -90,6 +95,8 @@
 	$: ruleText = appliedRuleToString(rule);
 
 	$: removable = premise ? false : canDeleteRow(line);
+
+	$: $solverContent;
 </script>
 
 <a class="row" class:highlighted class:usable class:invalid on:click={selectRow} role="button">

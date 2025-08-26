@@ -141,7 +141,7 @@ export async function addProof(
 		await ArgsTable.write(r);
 	}
 
-	await ProofTable.print();
+	// await ProofTable.print();
 	// await ArgsTable.print();
 	// await ArgsTable.getMatching('predicate(p)', 1);
 }
@@ -151,6 +151,7 @@ export async function addProof(
  * @param line - the line to check
  */
 export async function canDeleteRow(line: number) {
+	console.log('Checking if row can be deleted:', line);
 	return await ProofTable.canDeleteRow(line);
 }
 
