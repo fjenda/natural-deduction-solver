@@ -1,6 +1,9 @@
 % proof_row(LineNumber, Term, RuleUsed, LineNumbersUsed, Replacements).
 :- dynamic proof_row/5.
 
+proof_table_get_all_rows(Rows) :-
+    findall([Line, Term, Rule, LinesUsed, Replacements], proof_row(Line, Term, Rule, LinesUsed, Replacements), Rows).
+
 proof_table_add(Term, RuleUsed, LineNumbersUsed) :-
     proof_table_add(Term, RuleUsed, LineNumbersUsed, []).
 
@@ -20,7 +23,7 @@ proof_table_clear :-
 
 % Print the proof table in a formatted way
 proof_table_print :-
-    findall([Line, Term, Rule, LinesUsed, Replacements], proof_row(Line, Term, Rule, LinesUsed, Replacements), Rows),
+    proof_table_get_all_rows(Rows),
     format("\n~`=t Proof Table ~100|~n"),
     format("~w~t~6|~w~t~80|~w~t~10|~w~t~15|~w~n", ["Line", "Term", "Rule Used", "Lines Used", "Replacements"]),
     format("~`=t~100|~n"),
@@ -35,7 +38,6 @@ proof_table_print_rows([[Line, Term, Rule, LinesUsed, Replacements]|Rest]) :-
 proof_table_can_delete_row(LineNumber) :-
     % Check if any other row uses this line number as a parent
     \+ (proof_row(_, _, _, Parents, _), member(LineNumber, Parents)).
-
 
 % Succeeds if all existential eliminations have a corresponding introduction
 proof_table_existential_elimination_valid :-

@@ -9,6 +9,8 @@ import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { addProofToStore } from '../utils/proofUtils';
 import { showToast } from '../../utils/showToast';
+import type { Solution } from '../Solution';
+import type { TreeRuleType } from '../../../types/TreeRuleType';
 
 /**
  * Proves the selected row the user selected using the Prolog engine
@@ -141,18 +143,17 @@ export async function addProof(
 		await ArgsTable.write(r);
 	}
 
-	// await ProofTable.print();
+	await ProofTable.print();
 	// await ArgsTable.print();
-	// await ArgsTable.getMatching('predicate(p)', 1);
 }
 
 /**
  * Checks if a row can be deleted from the proof
  * @param line - the line to check
+ * @param proof - proof passed for recomputation
  */
-export async function canDeleteRow(line: number) {
-	console.log('Checking if row can be deleted:', line);
-	return await ProofTable.canDeleteRow(line);
+export function canDeleteRow(line: number, proof: TreeRuleType[]) {
+	return ProofTable.canDeleteRow(line);
 }
 
 /**
@@ -160,4 +161,8 @@ export async function canDeleteRow(line: number) {
  */
 export async function isExistentialEliminationValid() {
 	return await ProofTable.isExistentialEliminationValid();
+}
+
+export async function getSuggestionsForTerm(term: string) {
+	return await ArgsTable.getMatching(term);
 }

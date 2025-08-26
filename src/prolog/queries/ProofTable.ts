@@ -3,6 +3,7 @@ import type { BooleanResult, ProofTableResult } from '../../types/prolog/PrologR
 import { compoundToString } from '../../types/prolog/Compound';
 
 const Queries = {
+	GET_ALL: `proof_table_get_all_rows(X).`,
 	WRITE: (term: string, rule: string, lines: number[], replacements: string[] = []) =>
 		`proof_table_add(${term}, '${rule}', [${lines.join(',')}], [${replacements.join(',')}]).`,
 	REMOVE: (line: number) => `proof_table_remove(${line}).`,
@@ -14,6 +15,12 @@ const Queries = {
 };
 
 export const ProofTable = {
+	async getAll() {
+		const result = await PrologController.queryOnce<ProofTableResult[]>(Queries.GET_ALL);
+
+		return result?.map((r) => compoundToString(PrologController.parsePrologCompound(r.X)));
+	},
+
 	/**
 	 * Writes a term to the proof_table in Prolog
 	 * @param term - the term to write
@@ -68,7 +75,6 @@ export const ProofTable = {
 	 */
 	async canDeleteRow(line: number) {
 		const result = await PrologController.queryOnce<BooleanResult>(Queries.CAN_DELETE_ROW(line));
-
 		if (!result) return false;
 
 		return result.success;

@@ -14,7 +14,7 @@ import { modals } from 'svelte-modals';
 import FillVariablesModal from '../../modals/FillVariablesModal.svelte';
 import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 import { showToast } from '../../utils/showToast';
-import { substitute } from '../services/proofService';
+import { isExistentialEliminationValid, substitute } from '../services/proofService';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { solving } from '../../../stores/stateStore';
@@ -120,14 +120,16 @@ export async function removeRow(index: number) {
 		return content;
 	});
 
-	// remove from args table
-	const row = await ProofTable.get(index + 1);
-	// await // remove from proof table
+	// remove from the proof table
 	await ProofTable.remove(index + 1);
+	await ArgsTable.rebuild();
+
+	// await ArgsTable.print();
+	// await ProofTable.print();
 }
 
 /**
- * Checks if the final proof is correct, updates store and shows toasts.
+ * Checks if the final proof is correct, updates the store and shows toasts.
  */
 export async function checkProof() {
 	const contradiction = await ProofHandler.hasContradiction();
@@ -135,7 +137,7 @@ export async function checkProof() {
 	const isPredicateLogic = get(logicMode) === ParseStrategy.PREDICATE;
 
 	if (isPredicateLogic) {
-		const validProof = await ProofTable.isExistentialEliminationValid();
+		const validProof = await isExistentialEliminationValid();
 		if (!validProof) {
 			showToast('Proof contains an invalid use of Existential Elimination', 'error');
 			return;

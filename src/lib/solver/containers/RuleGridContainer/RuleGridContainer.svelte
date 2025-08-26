@@ -18,8 +18,9 @@
 	import InputModal from '../../../modals/InputModal.svelte';
 	import { PrettySyntaxer } from '../../parsers/PrettySyntaxer';
 	import { PremiseParser } from '../../parsers/PremiseParser';
-	import { proveProlog, usable } from '../../services/proofService';
+	import { getSuggestionsForTerm, proveProlog, usable } from '../../services/proofService';
 	import type { TreeRuleType } from '../../../../types/TreeRuleType';
+	import PickTheoremVariantModal from '../../../modals/PickTheoremVariantModal.svelte';
 
 	const getProofAndSelection = () => {
 		const proof = get(solverContent).proof;
@@ -40,7 +41,24 @@
 		return formula;
 	}
 
-	function openQuantifierModal(
+	function pickVariableToReplaceModal(variables: string[] = []): Promise<string> {
+		return new Promise((resolve) => {
+			const variableButtons = variables.map((variable) => ({
+				text: variable,
+				action: () => {
+					resolve(variable);
+					modals.closeAll();
+				}
+			}));
+
+			modals.open(PickTheoremVariantModal, {
+				title: 'Select the variable to replace',
+				theoremVariantButtons: variableButtons
+			});
+		});
+	}
+
+	async function openQuantifierModal(
 		rule: DeductionRule,
 		premises: string[],
 		selected: number[],
@@ -48,15 +66,21 @@
 		isElimination: boolean
 	) {
 		const rowTree = proof[selected[0] - 1].tree;
-		const placeholder = isElimination
-			? rowTree?.children[1]?.value
-			: [...(rowTree?.variables ?? [])][0];
+		const variables = rowTree?.variables;
+
+		let placeholder = isElimination ? rowTree?.children[1]?.value : [...(variables ?? [])][0];
 
 		if (!placeholder) {
 			return showToast('No variables found in the formula', 'error');
 		}
 
-		modals.open(ReplaceQuantifierVariableModal, {
+		if (!isElimination && variables && variables.size > 1) {
+			placeholder = await pickVariableToReplaceModal([...variables]);
+		}
+
+		const suggestions = await getSuggestionsForTerm(premises[0]);
+
+		await modals.open(ReplaceQuantifierVariableModal, {
 			title: isElimination ? 'Replace Variable in Quantifier' : 'Introduce Variable for Quantifier',
 			row: proof[selected[0] - 1],
 			placeholder,
@@ -75,7 +99,8 @@
 				proveProlog(premises, rule, selected, extraArgs).then(() => {
 					selectedRows.set([]);
 				});
-			}
+			},
+			suggestions
 		});
 	}
 

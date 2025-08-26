@@ -12,10 +12,15 @@ args_table_remove(PremiseOrFunction, NumArgs, Args) :-
     retract(args_row(PremiseOrFunction, NumArgs, Args)).
 
 % Get all rows that match a specific FunctorTerm and Arity
-args_table_get(FunctorTerm, Arity, Matches) :-
-    findall([FunctorTerm, Arity, Args],
-        args_row(FunctorTerm, Arity, Args),
+args_table_get(PremiseOrFunction, NumArgs, _Args, Matches) :-
+    findall([PremiseOrFunction, NumArgs, Args],
+        args_row(PremiseOrFunction, NumArgs, Args),
         Matches).
+
+%args_table_get(FunctorTerm, Arity, Matches) :-
+%    findall([FunctorTerm, Arity, Args],
+%        args_row(FunctorTerm, Arity, Args),
+%        Matches).
 
 % Clear the args_row table
 args_table_clear :-
@@ -36,32 +41,101 @@ args_table_print_rows([[F, N, A]|Rest]) :-
     format("~w~t~20|~d~t~35|~w~n", [F, N, A]),
     args_table_print_rows(Rest).
 
-% Recursive term traversal
-% Extract arguments from a term and add them to the args_row table
-args_table_extract_from_term_and_add(Term) :-
+% Recursive term traversal with customizable action
+args_table_extract_from_term(Action, Term) :-
     (   Term =.. [predicate, PredTerm],
         PredTerm =.. [Name | Args],
         length(Args, N),
-        args_table_add(predicate(Name), N, Args)
+        call(Action, predicate(Name), N, Args)
     ;   Term =.. [function, FuncTerm],
         FuncTerm =.. [Name | Args],
         length(Args, N),
-        args_table_add(function(Name), N, Args)
+        call(Action, function(Name), N, Args)
     ;   Term =.. [_Functor | Args],
-        maplist(args_table_extract_from_term_and_add, Args)
+        maplist(args_table_extract_from_term(Action), Args)
     ;   true
     ).
 
+args_table_extract_from_term_and_add(Term) :-
+    args_table_extract_from_term(args_table_add, Term).
+
 args_table_extract_from_term_and_remove(Term) :-
-    (   Term =.. [predicate, PredTerm],
-        PredTerm =.. [Name | Args],
+    args_table_extract_from_term(args_table_remove, Term).
+
+% Recursive traversal for getters (returns a deduplicated list of Matches)
+%args_table_extract_from_term_and_get(Term, Matches) :-
+%    (   Term =.. [predicate, PredTerm]
+%    ->  PredTerm =.. [Name | Args],
+%        length(Args, N),
+%        args_table_get(predicate(Name), N, Args, Matches0),
+%        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+%        append([Matches0 | SubMatchesLists], MatchesAll)
+%    ;   Term =.. [function, FuncTerm]
+%    ->  FuncTerm =.. [Name | Args],
+%        length(Args, N),
+%        args_table_get(function(Name), N, Args, Matches0),
+%        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+%        append([Matches0 | SubMatchesLists], MatchesAll)
+%    ;   Term =.. [_Functor | Args]
+%    ->  maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+%        append(SubMatchesLists, MatchesAll)
+%    ;   MatchesAll = []
+%    ),
+%    sort(MatchesAll, Matches),  % remove duplicates
+%    format("Extracted Matches: ~w~n", [Matches]).
+
+% Collect the functor/arity/args directly from the term itself
+triples_from_term(Term, Triples) :-
+    (   Term =.. [predicate, PredTerm]
+    ->  PredTerm =.. [Name | Args],
         length(Args, N),
-        args_table_remove(predicate(Name), N, Args)
-    ;   Term =.. [function, FuncTerm],
-        FuncTerm =.. [Name | Args],
+        Triples0 = [[predicate(Name), N, Args]],
+        maplist(triples_from_term, Args, SubTriplesLists),
+        append([Triples0 | SubTriplesLists], TriplesAll)
+    ;   Term =.. [function, FuncTerm]
+    ->  FuncTerm =.. [Name | Args],
         length(Args, N),
-        args_table_remove(function(Name), N, Args)
-    ;   Term =.. [_Functor | Args],
-        maplist(args_table_extract_from_term_and_remove, Args)
-    ;   true
-    ).
+        Triples0 = [[function(Name), N, Args]],
+        maplist(triples_from_term, Args, SubTriplesLists),
+        append([Triples0 | SubTriplesLists], TriplesAll)
+    ;   Term =.. [_Functor | Args]
+    ->  maplist(triples_from_term, Args, SubTriplesLists),
+        append(SubTriplesLists, TriplesAll)
+    ;   TriplesAll = []
+    ),
+    sort(TriplesAll, Triples).  % deduplicate
+
+% Recursive traversal for getters (returns deduplicated matches not already in the term)
+args_table_extract_from_term_and_get(Term, Matches) :-
+    (   Term =.. [predicate, PredTerm]
+    ->  PredTerm =.. [Name | Args],
+        length(Args, N),
+        args_table_get(predicate(Name), N, Args, Matches0),
+        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+        append([Matches0 | SubMatchesLists], MatchesAll)
+    ;   Term =.. [function, FuncTerm]
+    ->  FuncTerm =.. [Name | Args],
+        length(Args, N),
+        args_table_get(function(Name), N, Args, Matches0),
+        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+        append([Matches0 | SubMatchesLists], MatchesAll)
+    ;   Term =.. [_Functor | Args]
+    ->  maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
+        append(SubMatchesLists, MatchesAll)
+    ;   MatchesAll = []
+    ),
+    sort(MatchesAll, AllMatches),
+
+    % compute which triples are already in the term
+    triples_from_term(Term, TermTriples),
+
+    % remove them from results
+    subtract(AllMatches, TermTriples, Matches).
+
+
+% Proof is a list of rows
+args_table_rebuild :-
+    args_table_clear,
+    proof_table_get_all_rows(Proof),
+%    for each row in proof extract args and add to table
+    maplist(args_table_extract_from_term_and_add, Proof).

@@ -1,3 +1,10 @@
+% Do not substitute the bound variable (the binder); substitute inside the body only.
+substitute(forall(Binder, Body), Vars, NewVars, forall(Binder, NewBody)) :-
+    substitute(Body, Vars, NewVars, NewBody).
+
+substitute(exists(Binder, Body), Vars, NewVars, exists(Binder, NewBody)) :-
+    substitute(Body, Vars, NewVars, NewBody).
+
 % Base case: Replace a variable if it appears in Vars.
 substitute(Var, Vars, NewVars, NewVar) :-
     atom(Var), % Symbolic variable

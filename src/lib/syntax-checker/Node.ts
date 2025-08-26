@@ -166,6 +166,7 @@ export class Node {
 		const ops = this.operators();
 		if (
 			first &&
+			this.type !== NodeType.QUANTIFIER &&
 			ops.size <= 1 &&
 			(ops.has(Operator.CONJUNCTION) || ops.has(Operator.DISJUNCTION))
 		) {
@@ -186,6 +187,29 @@ export class Node {
 			this.type === NodeType.PREDICATE ||
 			this.type === NodeType.FUNCTION
 		) {
+			return this;
+		}
+
+		if (this.type === NodeType.QUANTIFIER) {
+			let body = this.children[2];
+
+			// unwrap unnecessary parentheses when they wrap the whole body
+			if (body.type === NodeType.PARENTHESES_BLOCK && body.children.length === 3) {
+				// typical structure: (expr) → children[1] is the actual expr
+				const maybeExpr = body.children[1];
+				if (maybeExpr) {
+					body = maybeExpr;
+				}
+			}
+
+			const brackets = new Node(NodeType.BRACKETS_BLOCK);
+			brackets.setChildren([
+				new Node(NodeType.BRACKET, Operator.LBRACKET),
+				body,
+				new Node(NodeType.BRACKET, Operator.RBRACKET)
+			]);
+
+			this.setChildren([this.children[0], this.children[1], brackets]);
 			return this;
 		}
 
@@ -211,10 +235,10 @@ export class Node {
 			return this.children[1].simplify();
 		}
 
-		// // if the node is a BracketsBlock, replace it with its middle child
-		// if (this.type === NodeType.BRACKETS_BLOCK && this.children.length === 3) {
-		//     return this.children[1].simplify();
-		// }
+		// if the node is a BracketsBlock, replace it with its middle child
+		if (this.type === NodeType.BRACKETS_BLOCK && this.children.length === 3) {
+			return this.children[1].simplify();
+		}
 
 		// otherwise, simplify the children recursively
 		this.children = this.children.map((child) => child.simplify());
@@ -329,7 +353,7 @@ export class Node {
 		if (!f.includes('(')) {
 			// the format is 'constant'
 
-			// if its upper-case slice the single quotes
+			// if its upper-case, slice the single quotes
 			if (f[0] === "'" && f[f.length - 1] === "'") {
 				return new Node(NodeType.CONSTANT, f.slice(1, -1));
 			}

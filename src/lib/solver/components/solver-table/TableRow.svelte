@@ -26,7 +26,6 @@
 		return PrettySyntaxer.clean(s);
 	}
 
-	$: highlighted = $selectedRows.includes(line);
 	function selectRow() {
 		// if the row is editable, do not highlight
 		if (editable) return;
@@ -84,6 +83,8 @@
 		}, 0);
 	}
 
+	$: highlighted = $selectedRows.includes(line);
+
 	// a row is usable if its line number is inside the highlightedRows store
 	$: usable = $highlightedRows.includes(line);
 
@@ -94,9 +95,15 @@
 
 	$: ruleText = appliedRuleToString(rule);
 
-	$: removable = premise ? false : canDeleteRow(line);
-
-	$: $solverContent;
+	let removable = false;
+	$: (async () => {
+		if (premise) {
+			removable = false;
+		} else {
+			// eslint-disable-next-line svelte/infinite-reactive-loop
+			removable = await canDeleteRow(line, $solverContent.proof);
+		}
+	})();
 </script>
 
 <a class="row" class:highlighted class:usable class:invalid on:click={selectRow} role="button">

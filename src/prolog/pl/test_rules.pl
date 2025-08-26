@@ -68,7 +68,7 @@ forall_intro([Formula, Term, Var], forall(Var, Result)) :-
     % Ensure IU is allowed based on leaf ancestry
     proof_row(Line, Formula, _, _, _),
     iu_allowed(Line),  % restriction check
-    write('IU allowed for line: '), write(Line), nl,
+%    write('IU allowed for line: '), write(Line), nl,
     substitute(Formula, [Term], [Var], Result).
 
 
