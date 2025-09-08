@@ -13,7 +13,7 @@
 		overflow-y: auto;
 		border: 1px solid var(--dark-border-color);
 		border-radius: 0.5rem;
-		background: #121212;
+		background: var(--dark-bg-color);
 	}
 
 	@media (prefers-color-scheme: light) {

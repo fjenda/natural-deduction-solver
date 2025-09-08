@@ -140,7 +140,7 @@
 		width: 100%;
 		height: 3.5rem;
 		border-radius: 0.5rem;
-		background: #121212;
+		background: var(--dark-bg-color);
 		border: 1px solid var(--dark-border-color);
 		position: relative;
 		display: flex;
@@ -159,7 +159,6 @@
 	}
 
 	input[disabled] {
-		/*background-color: #121212;*/
 		color: inherit;
 	}
 

@@ -31,12 +31,17 @@ export class FormulaComparer {
 		const tree1 = f1.tree.simplify();
 		const tree2 = f2.tree.simplify();
 
+		// if the prolog format of the trees is the same, return true
+		if (tree1.toPrologFormat() === tree2.toPrologFormat()) {
+			return true;
+		}
+
 		// if they are the same, but one lacks the structure of the parentheses, for example:
 		// `a ∧ b ⊃ c ∨ d` is the same as `((a ∧ b) ⊃ (c ∨ d))`
 		// we remove the parentheses blocks and after that compare the trees
 
 		// first we check the strings without the parentheses
-		// if they are different then there's no need to check the actual structure of the trees
+		// if they are different, then there's no need to check the actual structure of the trees
 		// also we check if the trees are defined
 		const f1NoParen = f1.value.replace(/(\(|\))/g, '');
 		const f2NoParen = f2.value.replace(/(\(|\))/g, '');

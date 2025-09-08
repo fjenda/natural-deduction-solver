@@ -109,7 +109,7 @@
 		overflow: hidden auto;
 		border-radius: 0.5rem;
 		border: 1px solid var(--dark-border-color);
-		background-color: #121212;
+		background-color: var(--dark-bg-color);
 		padding: 0.5rem;
 	}
 
