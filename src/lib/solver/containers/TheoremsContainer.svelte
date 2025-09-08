@@ -3,9 +3,9 @@
 	import { addTheorem, theorems } from '../../../stores/theoremsStore';
 	import { theoremData } from '../../../stores/solverStore';
 	import TheoremSlot from '../../rules/components/TheoremSlot.svelte';
-	import StyledButton from '../../components/StyledButton.svelte';
 	import { solving } from '../../../stores/stateStore';
 	import { fillVariables } from '../actions/proofActions';
+	import StyledButton from '../../components/StyledButton.svelte';
 </script>
 
 <h2>Theorems</h2>

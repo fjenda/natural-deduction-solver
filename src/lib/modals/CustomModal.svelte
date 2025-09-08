@@ -39,10 +39,10 @@
 	}
 
 	.contents {
-		background-color: var(--dark-element-color);
+		background-color: var(--surface);
 		margin: 15% auto;
 		padding: 1.5rem;
-		border: 1px solid var(--dark-border-color);
+		border: 1px solid var(--border);
 		width: fit-content;
 		max-width: 50rem;
 		border-radius: 0.5rem;
@@ -50,7 +50,7 @@
 
 	.header {
 		text-align: center;
-		color: var(--dark-text-color);
+		color: var(--text-primary);
 	}
 
 	.body {
@@ -74,16 +74,5 @@
 	:global(.footer div) {
 		display: flex;
 		gap: 1rem;
-	}
-
-	@media screen and (prefers-color-scheme: light) {
-		.contents {
-			background-color: var(--light-element-color);
-			border: 1px solid var(--light-border-color);
-		}
-
-		.header {
-			color: var(--light-text-color);
-		}
 	}
 </style>

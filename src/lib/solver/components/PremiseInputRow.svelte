@@ -37,13 +37,14 @@
 		align-items: center;
 		border: none;
 		transition: color 0.2s;
+		background: none;
 	}
 
 	.premise-input-wrapper button:hover {
 		color: #ff0000;
 	}
 
-	.premise-input-wrapper button:disabled:hover {
+	.premise-input-wrapper button:disabled {
 		cursor: not-allowed;
 		color: rgba(255, 255, 255, 0.3);
 	}
@@ -54,12 +55,8 @@
 		border: none;
 	}
 
-	@media (prefers-color-scheme: light) {
-		.premise-input-wrapper button {
-			background: var(--light-bg-color);
-		}
-
-		.premise-input-wrapper button:disabled:hover {
+	:global(html):not(.dark-mode) {
+		.premise-input-wrapper button:disabled {
 			color: rgba(16, 16, 16, 0.3);
 		}
 	}

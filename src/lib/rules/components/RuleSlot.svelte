@@ -64,25 +64,14 @@
 		padding: 1rem;
 		cursor: pointer;
 		border-radius: 0.5rem;
-		border: 1px solid var(--dark-border-color);
-		background: var(--dark-element-color);
+		border: 1px solid var(--border);
+		background: var(--surface);
+		color: var(--text-primary);
 	}
 
 	.rule-slot:hover,
 	.rule-slot:focus {
-		border: 1px solid var(--light-border-color);
-	}
-
-	@media (prefers-color-scheme: light) {
-		.rule-slot {
-			border: 1px solid var(--light-border-color);
-			background: var(--light-element-color);
-		}
-
-		.rule-slot:hover,
-		.rule-slot:focus {
-			border: 1px solid var(--dark-border-color);
-		}
+		border: 1px solid var(--border);
 	}
 
 	@media screen and (max-width: 1200px) {

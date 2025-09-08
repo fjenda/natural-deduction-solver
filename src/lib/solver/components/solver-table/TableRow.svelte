@@ -181,8 +181,8 @@
 		align-items: center;
 		padding: 0.5rem;
 		border-radius: 0.5rem;
-		border: 1px solid var(--dark-border-color);
-		background: var(--dark-element-color);
+		border: 1px solid var(--border);
+		background: var(--surface);
 		font-family: monospace;
 		font-size: 1.35em;
 		text-decoration: none;
@@ -191,7 +191,7 @@
 	}
 
 	.row:hover {
-		background: var(--dark-bg-color);
+		background: var(--button-hover);
 	}
 
 	.row.highlighted.usable,
@@ -257,14 +257,14 @@
 
 	.row-input {
 		padding: 0.25rem 0.5rem;
-		border: 1px solid var(--dark-border-color);
-		color: var(--dark-text-color);
+		border: 1px solid var(--border);
+		color: var(--text-primary);
 		height: auto;
 	}
 
 	.separator {
 		width: 1px;
-		border-right: 1px solid var(--dark-border-color);
+		border-right: 1px solid var(--border);
 	}
 
 	.action-button {
@@ -280,6 +280,7 @@
 
 	.action-button.disabled {
 		cursor: not-allowed;
+		opacity: 0.5;
 	}
 
 	.check-button:hover:not(.disabled) {
@@ -304,9 +305,9 @@
 		color: black;
 		padding: 0.15rem;
 		border-radius: 0 0 0.5rem 0.5rem;
-		border: 1px solid var(--dark-border-color);
+		border: 1px solid var(--border);
 		border-top: 0;
-		background-color: var(--dark-bg-color);
+		background-color: var(--background);
 	}
 
 	.operator-input button {
@@ -315,13 +316,13 @@
 		font-size: 0.9em;
 		font-family: monospace;
 		margin: 0.15rem;
-		background-color: var(--dark-element-color);
-		color: var(--dark-text-color);
+		background-color: var(--surface);
+		color: var(--text-primary);
 	}
 
 	.operator-input button:hover {
 		outline: none;
-		border: 1px solid var(--light-border-color);
+		border: 1px solid var(--border);
 	}
 
 	.line-content:focus-within .operator-input {
@@ -333,30 +334,7 @@
 		border-radius: 0.5rem 0.5rem 0 0.5rem;
 	}
 
-	@media screen and (prefers-color-scheme: light) {
-		.row {
-			background: var(--light-bg-color);
-			border: 1px solid var(--light-border-color);
-		}
-
-		.row:hover {
-			background: var(--light-element-color);
-		}
-
-		.row-input {
-			border: 1px solid var(--light-border-color);
-			color: var(--light-text-color);
-		}
-
-		.row-input:focus {
-			border: 1px solid var(--light-focus-color);
-			outline: none;
-		}
-
-		.separator {
-			border-right: 1px solid var(--light-border-color);
-		}
-
+	:global(html):not(.dark-mode) {
 		.row.highlighted {
 			border-color: #00c800;
 			outline: 1px solid #00c800;
@@ -365,21 +343,6 @@
 		.row.usable {
 			border-color: #ffcc00;
 			outline: 1px solid #ffcc00;
-		}
-
-		.operator-input button {
-			border: 1px solid var(--light-border-color);
-			background: var(--light-element-color);
-			color: var(--light-text-color);
-		}
-
-		.operator-input button:hover {
-			border: 1px solid var(--dark-border-color);
-		}
-
-		.operator-input {
-			background-color: var(--light-bg-color);
-			border: 1px solid var(--light-border-color);
 		}
 	}
 
@@ -401,7 +364,7 @@
 			width: 100%;
 			height: 1px;
 			border-right: none;
-			border-bottom: 1px solid var(--dark-border-color);
+			border-bottom: 1px solid var(--border);
 		}
 
 		.actions-container {

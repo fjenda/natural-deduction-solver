@@ -11,16 +11,9 @@
 		max-height: 300px;
 		padding: 0.5rem;
 		overflow-y: auto;
-		border: 1px solid var(--dark-border-color);
+		border: 1px solid var(--border);
 		border-radius: 0.5rem;
-		background: var(--dark-bg-color);
-	}
-
-	@media (prefers-color-scheme: light) {
-		.theorem-wrapper {
-			border: 1px solid #d1d1d1;
-			background-color: #fff;
-		}
+		background: var(--surface);
 	}
 
 	.theorems {

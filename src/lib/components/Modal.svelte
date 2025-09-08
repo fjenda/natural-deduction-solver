@@ -59,10 +59,10 @@
 	}
 
 	.modal-content {
-		background-color: var(--dark-element-color);
+		background-color: var(--surface);
 		margin: 15% auto;
 		padding: 1.5rem;
-		border: 1px solid var(--dark-border-color);
+		border: 1px solid var(--border);
 		width: fit-content;
 		max-width: 50rem;
 		border-radius: 0.5rem;
@@ -70,7 +70,7 @@
 
 	.modal-header {
 		text-align: center;
-		color: var(--dark-text-color);
+		color: var(--text-primary);
 	}
 
 	.modal-body {
@@ -91,16 +91,5 @@
 		padding: 0.8rem;
 		font-size: 1.2rem;
 		text-wrap: nowrap;
-	}
-
-	@media screen and (prefers-color-scheme: light) {
-		.modal-content {
-			background-color: var(--light-element-color);
-			border: 1px solid var(--light-border-color);
-		}
-
-		.modal-header {
-			color: var(--light-text-color);
-		}
 	}
 </style>

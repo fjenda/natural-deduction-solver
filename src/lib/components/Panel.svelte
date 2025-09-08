@@ -1,10 +1,17 @@
 <script lang="ts">
-	export let variant: 'fullwidth' | 'small' = 'fullwidth';
+	import type { Snippet } from 'svelte';
+
+	interface PanelProps {
+		variant: 'fullwidth' | 'small';
+		children: Snippet;
+	}
+
+	let { variant = 'fullwidth', children }: PanelProps = $props();
 </script>
 
 <div class="wrapper {variant}">
 	<div class="content">
-		<slot />
+		{@render children()}
 	</div>
 </div>
 
@@ -15,16 +22,9 @@
 		flex-direction: column;
 		/*height: 100%;*/
 		overflow: hidden;
-		background-color: var(--dark-element-color);
+		background-color: var(--surface);
 		border-radius: 0.5rem;
-		border: 1px solid var(--dark-border-color);
-	}
-
-	@media (prefers-color-scheme: light) {
-		.wrapper {
-			background-color: var(--light-element-color);
-			border: 1px solid var(--light-border-color);
-		}
+		border: 1px solid var(--border);
 	}
 
 	.content {

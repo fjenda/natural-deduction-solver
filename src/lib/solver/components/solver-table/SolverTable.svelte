@@ -108,8 +108,8 @@
 		flex: 1;
 		overflow: hidden auto;
 		border-radius: 0.5rem;
-		border: 1px solid var(--dark-border-color);
-		background-color: var(--dark-bg-color);
+		border: 1px solid var(--border);
+		background-color: var(--background);
 		padding: 0.5rem;
 	}
 
@@ -131,13 +131,6 @@
 	}
 
 	button.disabled:hover {
-		border: 1px solid var(--dark-border-color);
-	}
-
-	@media screen and (prefers-color-scheme: light) {
-		.table-wrapper {
-			border: 1px solid var(--light-border-color);
-			background: #efefef4d;
-		}
+		border: 1px solid var(--border);
 	}
 </style>

@@ -4,11 +4,11 @@
 	import { editState, solving } from '../../../stores/stateStore';
 	import { addPremise, solverContent } from '../../../stores/solverStore';
 	import PremiseInputContainer from './PremiseInputContainer.svelte';
-	import StyledButton from '../../components/StyledButton.svelte';
 	import AssignmentText from '../../components/AssignmentText.svelte';
 	import SolutionControlsContainer from './SolutionControlsContainer.svelte';
 	import SolverTable from '../components/solver-table/SolverTable.svelte';
 	import { onChangeConclusion, onChangeTheorem } from '../actions/proofActions';
+	import StyledButton from '../../components/StyledButton.svelte';
 </script>
 
 <SolverLayout>

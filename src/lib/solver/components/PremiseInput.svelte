@@ -117,8 +117,8 @@
 		color: black;
 		padding: 0.25rem;
 		border-radius: 0 0 0.5rem 0.5rem;
-		border: 1px solid var(--dark-border-color);
-		background-color: var(--dark-bg-color);
+		border: 1px solid var(--border);
+		background-color: var(--background);
 	}
 
 	.operator-input button {
@@ -127,21 +127,21 @@
 		font-size: 1.35em;
 		font-family: monospace;
 		margin: 0.15rem;
-		background-color: var(--dark-element-color);
-		color: var(--dark-text-color);
+		background-color: var(--surface);
+		color: var(--text-primary);
 	}
 
 	.operator-input button:hover {
 		outline: none;
-		border: 1px solid var(--light-border-color);
+		border: 1px solid var(--border);
 	}
 
 	.wrapper {
 		width: 100%;
 		height: 3.5rem;
 		border-radius: 0.5rem;
-		background: var(--dark-bg-color);
-		border: 1px solid var(--dark-border-color);
+		background: var(--surface);
+		border: 1px solid var(--border);
 		position: relative;
 		display: flex;
 	}
@@ -160,28 +160,6 @@
 
 	input[disabled] {
 		color: inherit;
-	}
-
-	@media (prefers-color-scheme: light) {
-		.operator-input button {
-			border: 1px solid var(--light-border-color);
-			background: var(--light-element-color);
-			color: var(--light-text-color);
-		}
-
-		.operator-input button:hover {
-			border: 1px solid var(--dark-border-color);
-		}
-
-		.operator-input {
-			background-color: var(--light-bg-color);
-			border: 1px solid var(--light-border-color);
-		}
-
-		.wrapper {
-			background: #ffffff;
-			border: 1px solid var(--light-border-color);
-		}
 	}
 
 	@media screen and (max-width: 950px) {

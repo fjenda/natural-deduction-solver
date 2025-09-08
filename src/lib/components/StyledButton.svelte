@@ -1,15 +1,25 @@
 <script lang="ts">
-	export let text: string = 'Click Me';
-	export let onClick: () => void;
-	export let disabled: boolean = false;
-	export let style: string = '';
-	export let hoverBorderColor: string = '#00ff00';
+	interface ButtonProps {
+		onClick: () => void;
+		text?: string;
+		disabled?: boolean;
+		hoverBorderColor?: string;
+		style?: string;
+	}
+
+	let {
+		text = 'Click Me',
+		onClick,
+		disabled = false,
+		style = '',
+		hoverBorderColor = '#00ff00'
+	}: ButtonProps = $props();
 </script>
 
 <button
 	class="btn"
 	style={`--hover-color: ${hoverBorderColor}; ${style}`}
-	on:click={onClick}
+	onclick={onClick}
 	{disabled}
 >
 	{text}
@@ -23,8 +33,6 @@
 		&:focus[disabled],
 		&:hover[disabled] {
 			cursor: not-allowed;
-			color: #ffffff4d;
-			border: 1px solid var(--dark-border-color);
 		}
 
 		&:focus,
@@ -39,21 +47,6 @@
 		.btn {
 			font-size: 0.9rem;
 			height: auto;
-		}
-	}
-
-	@media (prefers-color-scheme: light) {
-		.btn {
-			&:hover {
-				color: var(--hover-color);
-				border: 1px solid var(--hover-color);
-			}
-
-			&:focus[disabled],
-			&:hover[disabled] {
-				color: #1010104c;
-				border: 1px solid var(--light-border-color);
-			}
 		}
 	}
 </style>

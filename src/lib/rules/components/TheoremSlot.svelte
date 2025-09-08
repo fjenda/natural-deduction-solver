@@ -110,9 +110,9 @@
 		width: 100%;
 		height: 100%;
 		padding: 1rem;
-		background-color: var(--dark-element-color);
+		background-color: var(--surface);
 		border-radius: 0.5rem;
-		outline: 1px solid var(--dark-border-color);
+		outline: 1px solid var(--border);
 		display: grid;
 		grid-template-columns: 1fr auto;
 		gap: 1rem;
@@ -123,7 +123,7 @@
 
 	.theorem-slot:hover,
 	.theorem-slot:focus {
-		outline: 1px solid var(--light-border-color);
+		outline: 1px solid var(--border);
 	}
 
 	.theorem-slot:hover {
@@ -146,9 +146,9 @@
 		width: 100%;
 		padding: 0.5rem;
 		border: none;
-		outline: 1px solid var(--dark-border-color);
+		outline: 1px solid var(--border);
 		border-radius: 0.25rem;
-		background-color: var(--dark-element-color);
+		background-color: var(--surface);
 		color: #fff;
 	}
 
@@ -191,23 +191,5 @@
 
 	.theorem-slot .actions button:focus {
 		outline: none;
-	}
-
-	@media (prefers-color-scheme: light) {
-		.theorem-slot {
-			background-color: var(--light-element-color);
-			outline: 1px solid var(--light-border-color);
-		}
-
-		.theorem-slot .name input {
-			background-color: var(--light-element-color);
-			color: #000;
-			outline-color: var(--light-border-color);
-		}
-
-		.theorem-slot:hover,
-		.theorem-slot:focus {
-			outline: 1px solid var(--dark-border-color);
-		}
 	}
 </style>

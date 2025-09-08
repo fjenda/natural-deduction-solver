@@ -2,20 +2,17 @@
 	import { FlatToast, ToastContainer } from 'svelte-toasts';
 	import { Modals } from 'svelte-modals';
 	import MainLayout from '../layouts/MainLayout.svelte';
-	import StyledButton from '../components/StyledButton.svelte';
-	import { switchMode } from '../solver/actions/proofActions';
+	import Navbar from '../components/Navbar.svelte';
 </script>
 
-<main>
-	<ToastContainer placement="top-right" let:data>
-		<FlatToast {data} />
-	</ToastContainer>
+<ToastContainer placement="top-right" let:data>
+	<FlatToast {data} />
+</ToastContainer>
 
-	<Modals />
+<Modals />
 
-	<StyledButton text="Switch Mode" onClick={switchMode} />
-
+<Navbar>
 	<MainLayout>
 		<slot />
 	</MainLayout>
-</main>
+</Navbar>

@@ -57,10 +57,8 @@ export function onChangeTheorem(value: string) {
 /**
  * Switches the mode between propositional and predicate logic
  */
-export function switchMode() {
-	logicMode.update((mode) =>
-		mode === ParseStrategy.PROPOSITIONAL ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL
-	);
+export function switchMode(mode: ParseStrategy) {
+	logicMode.update(() => mode);
 	deductionRules.set(DeductionRule.rules);
 	get(solverContent).premises.forEach((premise, i) => {
 		onChangePremise(premise.value, i);

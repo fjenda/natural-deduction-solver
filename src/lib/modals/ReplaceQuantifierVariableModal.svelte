@@ -103,7 +103,7 @@
 
 	.help-link {
 		user-select: none;
-		color: #f9f9f9;
+		color: var(--text-primary);
 		text-decoration: underline;
 		cursor: pointer;
 		font-size: 0.95rem;
@@ -124,30 +124,20 @@
 		font-size: 1rem;
 		font-family: monospace;
 		margin: 0.15rem;
-		background-color: var(--dark-element-color);
-		color: var(--dark-text-color);
+		background-color: var(--button-bg);
+		color: var(--text-primary);
 	}
 
 	.suggestion:hover {
 		outline: none;
-		border: 1px solid var(--light-border-color);
+		background-color: var(--button-hover);
+		color: var(--accent);
+		border: 1px solid var(--border);
 	}
 
 	.no-suggestions {
 		color: #666;
 		font-size: 0.95rem;
 		padding: 0.25rem 0;
-	}
-
-	@media screen and (prefers-color-scheme: light) {
-		.suggestion {
-			border: 1px solid var(--light-border-color);
-			background: var(--light-element-color);
-			color: var(--light-text-color);
-		}
-
-		.suggestion:hover {
-			border: 1px solid var(--dark-border-color);
-		}
 	}
 </style>
