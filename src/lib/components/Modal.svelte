@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ButtonContent } from '../../../types/ButtonContent';
+	import type { ButtonContent } from '../../types/ButtonContent';
 
 	export let show: boolean;
 	export let content = '';

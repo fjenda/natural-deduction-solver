@@ -1,14 +1,14 @@
 <script lang="ts">
-	import SolverLayout from '../../../layouts/SolverLayout.svelte';
-	import { EditState } from '../../../../types/EditState';
-	import { editState, solving } from '../../../../stores/stateStore';
-	import { addPremise, solverContent } from '../../../../stores/solverStore';
-	import PremiseInputContainer from '../PremiseInputContainer/PremiseInputContainer.svelte';
-	import StyledButton from '../../../components/StyledButton/StyledButton.svelte';
-	import AssignmentText from '../../../components/AssignmentText/AssignmentText.svelte';
-	import SolutionControlsContainer from '../SolutionControlsContainer/SolutionControlsContainer.svelte';
-	import SolverTable from '../../components/solver-table/SolverTable.svelte';
-	import { onChangeConclusion, onChangeTheorem } from '../../actions/proofActions';
+	import SolverLayout from '../../layouts/SolverLayout.svelte';
+	import { EditState } from '../../../types/EditState';
+	import { editState, solving } from '../../../stores/stateStore';
+	import { addPremise, solverContent } from '../../../stores/solverStore';
+	import PremiseInputContainer from './PremiseInputContainer.svelte';
+	import StyledButton from '../../components/StyledButton.svelte';
+	import AssignmentText from '../../components/AssignmentText.svelte';
+	import SolutionControlsContainer from './SolutionControlsContainer.svelte';
+	import SolverTable from '../components/solver-table/SolverTable.svelte';
+	import { onChangeConclusion, onChangeTheorem } from '../actions/proofActions';
 </script>
 
 <SolverLayout>

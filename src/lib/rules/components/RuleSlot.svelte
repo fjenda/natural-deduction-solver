@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type DeductionRule, NDRule } from '../DeductionRule';
 	import { highlightedRows, selectedRows } from '../../../stores/solverStore';
-	import Tooltip from '../../components/Tooltip/Tooltip.svelte';
+	import Tooltip from '../../components/Tooltip.svelte';
 	import { get } from 'svelte/store';
 	import { showToast } from '../../utils/showToast';
 	import { usable } from '../../solver/services/proofService';

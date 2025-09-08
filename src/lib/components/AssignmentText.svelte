@@ -1,8 +1,8 @@
 <script lang="ts">
-	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
-	import { EditState } from '../../../types/EditState';
-	import { editState } from '../../../stores/stateStore';
-	import { solverContent } from '../../../stores/solverStore';
+	import MathMLViewer from '../solver/components/MathMLViewer.svelte';
+	import { EditState } from '../../types/EditState';
+	import { editState } from '../../stores/stateStore';
+	import { solverContent } from '../../stores/solverStore';
 </script>
 
 <div class="assignment-container">

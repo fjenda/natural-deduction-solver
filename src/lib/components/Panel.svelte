@@ -15,14 +15,14 @@
 		flex-direction: column;
 		/*height: 100%;*/
 		overflow: hidden;
-		background-color: rgba(42, 42, 42, 0.225);
+		background-color: var(--dark-element-color);
 		border-radius: 0.5rem;
 		border: 1px solid var(--dark-border-color);
 	}
 
 	@media (prefers-color-scheme: light) {
 		.wrapper {
-			background-color: rgba(249, 249, 249, 0.25);
+			background-color: var(--light-element-color);
 			border: 1px solid var(--light-border-color);
 		}
 	}

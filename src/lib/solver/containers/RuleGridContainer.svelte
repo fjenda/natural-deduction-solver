@@ -4,23 +4,23 @@
 		highlightedRows,
 		selectedRows,
 		solverContent
-	} from '../../../../stores/solverStore';
-	import { solving } from '../../../../stores/stateStore';
-	import { lastHovered } from '../../../../stores/lastHoveredStore';
-	import RuleGridLayout from '../../../layouts/RuleGridLayout.svelte';
-	import RuleSlot from '../../../rules/components/RuleSlot.svelte';
+	} from '../../../stores/solverStore';
+	import { solving } from '../../../stores/stateStore';
+	import { lastHovered } from '../../../stores/lastHoveredStore';
+	import RuleGridLayout from '../../layouts/RuleGridLayout.svelte';
+	import RuleSlot from '../../rules/components/RuleSlot.svelte';
 	import { get } from 'svelte/store';
-	import { DeductionRule, NDRule } from '../../../rules/DeductionRule';
-	import { showToast } from '../../../utils/showToast';
+	import { DeductionRule, NDRule } from '../../rules/DeductionRule';
+	import { showToast } from '../../utils/showToast';
 	import { modals } from 'svelte-modals';
-	import ReplaceQuantifierVariableModal from '../../../modals/ReplaceQuantifierVariableModal.svelte';
-	import { NodeType } from '../../../syntax-checker/NodeType';
-	import InputModal from '../../../modals/InputModal.svelte';
-	import { PrettySyntaxer } from '../../parsers/PrettySyntaxer';
-	import { PremiseParser } from '../../parsers/PremiseParser';
-	import { getSuggestionsForTerm, proveProlog, usable } from '../../services/proofService';
-	import type { TreeRuleType } from '../../../../types/TreeRuleType';
-	import PickTheoremVariantModal from '../../../modals/PickTheoremVariantModal.svelte';
+	import ReplaceQuantifierVariableModal from '../../modals/ReplaceQuantifierVariableModal.svelte';
+	import { NodeType } from '../../syntax-checker/NodeType';
+	import InputModal from '../../modals/InputModal.svelte';
+	import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
+	import { PremiseParser } from '../parsers/PremiseParser';
+	import { getSuggestionsForTerm, proveProlog, usable } from '../services/proofService';
+	import type { TreeRuleType } from '../../../types/TreeRuleType';
+	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
 
 	const getProofAndSelection = () => {
 		const proof = get(solverContent).proof;

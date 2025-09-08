@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { editState, solving } from '../../../../stores/stateStore';
-	import { indirectSolving, solverContent } from '../../../../stores/solverStore';
-	import StyledButton from '../../../components/StyledButton/StyledButton.svelte';
-	import { EditState } from '../../../../types/EditState';
-	import { showToast } from '../../../utils/showToast';
-	import { TheoremParser } from '../../parsers/TheoremParser';
+	import { editState, solving } from '../../../stores/stateStore';
+	import { indirectSolving, solverContent } from '../../../stores/solverStore';
+	import StyledButton from '../../components/StyledButton.svelte';
+	import { EditState } from '../../../types/EditState';
+	import { showToast } from '../../utils/showToast';
+	import { TheoremParser } from '../parsers/TheoremParser';
 	import { get } from 'svelte/store';
-	import { Node } from '../../../syntax-checker/Node';
+	import { Node } from '../../syntax-checker/Node';
 	import { modals } from 'svelte-modals';
-	import PickTheoremVariantModal from '../../../modals/PickTheoremVariantModal.svelte';
-	import type { TheoremVariant } from '../../../../types/TheoremVariant';
-	import SelectProofTypeModal from '../../../modals/SelectProofTypeModal.svelte';
-	import { setupProof } from '../../utils/proofUtils';
-	import { checkProof, resetSolving } from '../../actions/proofActions';
+	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
+	import type { TheoremVariant } from '../../../types/TheoremVariant';
+	import SelectProofTypeModal from '../../modals/SelectProofTypeModal.svelte';
+	import { setupProof } from '../utils/proofUtils';
+	import { checkProof, resetSolving } from '../actions/proofActions';
 
 	const startSolver = () => {
 		if ($editState === EditState.SOLVER && !$solverContent.conclusion.tree) {

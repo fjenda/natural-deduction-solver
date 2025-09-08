@@ -2,7 +2,7 @@
 	import { FlatToast, ToastContainer } from 'svelte-toasts';
 	import { Modals } from 'svelte-modals';
 	import MainLayout from '../layouts/MainLayout.svelte';
-	import StyledButton from '../components/StyledButton/StyledButton.svelte';
+	import StyledButton from '../components/StyledButton.svelte';
 	import { switchMode } from '../solver/actions/proofActions';
 </script>
 

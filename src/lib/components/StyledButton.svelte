@@ -45,8 +45,8 @@
 	@media (prefers-color-scheme: light) {
 		.btn {
 			&:hover {
-				color: #00c800;
-				border: 1px solid #00c800;
+				color: var(--hover-color);
+				border: 1px solid var(--hover-color);
 			}
 
 			&:focus[disabled],
