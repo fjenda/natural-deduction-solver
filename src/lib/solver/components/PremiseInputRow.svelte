@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { removePremise } from '../../../stores/solverStore';
+	import type { Snippet } from 'svelte';
 
-	export let index: number;
-	export let removable: boolean = true;
+	interface PremiseInputRowProps {
+		index: number;
+		removable: boolean;
+		children: Snippet;
+	}
+
+	let { index, removable, children }: PremiseInputRowProps = $props();
 </script>
 
 <div class="premise-input-wrapper">
-	<slot />
+	{@render children()}
 	<button
 		type="button"
 		aria-label="Remove premise"

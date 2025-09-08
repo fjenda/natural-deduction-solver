@@ -12,21 +12,35 @@
 	import { showToast } from '../../../utils/showToast';
 	import { canDeleteRow } from '../../services/proofService';
 
-	export let line: number;
-	export let formula: string;
-	export let rule: AppliedRule;
-	export let premise: boolean = false;
-	export let editable: boolean = false;
-	export let onSave: (content: string, rule: string) => void;
-	export let onEdit: () => void;
-	export let onDelete: () => void;
-	let formulaInput: HTMLInputElement;
-
-	function handleInputChange(s: string): string {
-		return PrettySyntaxer.clean(s);
+	interface TableRowProps {
+		line: number;
+		formula: string;
+		rule: AppliedRule;
+		premise: boolean;
+		editable: boolean;
+		onSave: (content: string, rule: string) => void;
+		onEdit: () => void;
+		onDelete: () => void;
 	}
 
-	function selectRow() {
+	let {
+		line,
+		formula,
+		rule,
+		premise = false,
+		editable = false,
+		onSave,
+		onEdit,
+		onDelete
+	}: TableRowProps = $props();
+
+	let formulaInput: HTMLInputElement | null = $state(null);
+
+	const handleInputChange = (s: string): string => {
+		return PrettySyntaxer.clean(s);
+	};
+
+	const selectRow = () => {
 		// if the row is editable, do not highlight
 		if (editable) return;
 
@@ -51,14 +65,17 @@
 				return [...rows, line];
 			}
 		});
-	}
+	};
 
-	$: operators =
+	const operators = $derived(
 		$logicMode === ParseStrategy.PROPOSITIONAL
 			? ['¬', '∧', '∨', '⊃', '≡']
-			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃']
+	);
 
-	function insertOperator(operator: string) {
+	function insertOperator(e: Event, operator: string) {
+		e.preventDefault();
+
 		// insert the operator at the current cursor position
 		const cursorPosition = formulaInput.selectionStart;
 
@@ -83,30 +100,45 @@
 		}, 0);
 	}
 
-	$: highlighted = $selectedRows.includes(line);
+	const handleSave = (e: Event, formula: string, ruleText: string) => {
+		e.stopPropagation();
+		onSave(formula, ruleText);
+	};
+
+	const handleEdit = (e: Event) => {
+		e.stopPropagation();
+		onEdit();
+	};
+
+	const handleDelete = (e: Event) => {
+		e.stopPropagation();
+		onDelete();
+	};
+
+	const highlighted = $derived($selectedRows.includes(line));
 
 	// a row is usable if its line number is inside the highlightedRows store
-	$: usable = $highlightedRows.includes(line);
+	const usable = $derived($highlightedRows.includes(line));
 
 	// a row is invalid if the rule is unknown and it's not editable
-	$: invalid = rule.rule === NDRule.UNKNOWN && !editable;
+	const invalid = $derived(rule.rule === NDRule.UNKNOWN && !editable);
 
-	$: mathmlFormula = PrettySyntaxer.toMathML(formula);
+	const mathmlFormula = $derived(PrettySyntaxer.toMathML(formula));
 
-	$: ruleText = appliedRuleToString(rule);
+	let ruleText = $state(appliedRuleToString(rule));
 
-	let removable = false;
-	$: (async () => {
+	let removable = $state(false);
+
+	$effect(async () => {
 		if (premise) {
 			removable = false;
 		} else {
-			// eslint-disable-next-line svelte/infinite-reactive-loop
 			removable = await canDeleteRow(line, $solverContent.proof);
 		}
-	})();
+	});
 </script>
 
-<a class="row" class:highlighted class:usable class:invalid on:click={selectRow} role="button">
+<a class="row" class:highlighted class:usable class:invalid onclick={selectRow} role="button">
 	<div class="formula-container">
 		<div class="line-number">
 			{line}.
@@ -118,11 +150,11 @@
 					type="text"
 					bind:value={formula}
 					bind:this={formulaInput}
-					on:change={() => (formula = handleInputChange(formula))}
+					onchange={() => (formula = handleInputChange(formula))}
 				/>
 				<div class="operator-input">
 					{#each operators as operator (operator)}
-						<button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
+						<button onmousedown={(e) => insertOperator(e, operator)}>{operator}</button>
 					{/each}
 				</div>
 			{:else}
@@ -146,7 +178,7 @@
 			<button
 				class="action-button check-button"
 				aria-label="Save"
-				on:click|stopPropagation={() => onSave(formula, ruleText)}
+				onclick={(e) => handleSave(e, formula, ruleText)}
 			>
 				<i class="fas fa-check"></i>
 			</button>
@@ -156,7 +188,7 @@
 				class:disabled={premise}
 				disabled={premise}
 				aria-label="Edit"
-				on:click|stopPropagation={onEdit}
+				onclick={handleEdit}
 			>
 				<i class="fas fa-edit"></i>
 			</button>
@@ -165,7 +197,7 @@
 				class:disabled={!removable}
 				disabled={!removable}
 				aria-label="Delete"
-				on:click|stopPropagation={onDelete}
+				onclick={handleDelete}
 			>
 				<i class="fas fa-times"></i>
 			</button>

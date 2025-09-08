@@ -11,20 +11,22 @@
 </script>
 
 <CustomModal {isOpen} {close} {title} {id} {index}>
-	<div slot="buttons">
-		<button
-			class="button"
-			onclick={() => {
-				directProof();
-				close();
-			}}>Direct Proof</button
-		>
-		<button
-			class="button"
-			onclick={() => {
-				indirectProof();
-				close();
-			}}>Indirect Proof</button
-		>
-	</div>
+	{#snippet buttons()}
+		<div>
+			<button
+				class="button"
+				onclick={() => {
+					directProof();
+					close();
+				}}>Direct Proof</button
+			>
+			<button
+				class="button"
+				onclick={() => {
+					indirectProof();
+					close();
+				}}>Indirect Proof</button
+			>
+		</div>
+	{/snippet}
 </CustomModal>

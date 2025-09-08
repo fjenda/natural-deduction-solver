@@ -1,5 +1,9 @@
+<script>
+	let { children } = $props();
+</script>
+
 <div class="solver-layout">
-	<slot />
+	{@render children()}
 </div>
 
 <style>

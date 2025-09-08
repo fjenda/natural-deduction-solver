@@ -6,11 +6,21 @@
 	import { solverContent } from '../../../stores/solverStore';
 	import { onChangePremise } from '../actions/proofActions';
 
-	export let index: number;
-	export let placeholder: string = '';
-	export let value: string;
-	export let error: boolean | undefined = undefined;
-	export let onChange: (() => void) | undefined = undefined;
+	interface PremiseInputContainerProps {
+		index: number;
+		placeholder?: string;
+		value: string;
+		error?: boolean;
+		onChange?: () => void;
+	}
+
+	let {
+		index,
+		placeholder = '',
+		value = $bindable(),
+		error = false,
+		onChange = undefined
+	}: PremiseInputContainerProps = $props();
 </script>
 
 <PremiseInputRow

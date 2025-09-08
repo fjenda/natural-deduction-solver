@@ -28,7 +28,7 @@
 		return { proof, selected };
 	};
 
-	function validateFormulaInput(modalInput: HTMLInputElement) {
+	const validateFormulaInput = (modalInput: HTMLInputElement) => {
 		modalInput.value = PrettySyntaxer.clean(modalInput.value);
 		const formula = PremiseParser.parsePremise(modalInput.value);
 
@@ -39,9 +39,9 @@
 		}
 
 		return formula;
-	}
+	};
 
-	function pickVariableToReplaceModal(variables: string[] = []): Promise<string> {
+	const pickVariableToReplaceModal = (variables: string[] = []): Promise<string> => {
 		return new Promise((resolve) => {
 			const variableButtons = variables.map((variable) => ({
 				text: variable,
@@ -56,15 +56,15 @@
 				theoremVariantButtons: variableButtons
 			});
 		});
-	}
+	};
 
-	async function openQuantifierModal(
+	const openQuantifierModal = async (
 		rule: DeductionRule,
 		premises: string[],
 		selected: number[],
 		proof: TreeRuleType[],
 		isElimination: boolean
-	) {
+	) => {
 		const rowTree = proof[selected[0] - 1].tree;
 		const variables = rowTree?.variables;
 
@@ -102,16 +102,16 @@
 			},
 			suggestions
 		});
-	}
+	};
 
-	function openFormulaInputModal(
+	const openFormulaInputModal = (
 		title: string,
-		body: string,
+		content: string,
 		onConfirm: (formula: string) => void
-	) {
+	) => {
 		modals.open(InputModal, {
 			title,
-			body,
+			content,
 			placeholder: 'Enter the formula',
 			onConfirm: (modalInput: HTMLInputElement) => {
 				const formula = validateFormulaInput(modalInput);
@@ -120,9 +120,9 @@
 				selectedRows.set([]);
 			}
 		});
-	}
+	};
 
-	async function onRuleClick(rule: DeductionRule): Promise<void> {
+	const onRuleClick = async (rule: DeductionRule): Promise<void> => {
 		// get selected rows
 		const { proof, selected } = getProofAndSelection();
 
@@ -162,7 +162,7 @@
 		// if the user selected fewer rows than needed for the rule
 		await modals.open(InputModal, {
 			title: 'Select row',
-			body: 'Select the second row with which to execute the rule',
+			content: 'Select the second row with which to execute the rule',
 			placeholder: 'Enter the row number',
 			onConfirm: (modalInput: HTMLInputElement) => {
 				const other = parseInt(modalInput.value);
@@ -179,9 +179,9 @@
 				});
 			}
 		});
-	}
+	};
 
-	async function onRuleMouseOver(rule: DeductionRule) {
+	const onRuleMouseOver = async (rule: DeductionRule) => {
 		if (!get(solving)) return;
 		const selRows = get(selectedRows);
 		if (selRows.length === 0 || selRows.length >= rule.inputSize) return;
@@ -195,7 +195,7 @@
 		const rows = await usable(rule, selRows[0]);
 		highlightedRows.set(rows.highlighted);
 		lastHovered.set({ rule: rule.title, selected: selRows, rows: rows.highlighted });
-	}
+	};
 
 	function onRuleMouseOut() {
 		if (!get(solving)) return;

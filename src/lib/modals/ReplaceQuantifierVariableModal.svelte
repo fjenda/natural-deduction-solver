@@ -41,51 +41,57 @@
 </script>
 
 <CustomModal {isOpen} {close} {title} {id} {index}>
-	<div slot="body" class="body">
-		<div class="mathml-row">
-			<MathMLViewer value={row.value} />
-		</div>
-		<div class="input-row">
-			<input
-				type="text"
-				{placeholder}
-				name="modal-input"
-				bind:this={modalInput}
-				autocomplete="off"
-				class="modal-input"
-			/>
-			<a onclick={toggleSuggestions} class="help-link">Help</a>
-		</div>
-		{#if showSuggestions}
-			<div class="suggestions" role="listbox" aria-label="Suggestions" transition:slide>
-				{#if suggestions && suggestions.length > 0}
-					{#each suggestions as s, i (s + '-' + i)}
-						<button type="button" class="suggestion" onclick={() => chooseSuggestion(s)}>{s}</button
-						>
-					{/each}
-				{:else}
-					<div class="no-suggestions">No suggestions available</div>
-				{/if}
+	{#snippet body()}
+		<div class="body">
+			<div class="mathml-row">
+				<MathMLViewer value={row.value} />
 			</div>
-		{/if}
-	</div>
-	<div slot="buttons">
-		<button
-			class="button"
-			onclick={() => {
-				showSuggestions = false;
-				close();
-			}}>Cancel</button
-		>
-		<button
-			class="button"
-			onclick={() => {
-				onConfirm(modalInput);
-				showSuggestions = false;
-				close();
-			}}>Confirm</button
-		>
-	</div>
+			<div class="input-row">
+				<input
+					type="text"
+					{placeholder}
+					name="modal-input"
+					bind:this={modalInput}
+					autocomplete="off"
+					class="modal-input"
+				/>
+				<a onclick={toggleSuggestions} class="help-link">Help</a>
+			</div>
+			{#if showSuggestions}
+				<div class="suggestions" role="listbox" aria-label="Suggestions" transition:slide>
+					{#if suggestions && suggestions.length > 0}
+						{#each suggestions as s, i (s + '-' + i)}
+							<button type="button" class="suggestion" onclick={() => chooseSuggestion(s)}
+								>{s}</button
+							>
+						{/each}
+					{:else}
+						<div class="no-suggestions">No suggestions available</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
+	{/snippet}
+
+	{#snippet buttons()}
+		<div>
+			<button
+				class="button"
+				onclick={() => {
+					showSuggestions = false;
+					close();
+				}}>Cancel</button
+			>
+			<button
+				class="button"
+				onclick={() => {
+					onConfirm(modalInput);
+					showSuggestions = false;
+					close();
+				}}>Confirm</button
+			>
+		</div>
+	{/snippet}
 </CustomModal>
 
 <style>

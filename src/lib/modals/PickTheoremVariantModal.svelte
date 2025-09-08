@@ -11,17 +11,19 @@
 </script>
 
 <CustomModal {isOpen} {close} {title} {id} {index}>
-	<div slot="buttons">
-		{#each theoremVariantButtons as button (button.text)}
-			<button
-				class="button"
-				onclick={() => {
-					button.action();
-					close();
-				}}
-			>
-				{button.text}
-			</button>
-		{/each}
-	</div>
+	{#snippet buttons()}
+		<div>
+			{#each theoremVariantButtons as button (button.text)}
+				<button
+					class="button"
+					onclick={() => {
+						button.action();
+						close();
+					}}
+				>
+					{button.text}
+				</button>
+			{/each}
+		</div>
+	{/snippet}
 </CustomModal>

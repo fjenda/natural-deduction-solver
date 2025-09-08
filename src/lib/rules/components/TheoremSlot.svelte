@@ -9,41 +9,65 @@
 	import { theorems } from '../../../stores/theoremsStore';
 	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
 
-	export let name: string = '';
-	export let index: number = -1;
-	export let valid: boolean = false;
-	export let onClick: () => void;
-	let hovered: boolean = false;
-	let hoveredTimeout: NodeJS.Timeout;
-
-	function handleMouseOver() {
-		hovered = true;
-		clearTimeout(hoveredTimeout);
+	interface TheoremSlotProps {
+		name: string;
+		index: number;
+		valid: boolean;
+		onClick: () => void;
 	}
 
-	function handleMouseOut() {
+	let { name, index, valid, onClick }: TheoremSlotProps = $props();
+
+	let hovered: boolean = $state(false);
+	let hoveredTimeout: NodeJS.Timeout;
+
+	const handleMouseOver = () => {
+		hovered = true;
+		clearTimeout(hoveredTimeout);
+	};
+
+	const handleMouseOut = () => {
 		hovered = false;
 		hoveredTimeout = setTimeout(() => {
 			hovered = false;
 		}, 100);
-	}
+	};
+
+	const stopPropagation = (e: Event) => {
+		e.stopPropagation();
+	};
+
+	const handleSaveTheorem = (e: Event) => {
+		e.stopPropagation();
+		saveTheorem(index);
+	};
+
+	const handleEditTheorem = (e: Event) => {
+		e.stopPropagation();
+		editTheorem(index);
+	};
+
+	const handleDeleteTheorem = (e: Event) => {
+		e.stopPropagation();
+		removeTheorem(index);
+	};
 </script>
 
 <div
 	class="theorem-slot"
 	class:invalid={!valid}
-	on:mouseenter={handleMouseOver}
-	on:focus={handleMouseOver}
-	on:mouseleave={handleMouseOut}
-	on:blur={handleMouseOut}
-	on:click={valid ? onClick : null}
+	onmouseenter={handleMouseOver}
+	onfocus={handleMouseOver}
+	onmouseleave={handleMouseOut}
+	onblur={handleMouseOut}
+	onclick={valid ? onClick : null}
 >
 	<div class="name">
 		{#if index === $selectedTheorem}
 			<input
 				type="text"
 				bind:value={$solverContent.name}
-				on:click|stopPropagation
+				onclick={stopPropagation}
 				class="name-input"
 				placeholder="Theorem Name"
 			/>
@@ -56,28 +80,20 @@
 	</div>
 	<div class="actions">
 		{#if index === $selectedTheorem}
-			<button
-				class="save-button"
-				aria-label="Save Theorem"
-				on:click|stopPropagation={() => saveTheorem(index)}
-			>
+			<button class="save-button" aria-label="Save Theorem" onclick={handleSaveTheorem}>
 				<i class="fa-regular fa-floppy-disk"></i>
 			</button>
 		{:else}
 			<button
 				class="edit-button"
 				aria-label="Edit Theorem"
-				on:click|stopPropagation={() => editTheorem(index)}
+				onclick={handleEditTheorem}
 				disabled={$selectedTheorem !== -1}
 			>
 				<i class="fas fa-edit"></i>
 			</button>
 		{/if}
-		<button
-			class="delete-button"
-			aria-label="Delete Theorem"
-			on:click|stopPropagation={() => removeTheorem(index)}
-		>
+		<button class="delete-button" aria-label="Delete Theorem" onclick={handleDeleteTheorem}>
 			<i class="fas fa-times"></i>
 		</button>
 	</div>

@@ -9,21 +9,23 @@
 	import { showToast } from '../../../utils/showToast';
 	import { removeRow } from '../../actions/proofActions';
 
-	export let data: TreeRuleType[] = [];
-	let rows: TableRowData[] = [];
-	let container: HTMLDivElement;
+	interface SolverTableProps {
+		data: TreeRuleType[];
+	}
 
-	$: rows = data.map((d) => ({
-		line: d.line,
-		formula: d.value,
-		rule: d.rule,
-		editable: false
-	}));
+	let { data }: SolverTableProps = $props();
+
+	let rows: TableRowData[] = $state([]);
+
+	$effect(() => {
+		rows = data.map((d) => ({ line: d.line, formula: d.value, rule: d.rule, editable: false }));
+	});
+	let container: HTMLDivElement;
 
 	/**
 	 * Adds a new row to the proof
 	 */
-	function addRow() {
+	const addRow = () => {
 		rows = [
 			...rows,
 			{
@@ -41,15 +43,15 @@
 				behavior: 'smooth'
 			});
 		});
-	}
+	};
 
 	/**
 	 * Checks if we can add a new row to the proof
 	 * @returns {boolean} true if we can add a new row, false otherwise
 	 */
-	function canAddRow(): boolean {
+	const canAddRow = (): boolean => {
 		return rows.filter((r) => r.editable).length < 1;
-	}
+	};
 </script>
 
 <div class="table-wrapper" bind:this={container}>
@@ -64,7 +66,7 @@
 				onSave={async (content, rule) => {
 					const res = await FormulaParser.parseFormula(content, i + 1, rule);
 
-					// check if the formula already exist in any other row
+					// check if the formula already exists in any other row
 					const formulaExists = $solverContent.proof
 						.filter((_, index) => index !== i)
 						.some((p) => FormulaComparer.compare(p, res));
@@ -92,7 +94,7 @@
 		{/each}
 
 		<button
-			on:click={addRow}
+			onclick={addRow}
 			aria-label="Add row"
 			class:disabled={!canAddRow()}
 			disabled={!canAddRow()}

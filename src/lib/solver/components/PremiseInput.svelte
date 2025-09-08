@@ -4,14 +4,26 @@
 	import { logicMode } from '../../../stores/solverStore';
 	import { ParseStrategy } from '../../../types/ParseStrategy';
 
-	export let placeholder: string;
-	export let value: string | null = '';
-	export let error: boolean = false;
-	export let index: number;
-	export let disabled: boolean = false;
-	export let onChange: (value: string, index: number) => void;
-	let inputElement: HTMLInputElement;
-	let show: boolean = false;
+	interface PremiseInputProps {
+		placeholder: string;
+		value?: string;
+		error?: boolean;
+		index: number;
+		disabled?: boolean;
+		onChange: (value: string, index: number) => void;
+	}
+
+	let {
+		placeholder,
+		value = $bindable(''),
+		error = false,
+		index,
+		disabled = false,
+		onChange
+	}: PremiseInputProps = $props();
+
+	let inputElement: HTMLInputElement | undefined = $state();
+	let show: boolean = $state(false);
 
 	let hint: string =
 		'' +
@@ -20,14 +32,17 @@
 		'Functions - [a-z](par1, par2)\n' +
 		'Predicates - [A-Z]()\n';
 
-	$: operators =
+	const operators = $derived(
 		$logicMode === ParseStrategy.PROPOSITIONAL
 			? ['¬', '∧', '∨', '⊃', '≡']
-			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃'];
+			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃']
+	);
 
-	function insertOperator(operator: string) {
+	function insertOperator(e: Event, operator: string) {
+		e.preventDefault();
+
 		// insert the operator at the current cursor position
-		const cursorPosition = inputElement.selectionStart;
+		const cursorPosition = inputElement?.selectionStart;
 
 		// get the text before and after the cursor
 		let textBefore = value?.slice(0, cursorPosition!);
@@ -73,7 +88,7 @@
 	}
 </script>
 
-<div class="wrapper" on:click={toggleInput} on:focusout={toggleInput} class:error>
+<div class="wrapper" onclick={toggleInput} onfocusout={toggleInput} class:error>
 	{#if !show}
 		<MathMLViewer {value} />
 	{:else}
@@ -84,7 +99,7 @@
 			{disabled}
 			bind:this={inputElement}
 			bind:value
-			on:change={() => {
+			onchange={() => {
 				value = PrettySyntaxer.clean(value ?? '');
 				onChange(value ?? '', index);
 			}}
@@ -92,7 +107,7 @@
 		/>
 		<div class="operator-input">
 			{#each operators as operator (operator)}
-				<button on:mousedown|preventDefault={() => insertOperator(operator)}>{operator}</button>
+				<button onmousedown={(e) => insertOperator(e, operator)}>{operator}</button>
 			{/each}
 		</div>
 	{/if}

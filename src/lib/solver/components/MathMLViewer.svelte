@@ -1,9 +1,13 @@
 <script lang="ts">
 	import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 
-	export let value: string | null = '';
+	interface MathMLViewerProps {
+		value?: string;
+	}
 
-	$: mathml = PrettySyntaxer.toMathML(value ?? '');
+	let { value = '' }: MathMLViewerProps = $props();
+
+	const mathml = $derived(PrettySyntaxer.toMathML(value ?? ''));
 </script>
 
 <div class="mathml-viewer">

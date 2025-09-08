@@ -1,25 +1,34 @@
 <script lang="ts">
 	import type { ModalProps } from 'svelte-modals';
+	import type { Snippet } from 'svelte';
 
 	export interface CustomModalProps extends ModalProps {
 		title: string;
+		body?: Snippet;
+		buttons?: Snippet;
 	}
 
-	// eslint-disable-next-line svelte/no-unused-props
-	const { id, index, isOpen, close, title }: CustomModalProps = $props();
+	const { id, isOpen, close, title, body, buttons, ...rest }: CustomModalProps = $props();
+
+	const handleClose = (e: Event) => {
+		if (e.currentTarget === e.target) {
+			e.preventDefault();
+			close();
+		}
+	};
 </script>
 
 {#if isOpen}
-	<div {id} role="dialog" class="modal" on:click|self={() => close()}>
+	<div {id} {...rest} role="dialog" class="modal" onclick={handleClose}>
 		<div class="contents">
 			<div class="header">
 				<h2>{title}</h2>
 			</div>
 			<div class="body">
-				<slot name="body" />
+				{@render body?.()}
 			</div>
 			<div class="footer">
-				<slot name="buttons" />
+				{@render buttons?.()}
 			</div>
 		</div>
 	</div>

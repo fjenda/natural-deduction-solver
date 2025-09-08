@@ -1,7 +1,11 @@
 <script lang="ts">
-	export let content: string;
-	export let position: 'top' | 'bottom' | 'left' | 'right' = 'top';
-	export let show: boolean = false;
+	interface TooltipProps {
+		content: string;
+		position: 'top' | 'bottom' | 'left' | 'right';
+		show: boolean;
+	}
+
+	let { content, position, show }: TooltipProps = $props();
 </script>
 
 <div class="tooltip {position}" class:show>

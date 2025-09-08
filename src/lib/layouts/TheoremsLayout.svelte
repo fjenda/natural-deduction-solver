@@ -1,6 +1,10 @@
+<script>
+	let { children } = $props();
+</script>
+
 <div class="theorem-wrapper">
 	<div class="theorems">
-		<slot />
+		{@render children()}
 	</div>
 </div>
 

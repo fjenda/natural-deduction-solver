@@ -12,27 +12,32 @@
 </script>
 
 <CustomModal {isOpen} {close} {title} {id} {index}>
-	<div slot="body" class="body">
-		<MathMLViewer value={$theorems[$theoremData.theoremId]?.whole.value} />
-		{#each $theoremData.vars as v, i (i)}
-			<input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
-		{/each}
-	</div>
-	<div slot="buttons">
-		<button
-			class="button"
-			onclick={() => {
-				close();
-			}}>Cancel</button
-		>
-		<button
-			class="button"
-			onclick={() => {
-				onConfirm();
-				close();
-			}}>Confirm</button
-		>
-	</div>
+	{#snippet body()}
+		<div slot="body" class="body">
+			<MathMLViewer value={$theorems[$theoremData.theoremId]?.whole.value} />
+			{#each $theoremData.vars as v, i (i)}
+				<input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
+			{/each}
+		</div>
+	{/snippet}
+
+	{#snippet buttons()}
+		<div slot="buttons">
+			<button
+				class="button"
+				onclick={() => {
+					close();
+				}}>Cancel</button
+			>
+			<button
+				class="button"
+				onclick={() => {
+					onConfirm();
+					close();
+				}}>Confirm</button
+			>
+		</div>
+	{/snippet}
 </CustomModal>
 
 <style>

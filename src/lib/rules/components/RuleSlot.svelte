@@ -6,13 +6,20 @@
 	import { showToast } from '../../utils/showToast';
 	import { usable } from '../../solver/services/proofService';
 
-	export let rule: DeductionRule;
-	export let onClick: () => void;
-	export let onMouseOver: () => void;
-	export let onMouseOut: () => void;
-	let showTooltip: boolean = false;
+	interface RuleSlotProps {
+		rule: DeductionRule;
+		onClick: () => void;
+		onMouseOver: () => void;
+		onMouseOut: () => void;
+	}
 
-	async function handleClick() {
+	let { rule, onClick, onMouseOver, onMouseOut }: RuleSlotProps = $props();
+
+	let showTooltip: boolean = $state(false);
+
+	const handleClick = async (e: Event) => {
+		e.preventDefault();
+
 		if (get(selectedRows).length === 0) {
 			return showToast('Select at least one row', 'warning');
 		}
@@ -22,17 +29,17 @@
 		highlightedRows.set(result.highlighted);
 		onClick();
 		highlightedRows.set([]);
-	}
+	};
 
-	function handleMouseOver() {
+	const handleMouseOver = () => {
 		onMouseOver();
 		showTooltip = true;
-	}
+	};
 
-	function handleMouseOut() {
+	const handleMouseOut = () => {
 		onMouseOut();
 		showTooltip = false;
-	}
+	};
 </script>
 
 <div class="wrapper">
@@ -40,11 +47,11 @@
 	<button
 		class="rule-slot"
 		title={rule.title}
-		on:mouseenter={handleMouseOver}
-		on:focus={handleMouseOver}
-		on:mouseleave={handleMouseOut}
-		on:blur={handleMouseOut}
-		on:mousedown|preventDefault={handleClick}
+		onmouseenter={handleMouseOver}
+		onfocus={handleMouseOver}
+		onmouseleave={handleMouseOut}
+		onblur={handleMouseOut}
+		onmousedown={handleClick}
 	>
 		{rule.short}
 	</button>
