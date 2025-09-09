@@ -37,7 +37,7 @@ export class PremiseParser {
 		// res.print();
 
 		const tree = res.simplify().parenthesize();
-		console.log(tree);
+		// console.log(tree);
 
 		// set the tree
 		tmp.tree = tree;

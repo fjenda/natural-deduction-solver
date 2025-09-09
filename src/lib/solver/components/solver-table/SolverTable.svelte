@@ -1,5 +1,4 @@
 <script lang="ts">
-	import TableRow from './TableRow.svelte';
 	import { solverContent } from '../../../../stores/solverStore';
 	import { FormulaParser } from '../../parsers/FormulaParser';
 	import { NDRule } from '../../../rules/DeductionRule';
@@ -8,6 +7,8 @@
 	import type { TreeRuleType } from '../../../../types/TreeRuleType';
 	import { showToast } from '../../../utils/showToast';
 	import { removeRow } from '../../actions/proofActions';
+	import ProofRow from './row/ProofRow.svelte';
+	import { existsInProof } from '../../utils/proofUtils';
 
 	interface SolverTableProps {
 		data: TreeRuleType[];
@@ -57,7 +58,7 @@
 <div class="table-wrapper" bind:this={container}>
 	<div class="table">
 		{#each rows as row, i (i)}
-			<TableRow
+			<ProofRow
 				line={row.line}
 				formula={row.formula}
 				rule={row.rule}
@@ -67,11 +68,7 @@
 					const res = await FormulaParser.parseFormula(content, i + 1, rule);
 
 					// check if the formula already exists in any other row
-					const formulaExists = $solverContent.proof
-						.filter((_, index) => index !== i)
-						.some((p) => FormulaComparer.compare(p, res));
-
-					if (formulaExists) {
+					if (existsInProof(res)) {
 						showToast('Formula already exists in the proof.', 'error');
 						return;
 					}

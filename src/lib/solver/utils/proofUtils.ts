@@ -118,6 +118,8 @@ export function addProofToStore(
 
 			if (!existsInProof(tmp)) {
 				sc.proof.push(tmp);
+			} else {
+				return showToast('Formula already exists in the proof.', 'error');
 			}
 		});
 		return sc;

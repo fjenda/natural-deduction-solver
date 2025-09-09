@@ -21,6 +21,8 @@ export const deductionRules = writable<DeductionRule[]>(DeductionRule.rules);
 const defaultPremises: ParsedExpression[] = [
 	{ value: '∀x [L(x) ⊃ ¬S(x)]', tree: null },
 	{ value: '∃x [L(x) ∧ P(x)]', tree: null }
+	// { value: 'A', tree: null },
+	// { value: 'B', tree: null }
 	// { value: "∀x [L(x) ∧ P(x)]", tree: null },
 ];
 
@@ -29,6 +31,7 @@ const defaultPremises: ParsedExpression[] = [
  */
 const defaultConclusion: ParsedExpression = {
 	value: '∃x [¬S(x) ∧ P(x)]',
+	// value: 'A ∧ B',
 	// value: "∀x ¬S(x)",
 	tree: null
 };
@@ -40,7 +43,7 @@ export const defaultProof = {
 
 /**
  * Store for the content of the solver
- * This store contains the solution that is displayed in the solver
+ * This store contains the solution displayed in the solver
  */
 export const solverContent = (function () {
 	const { set, update, subscribe } = writable<Solution>(new Solution('Solution 1'));

@@ -14,7 +14,7 @@
 <SolverLayout>
 	{#if !$solving && $editState === EditState.SOLVER}
 		{#each Array.from($solverContent.premises) as p, i (i)}
-			<PremiseInputContainer index={i} bind:value={p.value} />
+			<PremiseInputContainer index={i} bind:value={p.value} error={!p.tree} />
 		{/each}
 
 		<StyledButton text="Add Premise" onClick={addPremise} />

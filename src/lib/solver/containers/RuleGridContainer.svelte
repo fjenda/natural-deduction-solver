@@ -18,7 +18,12 @@
 	import InputModal from '../../modals/InputModal.svelte';
 	import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 	import { PremiseParser } from '../parsers/PremiseParser';
-	import { getSuggestionsForTerm, proveProlog, usable } from '../services/proofService';
+	import {
+		getSuggestionsForTerm,
+		proveProlog,
+		provePrologLines,
+		usable
+	} from '../services/proofService';
 	import type { TreeRuleType } from '../../../types/TreeRuleType';
 	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
 
@@ -60,8 +65,8 @@
 
 	const openQuantifierModal = async (
 		rule: DeductionRule,
-		premises: string[],
 		selected: number[],
+		suggestedTerm: string,
 		proof: TreeRuleType[],
 		isElimination: boolean
 	) => {
@@ -78,7 +83,7 @@
 			placeholder = await pickVariableToReplaceModal([...variables]);
 		}
 
-		const suggestions = await getSuggestionsForTerm(premises[0]);
+		const suggestions = await getSuggestionsForTerm(suggestedTerm);
 
 		await modals.open(ReplaceQuantifierVariableModal, {
 			title: isElimination ? 'Replace Variable in Quantifier' : 'Introduce Variable for Quantifier',
@@ -96,7 +101,7 @@
 					? [rowTree!.children[1]!.toPrologFormat(), formula.tree!.toPrologFormat()]
 					: [placeholder, formula.tree!.toPrologFormat()];
 
-				proveProlog(premises, rule, selected, extraArgs).then(() => {
+				provePrologLines(selected, rule, extraArgs).then(() => {
 					selectedRows.set([]);
 				});
 			},
@@ -131,19 +136,21 @@
 			return showToast('Too many rows selected', 'warning');
 		}
 
-		// get the premises
+		// // get the premises
 		const premises: string[] = selected.map(
 			(index) => proof[index - 1]?.tree?.toPrologFormat() ?? ''
 		);
 
 		if (selected.length === rule.inputSize) {
 			if ([NDRule.EEX, NDRule.EALL].includes(rule.short)) {
-				return openQuantifierModal(rule, premises, selected, proof, true);
+				return openQuantifierModal(rule, selected, premises[0], proof, true);
 			}
+
 			if ([NDRule.IEX, NDRule.IALL].includes(rule.short)) {
-				return openQuantifierModal(rule, premises, selected, proof, false);
+				return openQuantifierModal(rule, selected, premises[0], proof, false);
 			}
-			await proveProlog(premises, rule, selected, []);
+
+			await provePrologLines(selected, rule, []);
 			selectedRows.set([]);
 			return;
 		}
@@ -169,12 +176,13 @@
 				if (isNaN(other) || other < 1 || other > proof.length) {
 					return showToast('Invalid row number', 'error');
 				}
+
 				if (selected.includes(other)) {
 					return showToast('Row already selected', 'warning');
 				}
+
 				selected.push(other);
-				premises.push(proof[other - 1]?.tree?.toPrologFormat() ?? '');
-				proveProlog(premises, rule, selected, []).then(() => {
+				provePrologLines(selected, rule, []).then(() => {
 					selectedRows.set([]);
 				});
 			}

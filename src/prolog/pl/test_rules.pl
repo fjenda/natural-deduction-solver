@@ -1,4 +1,5 @@
 :- consult('substitute.pl').
+:- consult('proof_table.pl').
 
 % Rule format: rule(Name, PremiseCount, ApplyPredicate)
 rule('IC', 2, and_intro).
@@ -123,8 +124,8 @@ is_negation([A], not(A)).
 
 % Generic rule checker
 prove_handler(Premises, Conclusion, RuleName, Parameters) :-
-    rule(RuleName, PremiseCount, Predicate),
-    length(Premises, PremiseCount),
+    rule(RuleName, _, Predicate),
+%    length(Premises, PremiseCount),
     append(Premises, Parameters, AllArgs),
     call(Predicate, AllArgs, Conclusion).
 
@@ -142,3 +143,9 @@ conflict_handler(Proof, Conflict1, Conflict2, Result) :-
         Conflict2 = none,
         Result = false
     ).
+
+
+prove(Lines, Conclusion, Rule, Params) :-
+    % get premises from lines in proof_table
+    maplist(proof_table_get, Lines, Premises),
+    prove_handler(Premises, Conclusion, Rule, Params).

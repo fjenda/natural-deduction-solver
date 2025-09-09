@@ -24,6 +24,7 @@
 			return showToast('Select at least one row', 'warning');
 		}
 		const result = await usable(rule, get(selectedRows)[0]);
+		console.log(result);
 		if (!result.applicable && rule.short !== NDRule.IDIS) return;
 
 		highlightedRows.set(result.highlighted);

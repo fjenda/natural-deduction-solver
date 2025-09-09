@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 
 	interface PanelProps {
-		variant: 'fullwidth' | 'small';
+		variant?: 'fullwidth' | 'small';
 		children: Snippet;
 	}
 

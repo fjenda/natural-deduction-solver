@@ -9,14 +9,29 @@ import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { addProofToStore } from '../utils/proofUtils';
 import { showToast } from '../../utils/showToast';
-import type { Solution } from '../Solution';
 import type { TreeRuleType } from '../../../types/TreeRuleType';
+
+export async function provePrologLines(selected: number[], rule: IRule, params: string[]) {
+	// get results
+	const resultsPFL: string[] = await ProofHandler.proveLines(selected, rule, params);
+
+	// no results
+	if (resultsPFL.length === 0) {
+		if (rule.short === 'IU') {
+			showToast('Universal Introduction not applicable', 'error');
+		}
+		return;
+	}
+
+	// add to proof
+	await addProof(resultsPFL, rule.short, selected, params);
+}
 
 /**
  * Proves the selected row the user selected using the Prolog engine
  * @param premises - the premises used from the proof
  * @param rule - the rule used
- * @param selected - the selected row
+ * @param selected - the selected rows
  * @param params - the parameters used
  */
 export async function proveProlog(
@@ -25,6 +40,8 @@ export async function proveProlog(
 	selected: number[],
 	params: string[]
 ) {
+	console.log(premises, rule, selected, params);
+
 	// get results
 	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
 
@@ -48,7 +65,7 @@ export async function proveProlog(
  */
 export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
 	// get results
-	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, []);
+	const resultsPFL: string[] = await ProofHandler.proveLines([], rule, premises);
 
 	// no results
 	if (resultsPFL.length === 0) return false;
@@ -68,27 +85,24 @@ export async function usable(
 	row: number
 ): Promise<{ highlighted: number[]; applicable: boolean }> {
 	const proof = get(solverContent).proof;
-	const selected: string = proof[row - 1].tree?.toPrologFormat() ?? '';
 	const indices: number[] = [];
 
 	if (rule.inputSize === 1) {
 		// special case for quantifier rules
 		if (['EU', 'EEX'].includes(rule.short)) {
-			return usableQuantifier(rule, selected);
+			return usableQuantifier(rule, row);
 		}
 
 		return { applicable: true, highlighted: [] };
 	}
 
-	for (const r of proof) {
-		const i = proof.indexOf(r);
+	for (let i = 0; i < proof.length; i++) {
 		if (i === row - 1) continue;
 
-		const other: string = r.tree?.toPrologFormat() ?? '';
-		const results = await ProofHandler.prove([selected, other], rule, []);
+		const results = await ProofHandler.proveLines([row, i + 1], rule, []);
 		if (results.length === 0) continue;
 
-		indices.push(r.line);
+		indices.push(i + 1);
 	}
 
 	return { applicable: !!indices.length, highlighted: indices };
@@ -97,9 +111,9 @@ export async function usable(
 // special case for quantifier elimination rules, helper function for usable
 async function usableQuantifier(
 	rule: IRule,
-	formula: string
+	selected: number
 ): Promise<{ highlighted: number[]; applicable: boolean }> {
-	const res = await ProofHandler.prove([formula], rule, ['var(Y)', 'Z']);
+	const res = await ProofHandler.proveLines([selected], rule, ['var(Y)', 'Z']);
 
 	if (res.length === 0) {
 		return { applicable: false, highlighted: [] };

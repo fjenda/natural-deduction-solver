@@ -9,12 +9,6 @@ rule('IE', 2, eq_intro).
 rule('EE', 1, eq_elim).
 rule('NI', 1, is_negation).
 
-% Predicate
-%predicate(P, X).
-
-% Function
-
-
 % Actual rule logic
 
 % Conjunction
