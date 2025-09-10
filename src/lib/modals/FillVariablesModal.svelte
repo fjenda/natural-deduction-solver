@@ -14,7 +14,7 @@
 <CustomModal {isOpen} {close} {title} {id} {index}>
 	{#snippet body()}
 		<div slot="body" class="body">
-			<MathMLViewer value={$theorems[$theoremData.theoremId]?.whole.value} />
+			<MathMLViewer value={$theorems[$theoremData.theoremId]?.solution.whole.value} />
 			{#each $theoremData.vars as v, i (i)}
 				<input type="text" placeholder={`${v}`} bind:value={$theoremData.varInputs[i]} />
 			{/each}

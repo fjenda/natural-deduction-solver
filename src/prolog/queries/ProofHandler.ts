@@ -16,7 +16,7 @@ const Queries = {
 		`prove_handler([${premises.join(',')}], X, '${rule.short}', [${params.join(',')}]).`,
 	CONFLICT: (proofPFL: string[]) => `conflict_handler([${proofPFL}], X, Y, Z).`,
 	SUBSTITUTE: (theoremPFL: string, oldVars: string[], newVars: string[]) =>
-		`substitute(${theoremPFL}, [${oldVars.join(',')}], [${newVars.join(',')}], X}`
+		`substitute(${theoremPFL}, [${oldVars.join(',')}], [${newVars.join(',')}], X).`
 };
 
 export const ProofHandler = {

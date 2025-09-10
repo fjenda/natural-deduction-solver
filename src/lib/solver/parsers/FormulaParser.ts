@@ -153,6 +153,8 @@ export class FormulaParser {
 		const applied = appliedRuleFromString(cleanRule);
 		if (!applied.lines) return base;
 
+		console.log(applied);
+
 		// validate lines
 		if (!FormulaParser.linesExist(applied.lines)) return base;
 
@@ -164,7 +166,13 @@ export class FormulaParser {
 		const [first, second] = FormulaParser.getPremises(applied.lines);
 
 		// apply rule
-		const ok = await FormulaParser.checkRuleApplication(base.tree, usedRule, first, second);
+		const ok = await FormulaParser.checkRuleApplication(
+			base.tree,
+			usedRule,
+			first,
+			second,
+			applied.replacements ?? []
+		);
 		if (!ok) return base;
 
 		// success
@@ -202,7 +210,8 @@ export class FormulaParser {
 		target: Node,
 		rule: IRule,
 		first: TreeRuleType | null,
-		second: TreeRuleType | null
+		second: TreeRuleType | null,
+		params: string[]
 	): Promise<boolean> {
 		let premises: string[] = [];
 		if (rule === DeductionRule.IDIS) {
@@ -214,6 +223,6 @@ export class FormulaParser {
 				: [first!.tree!.toPrologFormat()];
 		}
 
-		return await verifyProlog(premises, rule, target);
+		return await verifyProlog(premises, rule, params, target);
 	}
 }

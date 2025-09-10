@@ -68,11 +68,11 @@ export class PrettySyntaxer {
 	 * @returns The cleaned rule string
 	 */
 	public static cleanupRule(r: string): string {
-		// rule should be in a format `ruleName line1?,line2?`
+		// rule should be in a format `ruleName line1?,line2? replacement1?/replacement2?`
 		r = r.trim();
 
 		// convert letters to capital
-		r = r.toUpperCase();
+		// r = r.toUpperCase();
 
 		// remove extra spaces
 		r = r.replace(/\s+/g, ' ');

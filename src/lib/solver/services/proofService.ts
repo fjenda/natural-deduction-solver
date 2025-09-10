@@ -12,6 +12,9 @@ import { showToast } from '../../utils/showToast';
 import type { TreeRuleType } from '../../../types/TreeRuleType';
 
 export async function provePrologLines(selected: number[], rule: IRule, params: string[]) {
+	console.log(params);
+	// TODO: replace x with var(x) for quantifier eliminations
+
 	// get results
 	const resultsPFL: string[] = await ProofHandler.proveLines(selected, rule, params);
 
@@ -61,11 +64,17 @@ export async function proveProlog(
  * Verifies the proof the user wrote using the Prolog engine
  * @param premises - the premises used from the proof
  * @param rule - the rule used
+ * @param params - the parameters used
  * @param result - the result to verify
  */
-export async function verifyProlog(premises: string[], rule: IRule, result: Node) {
+export async function verifyProlog(
+	premises: string[],
+	rule: IRule,
+	params: string[],
+	result: Node
+) {
 	// get results
-	const resultsPFL: string[] = await ProofHandler.proveLines([], rule, premises);
+	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
 
 	// no results
 	if (resultsPFL.length === 0) return false;
@@ -129,10 +138,10 @@ async function usableQuantifier(
  */
 export async function substitute(theoremData: TheoremData, newVars: string[]) {
 	const theorem = get(theorems)[theoremData.theoremId];
-	const theoremPFL = theorem.whole.tree?.toPrologFormat() ?? '';
+	const theoremPFL = theorem.solution.whole.tree?.toPrologFormat() ?? '';
 	const parsed = await ProofHandler.substitute(theoremPFL, Array.from(theoremData.vars), newVars);
 
-	await addProof([parsed], theorem.name, []);
+	await addProof([parsed], theorem.solution.name, []);
 }
 
 /**

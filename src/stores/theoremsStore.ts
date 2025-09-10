@@ -1,17 +1,18 @@
 import { get, writable } from 'svelte/store';
 import { Solution } from '../lib/solver/Solution';
-import { indirectSolving, solverBackup, solverContent } from './solverStore';
+import { indirectSolving, logicMode, solverBackup, solverContent } from './solverStore';
 import { editState, solving } from './stateStore';
 import { EditState } from '../types/EditState';
 import { TheoremRegistry } from '../lib/rules/TheoremRegistry';
 import { showToast } from '../lib/utils/showToast';
+import { ParseStrategy } from '../types/ParseStrategy';
 
 /**
  * The theorems store.
  * This store is used to store the theorems that the user has saved.
  */
 export const theorems = (function () {
-	const { set, update, subscribe } = writable<Solution[]>([]);
+	const { set, update, subscribe } = writable<{ solution: Solution; mode: ParseStrategy }[]>([]);
 
 	const reset = () => {
 		set([]);
@@ -55,14 +56,14 @@ export const selectedTheorem = writable<number>(-1);
  * Adds a new theorem to the theorems store.
  */
 export const addTheorem = (): void => {
-	theorems.update((theorems: Solution[]) => [
+	theorems.update((theorems) => [
 		...theorems,
-		new Solution('Unnamed', { value: '', tree: null })
+		{ solution: new Solution('Unnamed', { value: '', tree: null }), mode: get(logicMode) }
 	]);
 };
 
 /**
- * Saves a theorem to the theorems store.
+ * Saves a theorem to the theorem store.
  */
 export const saveTheorem = (index: number): void => {
 	// check for circular dependencies
@@ -79,13 +80,13 @@ export const saveTheorem = (index: number): void => {
 	}
 
 	// save the new theorem to the theorems store
-	theorems.update((theorems: Solution[]) => {
+	theorems.update((theorems) => {
 		// if the solver content name is empty, set it to "Unnamed Theorem"
 		if (get(solverContent).name === '') {
 			get(solverContent).name = 'Unnamed';
 		}
 
-		theorems[index] = get(solverContent);
+		theorems[index] = { solution: get(solverContent), mode: get(logicMode) };
 		return theorems;
 	});
 
@@ -106,14 +107,14 @@ export const saveTheorem = (index: number): void => {
 };
 
 /**
- * Edit a theorem from the theorems store.
+ * Edit a theorem from the theorem store.
  */
 export const editTheorem = (index: number): void => {
 	// save the current solver content to the solver backup
 	solverBackup.set(get(solverContent));
 
 	// set the solver content to the selected theorem
-	solverContent.set(get(theorems)[index]);
+	solverContent.set(get(theorems)[index].solution);
 
 	// set the selected theorem index
 	selectedTheorem.set(index);
@@ -124,7 +125,7 @@ export const editTheorem = (index: number): void => {
 	// indirect solving
 	indirectSolving.set(get(solverContent).indirect);
 
-	// show the proof if conclusion isn't empty
+	// show the proof if the conclusion isn't empty
 	solving.set(get(solverContent).whole.value.length !== 0);
 };
 

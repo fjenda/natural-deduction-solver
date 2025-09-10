@@ -15,6 +15,22 @@ export interface ContradictionResult {
 	Z: unknown;
 }
 
+export interface TheoremTableResults {
+	X: TheoremTableResult;
+}
+
+export interface TheoremTableResult {
+	X: TheoremTableRow[];
+}
+
+interface TheoremTableRow {
+	0: number; // line
+	1: PrologCompound | string; // formula
+	2: string; // rule
+	3: number[]; // lines used
+	4: string[]; // params used
+}
+
 export interface ProofTableResult {
 	X: unknown;
 }

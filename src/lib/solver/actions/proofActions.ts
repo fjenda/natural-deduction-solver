@@ -57,44 +57,40 @@ export function onChangeTheorem(value: string) {
 /**
  * Switches the mode between propositional and predicate logic
  */
-export function switchMode(mode: ParseStrategy) {
+export async function switchMode(mode: ParseStrategy) {
 	logicMode.update(() => mode);
 	deductionRules.set(DeductionRule.rules);
 	get(solverContent).premises.forEach((premise, i) => {
 		onChangePremise(premise.value, i);
 	});
 	onChangeConclusion(get(solverContent).conclusion.value);
+	onChangeTheorem(get(solverContent).whole.value);
 }
 
 export function fillVariables() {
-	modals
-		.open(FillVariablesModal, {
-			title: 'Fill Variables',
-			onConfirm: () => {
-				// get the lines selected
-				const formulas = get(theoremData).varInputs.map((v) => {
-					const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
-					if (!formula.tree) {
-						showToast('Invalid formula', 'error');
-						return '';
-					}
+	modals.open(FillVariablesModal, {
+		title: 'Fill Variables',
+		onConfirm: () => {
+			// get the lines selected
+			const formulas = get(theoremData).varInputs.map((v) => {
+				const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
+				if (!formula.tree) {
+					showToast('Invalid formula', 'error');
+					return '';
+				}
 
-					return formula.tree.toPrologFormat();
-				});
-				theoremData.update((td) => {
-					td.varInputs = [];
-					return td;
-				});
+				console.log(formula);
+				return formula.tree.toPrologFormat();
+			});
+			theoremData.update((td) => {
+				td.varInputs = [];
+				return td;
+			});
 
-				// replace the variables with the values
-				substitute(get(theoremData), formulas);
-			}
-		})
-		.then((r) => {
-			if (r === undefined) {
-				showToast('Cancelled', 'info');
-			}
-		});
+			// replace the variables with the values
+			substitute(get(theoremData), formulas);
+		}
+	});
 }
 
 /**

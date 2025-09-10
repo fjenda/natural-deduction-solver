@@ -21,19 +21,23 @@ export function appliedRuleToString(appliedRule: AppliedRule): string {
 export function appliedRuleFromString(str: string): AppliedRule {
 	const parts = str.split(' ');
 
+	const rule = parts[0].toUpperCase();
+	const lines = parts[1] ? parts[1].split(',').map(Number) : [];
+	const replacements = parts[2] ? parts[2].split('/').map((s) => s.trim()) : [];
+
+	if (['EEX', 'EU'].includes(rule)) {
+		replacements[0] = `var(${replacements[0]})`;
+	}
+
+	if (['IEX', 'IU'].includes(rule)) {
+		replacements[1] = `var(${replacements[1]})`;
+	}
+
 	// Rule structure
 	// {name} {lines?} {replacements?}
-	const rule: AppliedRule = {
-		rule: parts[0]
+	return {
+		rule,
+		lines,
+		replacements
 	};
-
-	if (parts[1]) {
-		rule.lines = parts[1].split(',').map(Number);
-	}
-
-	if (parts[2]) {
-		rule.replacements = parts[2].split('/').map((s) => s.trim());
-	}
-
-	return rule;
 }

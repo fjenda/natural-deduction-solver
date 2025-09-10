@@ -5,7 +5,7 @@
 		saveTheorem,
 		editTheorem
 	} from '../../../stores/theoremsStore';
-	import { solverContent } from '../../../stores/solverStore';
+	import { logicMode, solverContent } from '../../../stores/solverStore';
 	import { theorems } from '../../../stores/theoremsStore';
 	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
 
@@ -74,7 +74,7 @@
 		{:else}
 			<p class:visible={!hovered}>{name}</p>
 			<div class="mathml-viewer" class:visible={hovered}>
-				<MathMLViewer value={$theorems[index].whole.value} />
+				<MathMLViewer value={$theorems[index].solution.whole.value} />
 			</div>
 		{/if}
 	</div>
