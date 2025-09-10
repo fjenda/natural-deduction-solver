@@ -213,7 +213,7 @@ export class FormulaParser {
 		second: TreeRuleType | null,
 		params: string[]
 	): Promise<boolean> {
-		let premises: string[] = [];
+		let premises: string[];
 		if (rule === DeductionRule.IDIS) {
 			const [left, right] = target.split();
 			premises = [left.toPrologFormat(), right.toPrologFormat()];

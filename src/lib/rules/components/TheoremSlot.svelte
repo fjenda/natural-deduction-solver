@@ -5,7 +5,7 @@
 		saveTheorem,
 		editTheorem
 	} from '../../../stores/theoremsStore';
-	import { logicMode, solverContent } from '../../../stores/solverStore';
+	import { solverContent } from '../../../stores/solverStore';
 	import { theorems } from '../../../stores/theoremsStore';
 	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
 

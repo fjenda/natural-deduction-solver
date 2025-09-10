@@ -12,9 +12,6 @@ import { showToast } from '../../utils/showToast';
 import type { TreeRuleType } from '../../../types/TreeRuleType';
 
 export async function provePrologLines(selected: number[], rule: IRule, params: string[]) {
-	console.log(params);
-	// TODO: replace x with var(x) for quantifier eliminations
-
 	// get results
 	const resultsPFL: string[] = await ProofHandler.proveLines(selected, rule, params);
 
