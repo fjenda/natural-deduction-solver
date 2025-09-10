@@ -136,6 +136,8 @@ export async function checkProof() {
 	const isIndirect = get(indirectSolving);
 	const isPredicateLogic = get(logicMode) === ParseStrategy.PREDICATE;
 
+	ProofTable.print();
+
 	if (isPredicateLogic) {
 		const validProof = await isExistentialEliminationValid();
 		if (!validProof) {

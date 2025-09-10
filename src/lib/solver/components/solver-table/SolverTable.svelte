@@ -9,6 +9,7 @@
 	import { removeRow } from '../../actions/proofActions';
 	import ProofRow from './row/ProofRow.svelte';
 	import { existsInProof } from '../../utils/proofUtils';
+	import { ProofTable } from '../../../../prolog/queries/ProofTable';
 
 	interface SolverTableProps {
 		data: TreeRuleType[];

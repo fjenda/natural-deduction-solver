@@ -10,6 +10,7 @@ import type { IRule } from '../../rules/IRule';
 import { showToast } from '../../utils/showToast';
 import { verifyProlog } from '../services/proofService';
 import { appliedRuleFromString } from '../../../types/AppliedRule';
+import { ProofTable } from '../../../prolog/queries/ProofTable';
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid.
@@ -167,17 +168,38 @@ export class FormulaParser {
 		const [first, second] = FormulaParser.getPremises(applied.lines);
 
 		// apply rule
+		const params = applied.replacements ?? [];
+		const paramsCopy = [...params];
+		if (['EEX', 'EU'].includes(usedRule.short)) {
+			paramsCopy[0] = `var(${params[0]})`;
+		} else if (['IEX', 'IU'].includes(usedRule.short)) {
+			paramsCopy[1] = `var(${params[1]})`;
+		}
+
 		const ok = await FormulaParser.checkRuleApplication(
 			base.tree,
 			usedRule,
 			first,
 			second,
-			applied.replacements ?? []
+			paramsCopy
 		);
 		if (!ok) return base;
 
+		await ProofTable.edit(
+			base.line,
+			base.tree.toPrologFormat(),
+			usedRule.short,
+			applied.lines,
+			paramsCopy
+		);
+
+		// ProofTable.print();
+
 		// success
-		return { ...base, rule: { rule: usedRule.short, lines: applied.lines } };
+		return {
+			...base,
+			rule: { rule: usedRule.short, lines: applied.lines, replacements: params }
+		};
 	}
 
 	/** Helper functions for the main parseFormula function **/

@@ -101,6 +101,7 @@ export function addProofToStore(
 	replacements: string[] = [],
 	trees?: Node[] | null
 ) {
+	console.log('proof to store');
 	const replacementsString = replacements
 		.map((r) => Node.fromPrologFormat(r).value)
 		.filter((r): r is string => r !== undefined);
@@ -119,7 +120,7 @@ export function addProofToStore(
 			if (!existsInProof(tmp)) {
 				sc.proof.push(tmp);
 			} else {
-				return showToast('Formula already exists in the proof.', 'error');
+				return showToast('Formula already exists in the proof. utils', 'error');
 			}
 		});
 		return sc;

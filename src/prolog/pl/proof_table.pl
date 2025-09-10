@@ -15,6 +15,11 @@ proof_table_add(Term, RuleUsed, LineNumbersUsed, Replacements) :-
 proof_table_remove(LineNumber) :-
     retract(proof_row(LineNumber, _, _, _, _)).
 
+proof_table_edit(LineNumber, NewTerm, NewRuleUsed, NewLineNumbersUsed, NewReplacements) :-
+    retractall(proof_row(LineNumber, _, _, _, _)),
+    assertz(proof_row(LineNumber, NewTerm, NewRuleUsed, NewLineNumbersUsed, NewReplacements)),
+    proof_table_print.
+
 proof_table_get(LineNumber, Term) :-
     proof_row(LineNumber, Term, _, _, _).
 

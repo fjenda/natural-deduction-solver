@@ -31,7 +31,9 @@ export const ProofHandler = {
 			Queries.PROVE_LINES(lines, rule, params)
 		);
 
-		return results.map((r) => compoundToString(PrologController.parsePrologCompound(r.X)));
+		return Array.from(
+			new Set(results.map((r) => compoundToString(PrologController.parsePrologCompound(r.X))))
+		);
 	},
 
 	/**
@@ -45,7 +47,9 @@ export const ProofHandler = {
 			Queries.PROVE(premises, rule, params)
 		);
 
-		return results.map((r) => compoundToString(PrologController.parsePrologCompound(r.X)));
+		return Array.from(
+			new Set(results.map((r) => compoundToString(PrologController.parsePrologCompound(r.X))))
+		);
 	},
 
 	/**

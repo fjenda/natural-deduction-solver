@@ -7,6 +7,8 @@ const Queries = {
 	WRITE: (term: string, rule: string, lines: number[], replacements: string[] = []) =>
 		`proof_table_add(${term}, '${rule}', [${lines.join(',')}], [${replacements.join(',')}]).`,
 	REMOVE: (line: number) => `proof_table_remove(${line}).`,
+	EDIT: (line: number, term: string, rule: string, lines: number[], replacements: string[]) =>
+		`proof_table_edit(${line}, ${term}, '${rule}', [${lines.join(',')}], [${replacements.join(',')}]).`,
 	GET: (line: number) => `proof_table_get(${line}, X).`,
 	CLEAR: `proof_table_clear.`,
 	PRINT: `proof_table_print.`,
@@ -38,6 +40,18 @@ export const ProofTable = {
 	 */
 	async remove(line: number) {
 		await PrologController.queryOnce(Queries.REMOVE(line));
+	},
+
+	/**
+	 * Edits a line in the proof_table in Prolog
+	 * @param line - the line number to edit
+	 * @param term - the new term to write
+	 * @param rule - the new rule to use
+	 * @param lines - the new line numbers to use
+	 * @param replacements - the new replacements to use
+	 */
+	async edit(line: number, term: string, rule: string, lines: number[], replacements: string[]) {
+		await PrologController.queryOnce(Queries.EDIT(line, term, rule, lines, replacements));
 	},
 
 	/**

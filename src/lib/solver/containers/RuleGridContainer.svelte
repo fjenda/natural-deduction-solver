@@ -136,7 +136,7 @@
 			return showToast('Too many rows selected', 'warning');
 		}
 
-		// // get the premises
+		// get the premises
 		const premises: string[] = selected.map(
 			(index) => proof[index - 1]?.tree?.toPrologFormat() ?? ''
 		);

@@ -25,14 +25,6 @@ export function appliedRuleFromString(str: string): AppliedRule {
 	const lines = parts[1] ? parts[1].split(',').map(Number) : [];
 	const replacements = parts[2] ? parts[2].split('/').map((s) => s.trim()) : [];
 
-	if (['EEX', 'EU'].includes(rule)) {
-		replacements[0] = `var(${replacements[0]})`;
-	}
-
-	if (['IEX', 'IU'].includes(rule)) {
-		replacements[1] = `var(${replacements[1]})`;
-	}
-
 	// Rule structure
 	// {name} {lines?} {replacements?}
 	return {
