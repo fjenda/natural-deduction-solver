@@ -153,14 +153,15 @@ export class FormulaParser {
 		const applied = appliedRuleFromString(cleanRule);
 		if (!applied.lines) return base;
 
-		console.log(applied);
-
 		// validate lines
 		if (!FormulaParser.linesExist(applied.lines)) return base;
 
 		// resolve deduction/theorem rule
 		const usedRule = FormulaParser.findRule(applied.rule);
-		if (usedRule === DeductionRule.UNKNOWN) return base;
+		if (usedRule === DeductionRule.UNKNOWN) {
+			showToast(`Rule ${applied.rule} doesn't exist`, 'error');
+			return base;
+		}
 
 		// get premises from solver store
 		const [first, second] = FormulaParser.getPremises(applied.lines);
@@ -195,6 +196,9 @@ export class FormulaParser {
 		let rule: IRule = DeductionRule.getRule(ruleName);
 		if (rule === DeductionRule.UNKNOWN) {
 			rule = Theorem.getRule(ruleName);
+			if (rule.detail === '' && rule.inputSize === 0 && rule.outputSize === 0) {
+				rule = DeductionRule.UNKNOWN;
+			}
 		}
 		return rule;
 	}

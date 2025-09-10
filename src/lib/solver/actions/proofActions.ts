@@ -17,8 +17,9 @@ import { showToast } from '../../utils/showToast';
 import { isExistentialEliminationValid, substitute } from '../services/proofService';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
-import { solving } from '../../../stores/stateStore';
+import { editState, solving } from '../../../stores/stateStore';
 import { ProofHandler } from '../../../prolog/queries/ProofHandler';
+import { EditState } from '../../../types/EditState';
 
 /**
  * Parses the premise and adds it to the solver content
@@ -58,6 +59,11 @@ export function onChangeTheorem(value: string) {
  * Switches the mode between propositional and predicate logic
  */
 export async function switchMode(mode: ParseStrategy) {
+	if (get(solving) && get(editState) === EditState.THEOREM) {
+		showToast('Cannot change mode while solving', 'error');
+		return;
+	}
+
 	logicMode.update(() => mode);
 	deductionRules.set(DeductionRule.rules);
 	get(solverContent).premises.forEach((premise, i) => {

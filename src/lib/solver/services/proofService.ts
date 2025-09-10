@@ -40,8 +40,6 @@ export async function proveProlog(
 	selected: number[],
 	params: string[]
 ) {
-	console.log(premises, rule, selected, params);
-
 	// get results
 	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
 
@@ -72,6 +70,14 @@ export async function verifyProlog(
 ) {
 	// get results
 	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
+
+	// no results
+	if (resultsPFL.length === 0) {
+		if (rule.short === 'IU') {
+			showToast('Universal Introduction not applicable', 'error');
+		}
+		return false;
+	}
 
 	// no results
 	if (resultsPFL.length === 0) return false;
