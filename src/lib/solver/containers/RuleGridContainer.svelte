@@ -46,12 +46,14 @@
 		return formula;
 	};
 
-	const pickVariableToReplaceModal = (variables: string[] = []): Promise<string> => {
+	const pickVariableToReplaceModal = (
+		variables: string[] = []
+	): Promise<{ placeholder: string; idx: number }> => {
 		return new Promise((resolve) => {
-			const variableButtons = variables.map((variable) => ({
+			const variableButtons = variables.map((variable, idx) => ({
 				text: variable,
 				action: () => {
-					resolve(variable);
+					resolve({ placeholder: variable, idx });
 					modals.closeAll();
 				}
 			}));
@@ -71,16 +73,26 @@
 		isElimination: boolean
 	) => {
 		const rowTree = proof[selected[0] - 1].tree;
-		const variables = rowTree?.variables;
+		const variables = rowTree?.variables.filter((v) =>
+			[NodeType.CONSTANT, NodeType.VARIABLE].includes(v.type)
+		);
 
-		let placeholder = isElimination ? rowTree?.children[1]?.value : [...(variables ?? [])][0];
+		console.log(variables);
+
+		let quantifierVar = isElimination
+			? { varName: rowTree?.children[1]?.value, type: NodeType.VARIABLE }
+			: [...(variables ?? [])][0];
+
+		let placeholder = quantifierVar.varName;
 
 		if (!placeholder) {
 			return showToast('No variables found in the formula', 'error');
 		}
 
-		if (!isElimination && variables && variables.size > 1) {
-			placeholder = await pickVariableToReplaceModal([...variables]);
+		if (!isElimination && variables && variables.length > 1) {
+			let result = await pickVariableToReplaceModal([...variables].map((v) => v.varName ?? ''));
+			placeholder = result.placeholder;
+			quantifierVar = [...variables][result.idx];
 		}
 
 		const suggestions = await getSuggestionsForTerm(suggestedTerm);
@@ -93,17 +105,32 @@
 				const formula = validateFormulaInput(modalInput);
 				if (!formula) return;
 
-				if (isElimination && formula.tree!.type !== NodeType.CONSTANT) {
-					return showToast('Invalid formula', 'error');
+				// TODO: Can i replace it with a free variable?
+				if (isElimination && rule.short === 'EEX' && formula.tree!.type !== NodeType.CONSTANT) {
+					return showToast('The variable needs to be replaced with a constant', 'error');
 				}
 
+				if (!isElimination && formula.tree!.type !== NodeType.VARIABLE) {
+					return showToast('The term needs to be a variable', 'error');
+				}
+
+				console.log(quantifierVar);
+				console.log(placeholder);
+				console.log(formula.tree);
+
+				const quantifierVarFormat =
+					quantifierVar.type === NodeType.VARIABLE
+						? `var(${placeholder})`
+						: `const(${placeholder})`;
 				const extraArgs = isElimination
 					? [rowTree!.children[1]!.toPrologFormat(), formula.tree!.toPrologFormat()]
-					: [placeholder, formula.tree!.toPrologFormat()];
+					: [quantifierVarFormat, formula.tree!.toPrologFormat()];
 
 				provePrologLines(selected, rule, extraArgs).then(() => {
 					selectedRows.set([]);
 				});
+
+				console.log(extraArgs);
 			},
 			suggestions
 		});

@@ -66,10 +66,6 @@ export class PrattParser {
 		const tree = this.parseExpression(0);
 
 		if (!this.tokenStream.isAtEnd()) {
-			// if (THROW_ERRORS) {
-			//     throw new Error("Unexpected token: " + this.tokenStream.current());
-			// }
-
 			return null;
 		}
 
@@ -115,10 +111,6 @@ export class PrattParser {
 			if (this.tokenStream.match('(') && this.strategy === ParseStrategy.PREDICATE) {
 				const termList = this.parseTermList();
 				if (!this.tokenStream.match(')')) {
-					// if (THROW_ERRORS) {
-					//     throw new Error("Expected ')' after term list in function call");
-					// }
-
 					return null;
 				}
 
@@ -134,7 +126,7 @@ export class PrattParser {
 			}
 
 			// constant if not in predicate mode
-			if (this.strategy !== ParseStrategy.PREDICATE) {
+			if (this.strategy === ParseStrategy.PROPOSITIONAL) {
 				return new Node(NodeType.CONSTANT, token);
 			}
 
@@ -143,21 +135,16 @@ export class PrattParser {
 		}
 
 		if (token.match(/[A-Z]/)) {
-			if (this.tokenStream.match('(') && this.strategy === ParseStrategy.PREDICATE) {
+			if (
+				this.tokenStream.match('(') &&
+				[ParseStrategy.PREDICATE, ParseStrategy.THEOREM].includes(this.strategy)
+			) {
 				const termList = this.parseTermList();
 				if (!this.tokenStream.match(')')) {
-					// if (THROW_ERRORS) {
-					//     throw new Error("Expected ')' after term list in predicate call");
-					// }
-
 					return null;
 				}
 
 				if (!termList) {
-					// if (THROW_ERRORS) {
-					//     throw new Error("Expected term list in predicate call");
-					// }
-
 					return null;
 				}
 
@@ -167,40 +154,30 @@ export class PrattParser {
 				return node;
 			}
 
-			// if (THROW_ERRORS && this.strategy === ParseStrategy.PREDICATE) {
-			//     throw new Error("Expected '(' after predicate " + token);
-			// }
-
 			// TODO: Does this need to be here?
 			if (this.strategy === ParseStrategy.PREDICATE) {
-				return null;
+				// return null;
+				return new Node(NodeType.PREDICATE, token);
 			}
 
 			return new Node(NodeType.CONSTANT, token);
 		}
 
-		if (['∀', '∃'].includes(token) && this.strategy === ParseStrategy.PREDICATE) {
+		if (
+			['∀', '∃'].includes(token) &&
+			[ParseStrategy.PREDICATE, ParseStrategy.THEOREM].includes(this.strategy)
+		) {
 			const node = new Node(NodeType.QUANTIFIER);
 			node.children.push(new Node(NodeType.QUANTIFIER_OPERATOR, token));
 
 			const variable = this.parseVariable();
 			if (!variable) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected variable after quantifier " + token);
-				// }
-
 				return null;
 			}
 			node.children.push(variable);
 
-			const formula = this.parseExpression(0);
-			if (!formula) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected formula after quantifier " + token);
-				// }
-
-				return null;
-			}
+			const formula = this.parseToken();
+			if (!formula) return null;
 			node.children.push(formula);
 
 			return node;
@@ -209,10 +186,6 @@ export class PrattParser {
 		if (['¬'].includes(token)) {
 			const right = this.parseExpression(PRECEDENCE[token]);
 			if (!right) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected right side of unary operation");
-				// }
-
 				return null;
 			}
 
@@ -225,10 +198,6 @@ export class PrattParser {
 		if (token === '(') {
 			const inner = this.parseExpression(0);
 			if (!this.tokenStream.match(')')) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected )");
-				// }
-
 				return null;
 			}
 
@@ -245,10 +214,6 @@ export class PrattParser {
 		if (token === '[') {
 			const inner = this.parseExpression(0);
 			if (!this.tokenStream.match(']')) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected ]");
-				// }
-
 				return null;
 			}
 
@@ -264,7 +229,6 @@ export class PrattParser {
 
 		this.tokenStream.restore(beforeToken);
 		return null;
-		// throw new Error(`Unexpected token: ${token}`);
 	}
 
 	/**
@@ -281,10 +245,6 @@ export class PrattParser {
 			const right = this.parseExpression(precedence);
 
 			if (!right) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected right side of binary operation");
-				// }
-
 				return null;
 			}
 
@@ -293,10 +253,6 @@ export class PrattParser {
 
 			return node;
 		}
-
-		// if (THROW_ERRORS) {
-		//     throw new Error(`Unknown operator: ${operator}`);
-		// }
 
 		return null;
 	}
@@ -312,10 +268,6 @@ export class PrattParser {
 		const term = this.parseExpression(0);
 
 		if (!term) {
-			// if (THROW_ERRORS) {
-			//     throw new Error("Expected at least one term in TermList");
-			// }
-
 			return null;
 		}
 		node.children.push(term!);
@@ -323,10 +275,6 @@ export class PrattParser {
 		while (this.tokenStream.match(',')) {
 			const nextTerm = this.parseExpression(0);
 			if (!nextTerm) {
-				// if (THROW_ERRORS) {
-				//     throw new Error("Expected term after ',' in TermList");
-				// }
-
 				return null;
 			}
 			node.children.push(nextTerm!);
@@ -360,6 +308,6 @@ export class PrattParser {
 		const token = this.tokenStream.current();
 		if (!token) return 0;
 
-		return PRECEDENCE[token] || 0 ? PRECEDENCE[token] : 0;
+		return PRECEDENCE[token] ?? 0;
 	}
 }

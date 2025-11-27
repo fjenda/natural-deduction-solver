@@ -100,11 +100,14 @@ export function addProofToStore(
 	lines: number[] = [],
 	replacements: string[] = [],
 	trees?: Node[] | null
-) {
+): string[] {
 	console.log('proof to store');
 	const replacementsString = replacements
 		.map((r) => Node.fromPrologFormat(r).value)
 		.filter((r): r is string => r !== undefined);
+
+	const acceptedResults: string[] = [];
+	console.log({ results, rule, lines, replacementsString, trees });
 
 	solverContent.update((sc) => {
 		results.forEach((r, i) => {
@@ -119,10 +122,13 @@ export function addProofToStore(
 
 			if (!existsInProof(tmp)) {
 				sc.proof.push(tmp);
+				acceptedResults.push(r);
 			} else {
-				return showToast('Formula already exists in the proof. utils', 'error');
+				return showToast('Formula already exists in the proof.', 'error');
 			}
 		});
 		return sc;
 	});
+
+	return acceptedResults;
 }

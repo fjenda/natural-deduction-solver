@@ -14,12 +14,17 @@ import { modals } from 'svelte-modals';
 import FillVariablesModal from '../../modals/FillVariablesModal.svelte';
 import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 import { showToast } from '../../utils/showToast';
-import { isExistentialEliminationValid, substitute } from '../services/proofService';
+import {
+	isExistentialEliminationValid,
+	substitute,
+	validateSubstitution
+} from '../services/proofService';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { editState, solving } from '../../../stores/stateStore';
 import { ProofHandler } from '../../../prolog/queries/ProofHandler';
 import { EditState } from '../../../types/EditState';
+import { theorems } from '../../../stores/theoremsStore';
 
 /**
  * Parses the premise and adds it to the solver content
@@ -77,24 +82,57 @@ export function fillVariables() {
 	modals.open(FillVariablesModal, {
 		title: 'Fill Variables',
 		onConfirm: () => {
+			const theorem = get(theorems)[get(theoremData).theoremId].solution.whole.tree;
+			if (!theorem) return showToast('Theorem is invalid', 'error');
+
+			// console.log(get(theorems)[get(theoremData).theoremId]);
+
 			// get the lines selected
-			const formulas = get(theoremData).varInputs.map((v) => {
-				const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(v));
+			const vars = get(theoremData).vars;
+			const varInputs = get(theoremData).varInputs;
+
+			let unfulfilledDep = false;
+			let badFormula = false;
+			const formulas = vars.map((v, i) => {
+				const theoremFormula = PremiseParser.parsePremise(PrettySyntaxer.clean(v.varName));
+				const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(varInputs[i]));
+
+				// console.log(theoremFormula, formula);
+
 				if (!formula.tree) {
+					badFormula = true;
 					showToast('Invalid formula', 'error');
 					return '';
 				}
 
-				console.log(formula);
+				const dependencies = theoremFormula.tree!.getFreeVars();
+				// console.log(dependencies, theoremFormula);
+				if (dependencies.size > 0) {
+					dependencies.forEach((d) => {
+						if (!validateSubstitution(formula.tree!, d)) {
+							showToast(`${formula.value} has unfulfilled dependency for ${d}`, 'error');
+							unfulfilledDep = true;
+						}
+					});
+				}
+
+				// console.log(formula);
 				return formula.tree.toPrologFormat();
 			});
+
+			if (formulas.some((f) => f === '')) {
+				showToast('Please fill in all variables correctly', 'warning');
+			}
+
 			theoremData.update((td) => {
 				td.varInputs = [];
 				return td;
 			});
 
+			// console.log(formulas);
+
 			// replace the variables with the values
-			substitute(get(theoremData), formulas);
+			if (!unfulfilledDep && !badFormula) substitute(get(theoremData), formulas);
 		}
 	});
 }
@@ -136,7 +174,7 @@ export async function checkProof() {
 	const isIndirect = get(indirectSolving);
 	const isPredicateLogic = get(logicMode) === ParseStrategy.PREDICATE;
 
-	ProofTable.print();
+	// ProofTable.print();
 
 	if (isPredicateLogic) {
 		const validProof = await isExistentialEliminationValid();

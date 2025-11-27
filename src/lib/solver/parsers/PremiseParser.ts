@@ -3,6 +3,8 @@ import { Node } from '../../syntax-checker/Node';
 import { get } from 'svelte/store';
 import { logicMode } from '../../../stores/solverStore';
 import type { ParsedExpression } from '../../../types/ParsedExpression';
+import { selectedTheorem } from '../../../stores/theoremsStore';
+import { ParseStrategy } from '../../../types/ParseStrategy';
 
 /**
  * This class is responsible for parsing the premises
@@ -29,8 +31,12 @@ export class PremiseParser {
 		premise = premise.replace(/\s/g, '');
 
 		// syntax check
-		const parser = new PrattParser(get(logicMode));
+		const mode = get(logicMode);
+		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
+		const parser = new PrattParser(mode);
 		const res = parser.parse(premise);
+
+		// res?.print();
 
 		// if the formula is not valid, return the error
 		if (!res) return tmp;

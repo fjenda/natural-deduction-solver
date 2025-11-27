@@ -15,10 +15,14 @@ export async function provePrologLines(selected: number[], rule: IRule, params: 
 	// get results
 	const resultsPFL: string[] = await ProofHandler.proveLines(selected, rule, params);
 
+	console.log('Results from Prolog:', resultsPFL);
+
 	// no results
 	if (resultsPFL.length === 0) {
 		if (rule.short === 'IU') {
-			showToast('Universal Introduction not applicable', 'error');
+			showToast('Universal Introduction not applicable.', 'error');
+		} else if (rule.short === 'EEX') {
+			showToast('The constant is not fresh! It already appears in the proof.', 'error');
 		}
 		return;
 	}
@@ -47,6 +51,8 @@ export async function proveProlog(
 	if (resultsPFL.length === 0) {
 		if (rule.short === 'IU') {
 			showToast('Universal Introduction not applicable', 'error');
+		} else if (rule.short === 'EEX') {
+			showToast('The constant is not fresh! It already appears in the proof.', 'error');
 		}
 		return;
 	}
@@ -75,6 +81,8 @@ export async function verifyProlog(
 	if (resultsPFL.length === 0) {
 		if (rule.short === 'IU') {
 			showToast('Universal Introduction not applicable', 'error');
+		} else if (rule.short === 'EEX') {
+			showToast('The constant is not fresh! It already appears in the proof.', 'error');
 		}
 		return false;
 	}
@@ -142,7 +150,11 @@ async function usableQuantifier(
 export async function substitute(theoremData: TheoremData, newVars: string[]) {
 	const theorem = get(theorems)[theoremData.theoremId];
 	const theoremPFL = theorem.solution.whole.tree?.toPrologFormat() ?? '';
-	const parsed = await ProofHandler.substitute(theoremPFL, Array.from(theoremData.vars), newVars);
+	const parsed = await ProofHandler.substitute(
+		theoremPFL,
+		Array.from(theoremData.vars.map((v) => v.prologString)),
+		newVars
+	);
 
 	await addProof([parsed], theorem.solution.name, []);
 }
@@ -162,9 +174,9 @@ export async function addProof(
 	replacements: string[] = [],
 	trees?: Node[] | null
 ) {
-	addProofToStore(results, rule, lines, replacements, trees);
+	const acceptedResults = addProofToStore(results, rule, lines, replacements, trees);
 
-	for (const r of results) {
+	for (const r of acceptedResults) {
 		await ProofTable.write(r, rule, lines, replacements);
 		await ArgsTable.write(r);
 	}
@@ -191,4 +203,9 @@ export async function isExistentialEliminationValid() {
 
 export async function getSuggestionsForTerm(term: string) {
 	return await ArgsTable.getMatching(term);
+}
+
+export function validateSubstitution(expr: Node, expectedVar: string): boolean {
+	const free = expr.getFreeVars(); // e.g., returns ['x', 'y']
+	return free.has(expectedVar);
 }

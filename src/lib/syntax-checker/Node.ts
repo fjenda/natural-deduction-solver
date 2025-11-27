@@ -14,6 +14,7 @@ export class Node {
 	type: NodeType;
 	value?: Operator | string;
 	children: Array<Node>;
+	varIndex?: number = -1;
 
 	// /**
 	//  * Constructor for the Node class
@@ -112,9 +113,12 @@ export class Node {
 	 * @returns {string} the string representation of the node
 	 */
 	static generateString(node: Node): string {
+		const mode = get(logicMode);
+		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
+
 		// if the node is a constant, keep the parentheses after
 		if (node.type === NodeType.CONSTANT) {
-			return get(logicMode) === ParseStrategy.PROPOSITIONAL ? `${node.value}` : `${node.value}()`;
+			return mode === ParseStrategy.PREDICATE ? `${node.value}()` : `${node.value}`;
 		}
 
 		// if the node has no children, return the value or type
@@ -287,11 +291,27 @@ export class Node {
 
 	public toPrologFormat(): string {
 		switch (this.type) {
+			case NodeType.CONSTANT:
+				if (this.value && this.value === this.value.toUpperCase()) {
+					return `const('${this.value}')`;
+				}
+				return `const(${this.value})`;
+
 			case NodeType.VARIABLE:
 				return `var(${this.value})`;
 
-			case NodeType.PREDICATE:
-				return `predicate(${this.value?.toLowerCase()}(${this.children.map((child) => child.toPrologFormat()).join(', ')}))`;
+			case NodeType.PREDICATE: {
+				const name = this.value?.toLowerCase();
+				const args = this.children.map((child) => child.toPrologFormat()).join(', ');
+
+				// IF children exist: predicate(name(arg1, arg2))
+				// ELSE (arity 0): predicate(name)
+				if (this.children.length > 0) {
+					return `predicate(${name}(${args}))`;
+				} else {
+					return `predicate(${name})`;
+				}
+			}
 
 			case NodeType.FUNCTION:
 				return `function(${this.value}(${this.children.map((child) => child.toPrologFormat()).join(', ')}))`;
@@ -349,36 +369,45 @@ export class Node {
 
 		f = f.trim();
 
-		// if there are no parentheses, it's a constant
+		// 1. BASE CASE: Handling Atoms / Constants (No Parentheses)
+		// This handles the 'b' inside 'predicate(b)'
 		if (!f.includes('(')) {
-			// the format is 'constant'
+			// Remove surrounding single quotes if present (e.g. 'SomeConst' -> SomeConst)
+			const cleanValue = f.replace(/^'(.*)'$/, '$1');
 
-			// if its upper-case, slice the single quotes
-			if (f[0] === "'" && f[f.length - 1] === "'") {
-				return new Node(NodeType.CONSTANT, f.slice(1, -1));
-			}
-
-			return new Node(NodeType.CONSTANT, f);
+			// We treat it as a generic constant/identifier for now.
+			// The parent 'predicate' block will re-cast this into a PREDICATE type if needed.
+			return new Node(NodeType.CONSTANT, cleanValue);
 		}
 
 		// match function calls
 		const match = f.match(/^(\w+)\((.*)\)$/);
 		if (!match) {
-			throw new Error(`Invalid Prolog format ${f}`);
+			throw new Error(`Unable to match ${f}`);
 		}
 
 		const op = match[1];
 		const args = match[2];
 
-		const children = Node.parseArgs(args).map(Node.fromPrologFormat);
-
-		if (op === 'var') {
-			return new Node(NodeType.VARIABLE, children[0].value);
+		if (op === 'const') {
+			return new Node(NodeType.CONSTANT, args.replace(/^'(.*)'$/, '$1'));
 		}
 
+		if (op === 'var') {
+			return new Node(NodeType.VARIABLE, args);
+		}
+
+		const children = Node.parseArgs(args).map(Node.fromPrologFormat);
+
 		if (op === 'predicate') {
-			const node = new Node(NodeType.PREDICATE, children[0].value?.toUpperCase());
-			node.setChildren(children[0].children);
+			const innerNode = children[0];
+			const node = new Node(NodeType.PREDICATE, innerNode.value?.toUpperCase());
+
+			// Transfer any children (e.g., if it was a(x), take x. If b, take nothing)
+			if (innerNode.children && innerNode.children.length > 0) {
+				node.setChildren(innerNode.children);
+			}
+
 			node.simplify().parenthesize();
 			return node;
 		}
@@ -469,20 +498,217 @@ export class Node {
 
 	/**
 	 * Returns the variables used in the tree
-	 * @returns {Set<string>} the variables used in the tree
+	 * @returns { varName: string, type: NodeType }[] the variables used in the tree
 	 */
-	public get variables(): Set<string> {
-		const vars = new Set<string>();
+	public get variables(): { varName: string; type: NodeType }[] {
+		const vars: { varName: string; type: NodeType }[] = [];
+		const seen = new Set<string>();
 
-		if ([NodeType.VARIABLE, NodeType.CONSTANT].includes(this.type)) {
-			vars.add(this.value as string);
-			return vars;
+		if ([NodeType.FUNCTION, NodeType.PREDICATE].includes(this.type) && this.value) {
+			const key = `${this.value}:${this.type}`;
+			if (!seen.has(key)) {
+				seen.add(key);
+				vars.push({ varName: this.value as string, type: this.type });
+				this.varIndex = vars.length - 1;
+			}
+		}
+
+		if ([NodeType.VARIABLE, NodeType.CONSTANT].includes(this.type) && this.value) {
+			const key = `${this.value}:${this.type}`;
+			if (!seen.has(key)) {
+				seen.add(key);
+				vars.push({ varName: this.value as string, type: this.type });
+				this.varIndex = vars.length - 1;
+			}
 		}
 
 		this.children.forEach((child) => {
-			child.variables.forEach((v) => vars.add(v));
+			child.variables.forEach((v) => {
+				const key = `${v.varName}:${v.type}`;
+				if (!seen.has(key)) {
+					seen.add(key);
+					vars.push(v);
+					child.varIndex = vars.length - 1;
+				}
+			});
 		});
 
 		return vars;
+	}
+
+	public get varNames(): { varName: string; prologString: string; type: NodeType }[] {
+		const vars: { varName: string; prologString: string; type: NodeType }[] = [];
+		const indexByKey = new Map<string, number>();
+
+		const isAtomicTerm = (node: Node): boolean => {
+			// A variable or constant (or zero-arity function if you have it)
+			return [NodeType.VARIABLE, NodeType.CONSTANT].includes(node.type);
+		};
+
+		const isAtomicPredicate = (node: Node): boolean => {
+			if (node.type !== NodeType.PREDICATE) return false;
+			console.log(node);
+			if (node.children.length !== 0) {
+				const termList = node.children[0];
+				return termList.children.every(isAtomicTerm);
+			}
+			return true;
+		};
+
+		const collect = (node: Node) => {
+			node.varIndex = -1;
+
+			// ignore quantifiers
+			if (node.type === NodeType.QUANTIFIER) {
+				// const key = `${node.children[0].value}:${node.children[1].value}`;
+				// const prefix = node.children[0].value === Operator.UNIVERSAL ? 'forall' : 'exists';
+				//
+				// if (!indexByKey.has(key)) {
+				// 	indexByKey.set(key, vars.length);
+				// 	vars.push({
+				// 		varName: `${node.children[0].value}${node.children[1].value}`,
+				// 		prologString: `${prefix}(${node.children[1].toPrologFormat()}, X)`,
+				// 		type: NodeType.QUANTIFIER
+				// 	});
+				// }
+
+				// collect only from the body
+				if (node.children.length === 3) {
+					collect(node.children[2]);
+				}
+				return;
+			}
+
+			if (isAtomicPredicate(node)) {
+				// Build a string like "A(x,y)"
+				let key: string = '';
+				if (node.children.length === 0) {
+					key = `${node.value}`;
+
+					if (!indexByKey.has(key)) {
+						indexByKey.set(key, vars.length);
+						vars.push({
+							varName: key,
+							prologString: `predicate(${node.value?.toLowerCase()})`,
+							type: NodeType.PREDICATE
+						});
+					}
+				} else {
+					const termList = node.children[0];
+					const argNames = termList.children.map((c) => c.value).join(',');
+					key = `${node.value}(${argNames})`;
+
+					if (!indexByKey.has(key)) {
+						indexByKey.set(key, vars.length);
+						vars.push({
+							varName: key,
+							prologString: `predicate(${node.value?.toLowerCase()}(${termList.children.map((c) => c.toPrologFormat()).join(',')}))`,
+							type: NodeType.PREDICATE
+						});
+					}
+				}
+
+				node.varIndex = indexByKey.get(key)!;
+				return;
+			}
+
+			// normal case (variables, constants, etc.)
+			if (
+				[NodeType.VARIABLE, NodeType.CONSTANT].includes(node.type) &&
+				node.value &&
+				!indexByKey.has(node.value)
+			) {
+				indexByKey.set(node.value, vars.length);
+				vars.push({
+					varName: node.value,
+					prologString: node.toPrologFormat(),
+					type: node.type
+				});
+				node.varIndex = indexByKey.get(node.value)!;
+			}
+
+			for (const child of node.children) collect(child);
+		};
+
+		collect(this);
+		return vars;
+	}
+
+	public getFreeVars(): Set<string> {
+		const freeVars = new Set<string>();
+
+		const traverse = (node: Node, boundVars: Set<string>) => {
+			if (node.type === NodeType.VARIABLE && node.value && !boundVars.has(node.value)) {
+				freeVars.add(node.value);
+			}
+
+			if (node.type === NodeType.QUANTIFIER && node.children.length >= 2) {
+				const varNode = node.children[1];
+				if (varNode.type === NodeType.VARIABLE && varNode.value) {
+					boundVars.add(varNode.value);
+				}
+
+				// Traverse the body of the quantifier
+				if (node.children.length === 3) {
+					traverse(node.children[2], boundVars);
+				}
+
+				// After traversing, remove the variable from boundVars to maintain correct scope
+				boundVars.delete(varNode.value!);
+			}
+
+			for (const child of node.children) {
+				traverse(child, boundVars);
+			}
+		};
+
+		traverse(this, new Set());
+		return freeVars;
+	}
+
+	public dependsOn(variable: string): boolean {
+		const check = (node: Node, bound: Set<string>): boolean => {
+			if (node.type === NodeType.VARIABLE) {
+				// A variable counts only if it's free (not bound)
+				return node.value === variable && !bound.has(variable);
+			}
+
+			// If it's a quantifier, add its bound variable to the set
+			if (node.type === NodeType.QUANTIFIER) {
+				const quantVar = node.children[0]?.value; // e.g. ∀x => first child is x
+				const newBound = new Set(bound);
+				if (quantVar) newBound.add(quantVar);
+				return check(node.children[1], newBound); // continue into the body
+			}
+
+			// Otherwise, recursively check children
+			for (const child of node.children) {
+				if (check(child, bound)) return true;
+			}
+			return false;
+		};
+
+		return check(this, new Set());
+	}
+
+	public get logicMode(): ParseStrategy {
+		// check if tree contains any functions/predicates/quantifiers
+		const containsPredicateLogic = (node: Node) => {
+			if (
+				[node.type === NodeType.FUNCTION, NodeType.PREDICATE, NodeType.QUANTIFIER].includes(
+					node.type
+				)
+			) {
+				return true;
+			}
+
+			for (const child of node.children) {
+				if (containsPredicateLogic(child)) return true;
+			}
+
+			return false;
+		};
+
+		return containsPredicateLogic(this) ? ParseStrategy.PREDICATE : ParseStrategy.PROPOSITIONAL;
 	}
 }
