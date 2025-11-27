@@ -3,6 +3,8 @@
 	import { Modals } from 'svelte-modals';
 	import MainLayout from '../layouts/MainLayout.svelte';
 	import Navbar from '../components/Navbar.svelte';
+
+	let { children } = $props();
 </script>
 
 <ToastContainer placement="top-right" let:data>
@@ -13,6 +15,6 @@
 
 <Navbar>
 	<MainLayout>
-		<slot />
+		{@render children()}
 	</MainLayout>
 </Navbar>

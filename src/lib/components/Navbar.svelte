@@ -43,6 +43,7 @@
 		border-bottom: 1px solid var(--border);
 		padding: 0.5rem 0;
 		font-size: 1.2rem;
+		height: 4rem;
 	}
 
 	nav ul {

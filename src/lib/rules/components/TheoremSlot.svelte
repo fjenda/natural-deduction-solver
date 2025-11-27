@@ -8,6 +8,7 @@
 	import { solverContent } from '../../../stores/solverStore';
 	import { theorems } from '../../../stores/theoremsStore';
 	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
+	import { ProofTable } from '../../../prolog/queries/ProofTable';
 
 	interface TheoremSlotProps {
 		name: string;
@@ -40,6 +41,7 @@
 	const handleSaveTheorem = (e: Event) => {
 		e.stopPropagation();
 		saveTheorem(index);
+		ProofTable.clear();
 	};
 
 	const handleEditTheorem = (e: Event) => {
@@ -74,7 +76,7 @@
 		{:else}
 			<p class:visible={!hovered}>{name}</p>
 			<div class="mathml-viewer" class:visible={hovered}>
-				<MathMLViewer value={$theorems[index].solution.whole.value} />
+				<MathMLViewer value={$theorems[index].solution.whole.value} style="font-size: 1.1rem" />
 			</div>
 		{/if}
 	</div>
@@ -116,6 +118,7 @@
 		transform: translateY(0);
 		pointer-events: auto;
 		max-height: 500px; /* arbitrary large enough value */
+		/*max-width: 250px;*/
 	}
 
 	p:not(.visible) {

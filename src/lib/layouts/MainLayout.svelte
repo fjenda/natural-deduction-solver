@@ -12,7 +12,7 @@
 		display: flex;
 		width: 100%;
 		max-width: 1920px;
-		height: 100%;
+		height: calc(100% - 4rem);
 		margin: 0 auto;
 		gap: 1rem;
 	}

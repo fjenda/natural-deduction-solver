@@ -33,6 +33,10 @@
 				});
 
 				const theoremVariants = TheoremParser.getVariants(get(solverContent).whole);
+				if (theoremVariants.length === 0) {
+					return showToast('Invalid theorem format', 'error');
+				}
+
 				const theoremVariantButtons = theoremVariants.map((variant) => ({
 					text: variant.premises.map((p) => Node.generateString(p)).join(', '),
 					action: () => pickVariant(variant)

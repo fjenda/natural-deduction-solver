@@ -49,7 +49,7 @@
 
 	.contents {
 		background-color: var(--surface);
-		margin: 15% auto;
+		margin: 5% auto;
 		padding: 1.5rem;
 		border: 1px solid var(--border);
 		width: fit-content;

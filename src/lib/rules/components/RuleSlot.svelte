@@ -23,6 +23,7 @@
 		if (get(selectedRows).length === 0) {
 			return showToast('Select at least one row', 'warning');
 		}
+
 		const result = await usable(rule, get(selectedRows)[0]);
 		if (!result.applicable && rule.short !== NDRule.IDIS) return;
 

@@ -1,4 +1,6 @@
 <script lang="ts" generics="T">
+	import { onDestroy, onMount } from 'svelte';
+
 	interface DropdownProps<T> {
 		label: string;
 		options: T[];
@@ -7,9 +9,25 @@
 
 	let { label, options, onSelect }: DropdownProps<T> = $props();
 	let open = $state(false);
+
+	let dropdownRef: HTMLDivElement;
+
+	const handleClickOutside = (event: MouseEvent) => {
+		if (open && dropdownRef && !dropdownRef.contains(event.target as Node)) {
+			open = false;
+		}
+	};
+
+	onMount(() => {
+		document.addEventListener('click', handleClickOutside);
+	});
+
+	onDestroy(() => {
+		document.removeEventListener('click', handleClickOutside);
+	});
 </script>
 
-<div class="dropdown">
+<div class="dropdown" bind:this={dropdownRef}>
 	<button onclick={() => (open = !open)} aria-label="Toggle Dropdown" title="Toggle Dropdown">
 		{label} ▾
 	</button>
