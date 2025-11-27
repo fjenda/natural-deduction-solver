@@ -19,104 +19,6 @@ import { ProofTable } from '../../../prolog/queries/ProofTable';
  * If the formula is not valid, it returns the formula and the unknown rule.
  */
 export class FormulaParser {
-	// static async parseFormula(formula: string, line: number, rule: string): Promise<TreeRuleType> {
-	// 	// checks the syntax of the formula
-	// 	const parser = new PrattParser(get(logicMode));
-	// 	const res = parser.parse(formula);
-	//
-	// 	const tmp: TreeRuleType = {
-	// 		line: line,
-	// 		tree: null,
-	// 		rule: { rule: NDRule.UNKNOWN },
-	// 		value: formula
-	// 	};
-	//
-	// 	// if the formula is not valid, return the error
-	// 	if (!res) return tmp;
-	//
-	// 	// parenthesize the formula and value
-	// 	tmp.tree = res.simplify().parenthesize();
-	// 	tmp.value = Node.generateString(tmp.tree);
-	//
-	// 	// clean the rule string
-	// 	rule = PrettySyntaxer.cleanupRule(rule);
-	//
-	// 	if (rule === 'PREM') {
-	// 		return tmp;
-	// 	}
-	//
-	// 	if (rule === 'CONC') {
-	// 		tmp.rule = { rule: NDRule.CONC };
-	// 		return tmp;
-	// 	}
-	//
-	// 	// split the rule into its parts
-	// 	if (!rule) return tmp;
-	//
-	// 	const appliedRule = appliedRuleFromString(rule);
-	//
-	// 	// no lines specified
-	// 	if (!appliedRule.lines) return tmp;
-	//
-	// 	console.log(appliedRule);
-	// 	// check if the lines mentioned exist
-	// 	if (1 > appliedRule.lines[0] || appliedRule.lines[0] > get(solverContent).proof.length) {
-	// 		showToast(`Row ${appliedRule.lines[0]} doesn't exist`, 'error');
-	// 		return tmp;
-	// 	}
-	//
-	// 	if (1 > appliedRule.lines[1] || appliedRule.lines[1] > get(solverContent).proof.length) {
-	// 		showToast(`Row ${appliedRule.lines[1]} doesn't exist`, 'error');
-	// 		return tmp;
-	// 	}
-	//
-	// 	// now that we have the name of the rule and the rows it was used with, check if a rule like this exists
-	// 	let usedRule: IRule = DeductionRule.getRule(appliedRule.rule);
-	// 	if (usedRule === DeductionRule.UNKNOWN) {
-	// 		usedRule = Theorem.getRule(appliedRule.rule);
-	// 	}
-	// 	// console.log(usedRule);
-	// 	// if the rule wasn't found, return the unknown rule
-	// 	if (usedRule === DeductionRule.UNKNOWN) {
-	// 		tmp.rule = { rule: NDRule.UNKNOWN };
-	// 		return tmp;
-	// 	}
-	//
-	// 	// if we found the rule, try to apply it and check if the results differ
-	// 	let second = null;
-	// 	const first = get(solverContent).proof[appliedRule.lines[0] - 1];
-	// 	if (appliedRule.lines[1]) {
-	// 		second = get(solverContent).proof[appliedRule.lines[1] - 1];
-	// 	}
-	//
-	// 	// apply the rule
-	// 	let result;
-	// 	if (usedRule === DeductionRule.IDIS) {
-	// 		const [left, right] = tmp.tree.split();
-	// 		result = await proveProlog(
-	// 			[left.toPrologFormat(), right.toPrologFormat()],
-	// 			usedRule,
-	// 			appliedRule.lines,
-	// 			[]
-	// 		);
-	// 	} else {
-	// 		let prem: string[];
-	// 		if (!second) {
-	// 			// @ts-expect-error first.tree might not have a toPrologFormat method
-	// 			prem = [first.tree.toPrologFormat()];
-	// 		} else {
-	// 			// @ts-expect-error first.tree or second.tree might not have a toPrologFormat method
-	// 			prem = [first.tree.toPrologFormat(), second.tree.toPrologFormat()];
-	// 		}
-	// 		result = await verifyProlog(prem, usedRule, tmp.tree);
-	// 	}
-	//
-	// 	// if the result is false, it's not correct
-	// 	if (!result) return tmp;
-	// 	tmp.rule = { rule: usedRule.short, lines: appliedRule.lines };
-	// 	return tmp;
-	// }
-
 	/**
 	 * Parses a formula and checks if it is a valid application of a deduction rule
 	 * @param formula - the formula to parse
@@ -125,7 +27,9 @@ export class FormulaParser {
 	 * @returns a TreeRuleType object containing the parsed formula and the rule applied
 	 */
 	static async parseFormula(formula: string, line: number, ruleStr: string): Promise<TreeRuleType> {
-		const parser = new PrattParser(get(logicMode));
+		const mode = get(logicMode);
+		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
+		const parser = new PrattParser(mode);
 		const res = parser.parse(formula);
 
 		const base: TreeRuleType = {
@@ -155,7 +59,10 @@ export class FormulaParser {
 		if (!applied.lines) return base;
 
 		// validate lines
-		if (!FormulaParser.linesExist(applied.lines)) return base;
+		if (!FormulaParser.linesExist(applied.lines)) {
+			showToast("One or more specified lines don't exist", 'error');
+			return base;
+		}
 
 		// resolve deduction/theorem rule
 		const usedRule = FormulaParser.findRule(applied.rule);
@@ -175,6 +82,9 @@ export class FormulaParser {
 		} else if (['IEX', 'IU'].includes(usedRule.short)) {
 			paramsCopy[1] = `var(${params[1]})`;
 		}
+
+		// We can only use a constant in EEX
+		if (usedRule.short === 'EEX') paramsCopy[1] = `const(${params[1]})`;
 
 		const ok = await FormulaParser.checkRuleApplication(
 			base.tree,
