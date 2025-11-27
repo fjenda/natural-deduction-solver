@@ -6,32 +6,50 @@
 	import { solving } from '../../../stores/stateStore';
 	import { fillVariables } from '../actions/proofActions';
 	import StyledButton from '../../components/StyledButton.svelte';
+	import { ParseStrategy } from '../../../types/ParseStrategy';
+	import type { Solution } from '../Solution';
+
+	const shownTheorems = $derived(
+		$logicMode === ParseStrategy.PROPOSITIONAL
+			? $theorems.filter((t) => t.mode === ParseStrategy.PROPOSITIONAL)
+			: $theorems
+	);
+
+	const handleTheoremClick = (
+		theorem: { solution: Solution; mode: ParseStrategy },
+		index: number
+	) => {
+		if (!$solving) return;
+
+		console.log(theorem.solution.whole.tree);
+		const values = theorem.solution.whole.tree?.varNames;
+		console.log(values);
+
+		if (!values) return;
+		theoremData.update((td) => {
+			td.theoremId = index;
+			td.vars = values;
+			return td;
+		});
+		fillVariables();
+	};
 </script>
 
 <h2>Theorems</h2>
 <StyledButton text="Add Theorem" onClick={addTheorem} />
 <TheoremsLayout>
-	{#if $theorems.filter((t) => t.mode === $logicMode).length === 0}
+	{#if shownTheorems.length === 0}
 		<p>No theorems added yet.</p>
 	{/if}
 
 	{#each $theorems as theorem, i (theorem.solution.name)}
-		{#if theorem.mode === $logicMode}
+		{#if shownTheorems.includes(theorem)}
 			<TheoremSlot
 				name={theorem.solution.name}
 				index={i}
 				valid={theorem.solution.valid && theorem.solution.complete}
 				onClick={() => {
-					if (!$solving) return;
-
-					const values = theorem.solution.whole.tree?.variables;
-					if (!values) return;
-					theoremData.update((td) => {
-						td.theoremId = i;
-						td.vars = new Set(values);
-						return td;
-					});
-					fillVariables();
+					handleTheoremClick(theorem, i);
 				}}
 			/>
 		{/if}

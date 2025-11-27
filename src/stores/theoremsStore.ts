@@ -79,6 +79,8 @@ export const saveTheorem = (index: number): void => {
 		return;
 	}
 
+	// check the theorem elements to determine if it can be used in propositional logic
+
 	// save the new theorem to the theorems store
 	theorems.update((theorems) => {
 		// if the solver content name is empty, set it to "Unnamed Theorem"
@@ -86,7 +88,10 @@ export const saveTheorem = (index: number): void => {
 			get(solverContent).name = 'Unnamed';
 		}
 
-		theorems[index] = { solution: get(solverContent), mode: get(logicMode) };
+		theorems[index] = {
+			solution: get(solverContent),
+			mode: get(solverContent).whole.tree?.logicMode || get(logicMode)
+		};
 		return theorems;
 	});
 
