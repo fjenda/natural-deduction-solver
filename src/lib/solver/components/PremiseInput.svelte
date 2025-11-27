@@ -159,6 +159,7 @@
 		border: 1px solid var(--border);
 		position: relative;
 		display: flex;
+		overflow: hidden;
 	}
 
 	.wrapper:focus-within {

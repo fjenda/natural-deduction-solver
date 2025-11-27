@@ -3,14 +3,15 @@
 
 	interface MathMLViewerProps {
 		value?: string;
+		style?: string;
 	}
 
-	let { value = '' }: MathMLViewerProps = $props();
+	let { value = '', style = '' }: MathMLViewerProps = $props();
 
 	const mathml = $derived(PrettySyntaxer.toMathML(value ?? ''));
 </script>
 
-<div class="mathml-viewer">
+<div class="mathml-viewer" {style}>
 	{@html mathml}
 </div>
 
