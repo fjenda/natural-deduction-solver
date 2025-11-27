@@ -1,5 +1,6 @@
-:- consult('substitute.pl').
-:- consult('proof_table.pl').
+%:- consult('substitute.pl').
+%:- consult('proof_table.pl').
+%:- consult('free_vars.pl').
 
 % Rule format: rule(Name, PremiseCount, ApplyPredicate)
 rule('IC', 2, and_intro).
@@ -20,81 +21,68 @@ rule('EEX', 1, exists_elim).   % Existential Elimination
 
 is_var(var(_)).
 
-% Custom term_variables replacement
-collect_vars(Term, Vars) :-
-    collect_vars(Term, [], Vars).
-
-collect_vars(Term, Acc, Vars) :-
-    (is_var(Term) ->
-        (memberchk(Term, Acc) -> Vars = Acc ; Vars = [Term|Acc])
-    ;
-    compound(Term) ->
-        Term =.. [_|Args],
-        foldl(collect_vars, Args, Acc, Vars)
-    ;
-    Vars = Acc).
-
-% Helper functions for Universal Introduction
-% Collect all ancestor line numbers recursively
-proof_all_ancestors(Line, Ancestors) :-
-    proof_row(Line, _, _, Parents, _),
+% Get the topmost ancestor with debug output
+top_ancestor(Line, TopAncestor) :-
+    proof_row(Line, Term, _, Parents, _),
     ( Parents = [] ->
-        Ancestors = []
+        TopAncestor = Term
     ;
-        maplist(proof_all_ancestors, Parents, NestedLists),
-        append(NestedLists, NestedFlat),
-        append(Parents, NestedFlat, Combined),
-        sort(Combined, Ancestors)  % remove duplicates
+        Parents = [FirstParent|_],
+        top_ancestor(FirstParent, TopAncestor)
     ).
 
-% IU restriction: fail if any ancestor used EEX
-iu_allowed(Line) :-
-    proof_all_ancestors(Line, Ancestors),
-    \+ (member(L, Ancestors), proof_row(L, _, 'EEX', _, _)).
-
+% IU applicable with debug
+iu_applicable(Var, _Line, Root) :-
+    \+ free_in(Var, Root).
 
 forall_elim([forall(Var, Formula), Var, Term], Result) :-
     substitute_free(Var, Term, Formula, Result).
 
-%forall_intro([Formula], forall(Var, Formula)) :-
-%    collect_vars(Formula, Vars),
-%    \+ member(Var, Vars).  % Var must not be free in Formula
-
-%forall_intro([Formula, Term, Var], forall(Var, Result)) :-
-%    %collect_vars(Formula, Vars),
-%    %\+ member(Var, Vars).  % Var must not be free in Formula
-%    substitute_free(Var, Term, Formula, Result).
-
 forall_intro([Formula, Term, Var], forall(Var, Result)) :-
-    % Ensure IU is allowed based on leaf ancestry
+    % find the proof row that produced Formula so we can inspect its root
     proof_row(Line, Formula, _, _, _),
-    iu_allowed(Line),  % restriction check
-%    write('IU allowed for line: '), write(Line), nl,
-    substitute(Formula, [Term], [Var], Result).
 
+    % collect top ancestor
+    top_ancestor(Line, Root),
 
+    % check IU restriction
+    iu_applicable(Var, Line, Root),
+
+    % now perform substitution (after we've checked freshness)
+    substitute_free(Term, Var, Formula, Result).
+%    substitute(Formula, [Term], [Var], Result).
+
+% Term is provided by user, but we check freshness
 exists_elim([exists(Var, Formula), Var, Term], Result) :-
-    substitute_free(Var, Term, Formula, Result).
+    % if Var === var(Y) and Term === Z, its a usability test, we don't need to check further
+    % we can assume user provided a fresh constant
+    (   Var = Term ->
+        format('[Debug] Skipping freshness check (~w == ~w)~n', [Var, Term]),
+        substitute_free(Var, Term, Formula, Result),
+        !
+    ;
+        % 1. Rebuild table
+        args_table_rebuild,
 
+        % 2. Check if the term is actually fresh
+        (   args_table_term_exists(Term)
+        ->  format('[Error] Term ~w is not fresh! It already appears in the proof.~n', [Term]),
+            !, fail
+        ;   true
+        ),
+
+        format('[Debug] Using fresh term ~w for ~w~n', [Term, Var]),
+        substitute_free(Var, Term, Formula, Result)
+    ),
+
+    format('[Debug] Result after substitution: ~w~n', [Result]),
+    !.
+
+
+% === Existential introduction ===
 exists_intro([Formula, Term, Var], exists(Var, Result)) :-
-    substitute(Formula, [Term], [Var], Result).
+    substitute_free(Term, Var, Formula, Result).
 
-% Helper predicates
-occurs_free(Var, Term) :-
-    term_variables(Term, Vars),
-    memberchk(Var, Vars).
-
-substitute_free(OldVar, NewTerm, Formula, Result) :-
-    (Formula == OldVar -> Result = NewTerm)
-    ;
-    (is_var(Formula) -> Result = Formula)
-    ;
-    compound(Formula) ->
-        Formula =.. [Functor|Args],
-        maplist(substitute_free(OldVar, NewTerm), Args, NewArgs),
-        Result =.. [Functor|NewArgs]
-    ;
-    Result = Formula.
 
 % Actual rule logic
 
@@ -127,6 +115,7 @@ prove_handler(Premises, Conclusion, RuleName, Parameters) :-
     rule(RuleName, _, Predicate),
 %    length(Premises, PremiseCount),
     append(Premises, Parameters, AllArgs),
+    format('Debug: Proving ~w using rule ~w with args: ~w~n', [Conclusion, RuleName, AllArgs]),
     call(Predicate, AllArgs, Conclusion).
 
 find_conflict([A | Rest], A, not(A)) :- member(not(A), Rest), !.

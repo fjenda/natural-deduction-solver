@@ -1,4 +1,4 @@
-:- consult('proof_table.pl').
+%:- consult('proof_table.pl').
 
 % theorem_table(Theorem, Mode, Proof).
 :- dynamic theorem_table/3.
