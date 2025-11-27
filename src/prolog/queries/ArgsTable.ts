@@ -8,6 +8,7 @@ const Queries = {
 	REMOVE: (term: string, argsCount: number, args: string[]) =>
 		`args_table_remove(${term}, ${argsCount}, [${args.join(',')}]).`,
 	GET: (term: string) => `args_table_extract_from_term_and_get(${term}, X).`,
+	CONSTANT_EXISTS: (constant: string) => `args_table_constant_exists(${constant}).`,
 	CLEAR: `args_table_clear.`,
 	PRINT: `args_table_print.`,
 	REBUILD: `args_table_rebuild.`
@@ -72,6 +73,18 @@ export const ArgsTable = {
 
 		// normalize into 1d array
 		return Array.from(new Set(parsed.flat().map((n) => Node.generateString(n))));
+	},
+
+	/**
+	 * Checks if a constant exists in the args_table in Prolog
+	 * @param constant - the constant to check
+	 */
+	async constantExists(constant: string) {
+		const results = await PrologController.queryOnce<{ exists: 'true' | 'false' }>(
+			Queries.CONSTANT_EXISTS(constant)
+		);
+
+		return results?.exists === 'true';
 	},
 
 	/**

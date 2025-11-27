@@ -62,28 +62,6 @@ args_table_extract_from_term_and_add(Term) :-
 args_table_extract_from_term_and_remove(Term) :-
     args_table_extract_from_term(args_table_remove, Term).
 
-% Recursive traversal for getters (returns a deduplicated list of Matches)
-%args_table_extract_from_term_and_get(Term, Matches) :-
-%    (   Term =.. [predicate, PredTerm]
-%    ->  PredTerm =.. [Name | Args],
-%        length(Args, N),
-%        args_table_get(predicate(Name), N, Args, Matches0),
-%        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
-%        append([Matches0 | SubMatchesLists], MatchesAll)
-%    ;   Term =.. [function, FuncTerm]
-%    ->  FuncTerm =.. [Name | Args],
-%        length(Args, N),
-%        args_table_get(function(Name), N, Args, Matches0),
-%        maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
-%        append([Matches0 | SubMatchesLists], MatchesAll)
-%    ;   Term =.. [_Functor | Args]
-%    ->  maplist(args_table_extract_from_term_and_get, Args, SubMatchesLists),
-%        append(SubMatchesLists, MatchesAll)
-%    ;   MatchesAll = []
-%    ),
-%    sort(MatchesAll, Matches),  % remove duplicates
-%    format("Extracted Matches: ~w~n", [Matches]).
-
 % Collect the functor/arity/args directly from the term itself
 triples_from_term(Term, Triples) :-
     (   Term =.. [predicate, PredTerm]
@@ -139,3 +117,20 @@ args_table_rebuild :-
     proof_table_get_all_rows(Proof),
 %    for each row in proof extract args and add to table
     maplist(args_table_extract_from_term_and_add, Proof).
+
+is_constant(const(_)).
+is_variable(var(_)).
+
+args_table_term_exists(Term) :-
+    findall(Args, args_row(_, _, Args), AllArgs),
+    flatten(AllArgs, FlatArgs),
+    sort(FlatArgs, UniqueArgs),
+    member(Term, UniqueArgs).
+
+args_table_constant_exists(Constant) :-
+    is_constant(Constant),
+    args_table_term_exists(Constant).
+
+args_table_variable_exists(Variable) :-
+    is_variable(Variable),
+    args_table_term_exists(Variable).
