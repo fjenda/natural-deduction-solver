@@ -3,8 +3,6 @@ import { Node } from '../../syntax-checker/Node';
 import { get } from 'svelte/store';
 import { logicMode } from '../../../stores/solverStore';
 import type { ParsedExpression } from '../../../types/ParsedExpression';
-import { selectedTheorem } from '../../../stores/theoremsStore';
-import { ParseStrategy } from '../../../types/ParseStrategy';
 
 /**
  * This class is responsible for parsing the premises

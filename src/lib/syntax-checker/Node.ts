@@ -581,7 +581,7 @@ export class Node {
 
 			if (isAtomicPredicate(node)) {
 				// Build a string like "A(x,y)"
-				let key: string = '';
+				let key: string;
 				if (node.children.length === 0) {
 					key = `${node.value}`;
 

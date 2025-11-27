@@ -190,6 +190,7 @@ export async function addProof(
  * @param line - the line to check
  * @param proof - proof passed for recomputation
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function canDeleteRow(line: number, proof: TreeRuleType[]) {
 	return ProofTable.canDeleteRow(line);
 }
