@@ -95,6 +95,8 @@ and_elim([and(_, B)], B).
 or_intro([A, B], or(A, B)).
 or_elim([or(A, B), not(A)], B).
 or_elim([or(A, B), not(B)], A).
+or_elim([or(A, not(B)),  B], A).
+or_elim([or(not(A), B), A], B).
 
 % Implication
 imp_intro([A, B], imp(A, B)).
