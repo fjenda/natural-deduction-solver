@@ -75,7 +75,7 @@
 			/>
 		{:else}
 			<p class:visible={!hovered}>{name}</p>
-			<div class="mathml-viewer" class:visible={hovered}>
+			<div class="mathml-viewer-wrapper" class:visible={hovered}>
 				<MathMLViewer value={$theorems[index].solution.whole.value} style="font-size: 1.1rem" />
 			</div>
 		{/if}
@@ -102,7 +102,7 @@
 </div>
 
 <style>
-	.mathml-viewer {
+	.mathml-viewer-wrapper {
 		opacity: 0;
 		transform: translateY(-0.5rem);
 		transition:
@@ -113,12 +113,16 @@
 		overflow: hidden;
 	}
 
-	.mathml-viewer.visible {
+	.mathml-viewer-wrapper.visible {
 		opacity: 1;
 		transform: translateY(0);
 		pointer-events: auto;
 		max-height: 500px; /* arbitrary large enough value */
 		/*max-width: 250px;*/
+
+		overflow: auto hidden;
+		white-space: nowrap;
+		padding-bottom: 4px;
 	}
 
 	p:not(.visible) {
@@ -138,6 +142,7 @@
 		align-items: center;
 		position: relative;
 		line-height: 0;
+		overflow: hidden;
 	}
 
 	.theorem-slot:hover,
@@ -159,6 +164,7 @@
 
 	.theorem-slot .name {
 		text-align: left;
+		min-width: 0;
 	}
 
 	.theorem-slot .name input {

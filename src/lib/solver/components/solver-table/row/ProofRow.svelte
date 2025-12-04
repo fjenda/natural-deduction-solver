@@ -88,7 +88,7 @@
 <a class="row" class:highlighted class:usable class:invalid onclick={selectRow} role="button">
 	<div class="formula-container">
 		<div class="line-number">{line}.</div>
-		<div class="line-content">
+		<div class="line-content" class:scrollable={!editable}>
 			{#if editable}
 				<FormulaEditor bind:formula {operators} />
 			{:else}
@@ -146,6 +146,7 @@
 		display: flex;
 		align-items: center;
 		flex-grow: 1;
+		min-width: 0;
 	}
 
 	.used-rule,
@@ -168,6 +169,13 @@
 		position: relative;
 		text-align: left;
 		flex-grow: 2;
+		min-width: 0;
+	}
+
+	.line-content.scrollable {
+		overflow-x: auto;
+		white-space: nowrap;
+		padding-bottom: 4px;
 	}
 
 	.separator {
