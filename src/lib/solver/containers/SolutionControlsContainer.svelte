@@ -11,8 +11,7 @@
 	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
 	import type { TheoremVariant } from '../../../types/TheoremVariant';
 	import SelectProofTypeModal from '../../modals/SelectProofTypeModal.svelte';
-	import { setupProof } from '../utils/proofUtils';
-	import { checkProof, resetSolving } from '../actions/proofActions';
+	import { setupProof, checkProof, resetSolving } from '../actions/proofActions';
 
 	const startSolver = () => {
 		if ($editState === EditState.SOLVER && !$solverContent.conclusion.tree) {

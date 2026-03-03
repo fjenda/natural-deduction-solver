@@ -182,10 +182,10 @@
 			return;
 		}
 
-		if (rule.short === NDRule.IDIS) {
+		if ([NDRule.IDIS, NDRule.IIMP].includes(rule.short)) {
 			return openFormulaInputModal(
 				'Insert Formula',
-				'Write the formula to insert into the disjunction',
+				'Write the formula to insert. into the disjunction',
 				(formula) => {
 					premises.push(formula);
 					proveProlog(premises, rule, selected, []);

@@ -11,24 +11,48 @@ import { addProofToStore } from '../utils/proofUtils';
 import { showToast } from '../../utils/showToast';
 import type { TreeRuleType } from '../../../types/TreeRuleType';
 
-export async function provePrologLines(selected: number[], rule: IRule, params: string[]) {
-	// get results
-	const resultsPFL: string[] = await ProofHandler.proveLines(selected, rule, params);
+// --- Shared Error Config ---
+const PROLOG_ERRORS: Record<string, string> = {
+	IU: 'Universal Introduction not applicable.',
+	EEX: 'The constant is not fresh! It already appears in the proof.'
+};
 
-	console.log('Results from Prolog:', resultsPFL);
+/**
+ * Unified handler for Prolog proof steps.
+ * @param fetchStrategy - A function that returns the specific promise (lines vs premises)
+ * @param rule - The rule object
+ * @param onSuccess - Callback to execute on successful proof
+ */
+async function runPrologStep(
+	fetchStrategy: () => Promise<string[]>,
+	rule: IRule,
+	onSuccess: (results: string[]) => Promise<void>
+) {
+	const results = await fetchStrategy();
 
-	// no results
-	if (resultsPFL.length === 0) {
-		if (rule.short === 'IU') {
-			showToast('Universal Introduction not applicable.', 'error');
-		} else if (rule.short === 'EEX') {
-			showToast('The constant is not fresh! It already appears in the proof.', 'error');
-		}
+	if (results.length === 0) {
+		const msg = PROLOG_ERRORS[rule.short];
+		if (msg) showToast(msg, 'error');
 		return;
 	}
 
-	// add to proof
-	await addProof(resultsPFL, rule.short, selected, params);
+	await onSuccess(results);
+}
+
+// --- Exported Actions ---
+
+/**
+ * Proves the selected lines the user selected using the Prolog engine
+ * @param selected - the selected rows
+ * @param rule - the rule used
+ * @param params - the parameters used
+ */
+export async function provePrologLines(selected: number[], rule: IRule, params: string[]) {
+	await runPrologStep(
+		() => ProofHandler.proveLines(selected, rule, params),
+		rule,
+		(results) => addProof(results, rule.short, selected, params)
+	);
 }
 
 /**
@@ -44,21 +68,11 @@ export async function proveProlog(
 	selected: number[],
 	params: string[]
 ) {
-	// get results
-	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
-
-	// no results
-	if (resultsPFL.length === 0) {
-		if (rule.short === 'IU') {
-			showToast('Universal Introduction not applicable', 'error');
-		} else if (rule.short === 'EEX') {
-			showToast('The constant is not fresh! It already appears in the proof.', 'error');
-		}
-		return;
-	}
-
-	// add to proof
-	await addProof(resultsPFL, rule.short, selected, params);
+	await runPrologStep(
+		() => ProofHandler.prove(premises, rule, params),
+		rule,
+		(results) => addProof(results, rule.short, selected, params)
+	);
 }
 
 /**
@@ -73,27 +87,65 @@ export async function verifyProlog(
 	rule: IRule,
 	params: string[],
 	result: Node
-) {
-	// get results
-	const resultsPFL: string[] = await ProofHandler.prove(premises, rule, params);
+): Promise<boolean> {
+	const results = await ProofHandler.prove(premises, rule, params);
 
-	// no results
-	if (resultsPFL.length === 0) {
-		if (rule.short === 'IU') {
-			showToast('Universal Introduction not applicable', 'error');
-		} else if (rule.short === 'EEX') {
-			showToast('The constant is not fresh! It already appears in the proof.', 'error');
-		}
+	if (results.length === 0) {
+		const msg = PROLOG_ERRORS[rule.short];
+		if (msg) showToast(msg, 'error');
 		return false;
 	}
 
-	// no results
-	if (resultsPFL.length === 0) return false;
-
-	// check if exists
-	const tmp = result.toPrologFormat();
-	return resultsPFL.includes(tmp);
+	return results.includes(result.toPrologFormat());
 }
+
+/**
+ * Adds a proof to the store AND updates the Prolog Tables (Side Effects)
+ * @param results - the results of the proof
+ * @param rule - the rule used for the proof
+ * @param lines - the lines of the proof
+ * @param replacements - the replacements used in the proof (optional)
+ * @param trees - the trees used in the proof (optional)
+ */
+export async function addProof(
+	results: string[],
+	rule: string,
+	lines: number[],
+	replacements: string[] = [],
+	trees?: Node[] | null
+) {
+	// update svelte store (Sync)
+	const acceptedResults = addProofToStore(results, rule, lines, replacements, trees);
+
+	// update Prolog database (Async)
+	for (const r of acceptedResults) {
+		await ProofTable.write(r, rule, lines, replacements);
+		await ArgsTable.write(r);
+	}
+
+	await ProofTable.print();
+	// await ArgsTable.print();
+}
+
+/**
+ * Substitutes the theorem variables with the user's input using the Prolog engine
+ * @param theoremData - the theorem data
+ * @param newVars - the new variables to be added
+ */
+export async function substitute(theoremData: TheoremData, newVars: string[]) {
+	const theorem = get(theorems)[theoremData.theoremId];
+	const theoremPFL = theorem.solution.whole.tree?.toPrologFormat() ?? '';
+
+	const parsed = await ProofHandler.substitute(
+		theoremPFL,
+		Array.from(theoremData.vars.map((v) => v.prologString)),
+		newVars
+	);
+
+	await addProof([parsed], theorem.solution.name, []);
+}
+
+// --- Queries ---
 
 /**
  * Checks for usable rows in the proof for the highlighted row and rule
@@ -113,7 +165,7 @@ export async function usable(
 			return usableQuantifier(rule, row);
 		}
 
-		return { applicable: true, highlighted: [] };
+		// return { applicable: true, highlighted: [] };
 	}
 
 	for (let i = 0; i < proof.length; i++) {
@@ -128,61 +180,18 @@ export async function usable(
 	return { applicable: !!indices.length, highlighted: indices };
 }
 
-// special case for quantifier elimination rules, helper function for usable
+/**
+ * Checks for usable quantifier elimination rules in the proof
+ * @param rule - the rule to check
+ * @param selected - the selected row
+ */
 async function usableQuantifier(
 	rule: IRule,
 	selected: number
 ): Promise<{ highlighted: number[]; applicable: boolean }> {
 	const res = await ProofHandler.proveLines([selected], rule, ['var(Y)', 'Z']);
 
-	if (res.length === 0) {
-		return { applicable: false, highlighted: [] };
-	}
-
-	return { applicable: true, highlighted: [] };
-}
-
-/**
- * Substitutes the theorem variables with the user's input using the Prolog engine
- * @param theoremData - the theorem data
- * @param newVars - the new variables to be added
- */
-export async function substitute(theoremData: TheoremData, newVars: string[]) {
-	const theorem = get(theorems)[theoremData.theoremId];
-	const theoremPFL = theorem.solution.whole.tree?.toPrologFormat() ?? '';
-	const parsed = await ProofHandler.substitute(
-		theoremPFL,
-		Array.from(theoremData.vars.map((v) => v.prologString)),
-		newVars
-	);
-
-	await addProof([parsed], theorem.solution.name, []);
-}
-
-/**
- * Adds a proof to the solver content and updates the Prolog tables
- * @param results - the results of the proof
- * @param rule - the rule used for the proof
- * @param lines - the lines of the proof
- * @param replacements - the replacements used in the proof (optional)
- * @param trees - the trees used in the proof (optional)
- */
-export async function addProof(
-	results: string[],
-	rule: string,
-	lines: number[],
-	replacements: string[] = [],
-	trees?: Node[] | null
-) {
-	const acceptedResults = addProofToStore(results, rule, lines, replacements, trees);
-
-	for (const r of acceptedResults) {
-		await ProofTable.write(r, rule, lines, replacements);
-		await ArgsTable.write(r);
-	}
-
-	await ProofTable.print();
-	// await ArgsTable.print();
+	return { applicable: !!res.length, highlighted: [] };
 }
 
 /**
@@ -202,10 +211,19 @@ export async function isExistentialEliminationValid() {
 	return await ProofTable.isExistentialEliminationValid();
 }
 
+/**
+ * Gets suggestions for a term from the ArgsTable
+ * @param term - the term to get suggestions for
+ */
 export async function getSuggestionsForTerm(term: string) {
 	return await ArgsTable.getMatching(term);
 }
 
+/**
+ * Validates if the substitution was done correctly by checking if the expected variable is free in the expression
+ * @param expr - the expression to check
+ * @param expectedVar - the expected free variable
+ */
 export function validateSubstitution(expr: Node, expectedVar: string): boolean {
 	const free = expr.getFreeVars(); // e.g., returns ['x', 'y']
 	return free.has(expectedVar);
