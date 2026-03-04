@@ -8,6 +8,7 @@
 	import RuleGridContainer from './lib/solver/containers/RuleGridContainer.svelte';
 	import Separator from './lib/components/Separator.svelte';
 	import TheoremsContainer from './lib/solver/containers/TheoremsContainer.svelte';
+	import { appPersistence } from './lib/context/persistenceProvider';
 
 	onMount(() => {
 		// load the Prolog module
@@ -15,8 +16,17 @@
 			console.log('[DEBUG] Prolog module loaded.');
 		});
 
-		// load default proof
-		loadDefaultValues();
+		const hydrated = appPersistence.hydrate();
+		const stopPersisting = appPersistence.start();
+
+		if (!hydrated) {
+			// load default proof only for first-time visitors
+			loadDefaultValues();
+		}
+
+		return () => {
+			stopPersisting();
+		};
 	});
 </script>
 

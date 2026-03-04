@@ -21,7 +21,7 @@ rule('EEX', 1, exists_elim).   % Existential Elimination
 
 is_var(var(_)).
 
-% Get the topmost ancestor with debug output
+% Get the topmost ancestor
 top_ancestor(Line, TopAncestor) :-
     proof_row(Line, Term, _, Parents, _),
     ( Parents = [] ->
@@ -31,7 +31,7 @@ top_ancestor(Line, TopAncestor) :-
         top_ancestor(FirstParent, TopAncestor)
     ).
 
-% IU applicable with debug
+% IU applicable
 iu_applicable(Var, _Line, Root) :-
     \+ free_in(Var, Root).
 
