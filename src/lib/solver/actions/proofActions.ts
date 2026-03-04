@@ -325,13 +325,14 @@ export async function checkProof() {
 	const contradiction = await ProofHandler.hasContradiction();
 	const isIndirect = get(indirectSolving);
 
+	// TODO: Check if this is needed?
 	// 1. predicate logic check
-	if (get(logicMode) === ParseStrategy.PREDICATE) {
-		if (!(await isExistentialEliminationValid())) {
-			showToast('Proof contains an invalid use of Existential Elimination', 'error');
-			return;
-		}
-	}
+	// if (get(logicMode) === ParseStrategy.PREDICATE) {
+	// 	if (!(await isExistentialEliminationValid())) {
+	// 		showToast('Proof contains an invalid use of Existential Elimination', 'error');
+	// 		return;
+	// 	}
+	// }
 
 	// 2. contradiction logic
 	if (contradiction) {

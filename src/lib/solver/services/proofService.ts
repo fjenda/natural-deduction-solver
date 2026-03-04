@@ -165,7 +165,9 @@ export async function usable(
 			return usableQuantifier(rule, row);
 		}
 
-		// return { applicable: true, highlighted: [] };
+		if (['IU', 'IEX'].includes(rule.short)) {
+			return { applicable: true, highlighted: [] };
+		}
 	}
 
 	for (let i = 0; i < proof.length; i++) {

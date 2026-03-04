@@ -5,9 +5,10 @@
 		label: string;
 		options: T[];
 		onSelect: (option: T) => void;
+		disabled?: boolean;
 	}
 
-	let { label, options, onSelect }: DropdownProps<T> = $props();
+	let { label, options, onSelect, disabled = false }: DropdownProps<T> = $props();
 	let open = $state(false);
 
 	let dropdownRef: HTMLDivElement;
@@ -27,7 +28,7 @@
 	});
 </script>
 
-<div class="dropdown" bind:this={dropdownRef}>
+<div class="dropdown" bind:this={dropdownRef} class:disabled>
 	<button onclick={() => (open = !open)} aria-label="Toggle Dropdown" title="Toggle Dropdown">
 		{label} ▾
 	</button>
@@ -52,6 +53,11 @@
 	.dropdown {
 		position: relative;
 		display: inline-block;
+	}
+
+	.dropdown.disabled button {
+		opacity: 0.5;
+		pointer-events: none;
 	}
 
 	.dropdown button {

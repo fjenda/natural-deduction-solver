@@ -3,6 +3,8 @@
 	import { switchMode } from '../solver/actions/proofActions';
 	import StyledDropdown from './StyledDropdown.svelte';
 	import { ParseStrategy } from '../../types/ParseStrategy';
+	import { editState, solving } from '../../stores/stateStore';
+	import { EditState } from '../../types/EditState';
 
 	let { children } = $props();
 </script>
@@ -18,6 +20,7 @@
 					label="Switch Mode"
 					options={[ParseStrategy.PREDICATE, ParseStrategy.PROPOSITIONAL]}
 					onSelect={switchMode}
+					disabled={$editState === EditState.THEOREM || $solving}
 				/>
 			</li>
 			<li>

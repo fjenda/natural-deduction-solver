@@ -27,6 +27,8 @@
 	import type { TreeRuleType } from '../../../types/TreeRuleType';
 	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
 
+	type ConnectivePosition = 'before' | 'after';
+
 	const getProofAndSelection = () => {
 		const proof = get(solverContent).proof;
 		const selected = get(selectedRows);
@@ -139,16 +141,21 @@
 	const openFormulaInputModal = (
 		title: string,
 		content: string,
-		onConfirm: (formula: string) => void
+		onConfirm: (formula: string, connectivePosition: ConnectivePosition) => void
 	) => {
 		modals.open(InputModal, {
 			title,
 			content,
 			placeholder: 'Enter the formula',
-			onConfirm: (modalInput: HTMLInputElement) => {
+			showConnectivePosition: true,
+			defaultConnectivePosition: 'after',
+			onConfirm: (
+				modalInput: HTMLInputElement,
+				connectivePosition: ConnectivePosition = 'after'
+			) => {
 				const formula = validateFormulaInput(modalInput);
 				if (!formula) return;
-				onConfirm(formula.tree!.toPrologFormat());
+				onConfirm(formula.tree!.toPrologFormat(), connectivePosition);
 				selectedRows.set([]);
 			}
 		});
@@ -185,9 +192,13 @@
 		if ([NDRule.IDIS, NDRule.IIMP].includes(rule.short)) {
 			return openFormulaInputModal(
 				'Insert Formula',
-				'Write the formula to insert. into the disjunction',
-				(formula) => {
-					premises.push(formula);
+				'Write the formula to insert (without the main connective)',
+				(formula, connectivePosition) => {
+					if (connectivePosition === 'before') {
+						premises.unshift(formula);
+					} else {
+						premises.push(formula);
+					}
 					proveProlog(premises, rule, selected, []);
 				}
 			);
