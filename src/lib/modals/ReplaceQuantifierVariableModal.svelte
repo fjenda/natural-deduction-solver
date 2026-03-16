@@ -83,7 +83,7 @@
 				}}>Cancel</button
 			>
 			<button
-				class="button"
+				class="button primary"
 				onclick={() => {
 					onConfirm(modalInput);
 					showSuggestions = false;
@@ -98,52 +98,81 @@
 	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 	}
 
 	.input-row {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--spacing-md);
 	}
 
 	.help-link {
 		user-select: none;
-		color: var(--text-primary);
-		text-decoration: underline;
+		color: var(--accent);
+		text-decoration: none;
 		cursor: pointer;
-		font-size: 0.95rem;
-		margin-left: 0.5rem;
+		font-size: 0.9rem;
+		font-weight: 500;
+		transition: all var(--transition-base);
+		padding: var(--spacing-sm);
+		border-radius: var(--radius-sm);
+	}
+
+	.help-link:hover {
+		color: var(--accent-hover);
+		text-decoration: underline;
+		background: rgba(37, 99, 235, 0.1);
+	}
+
+	.help-link:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
 	}
 
 	.suggestions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem;
-		margin-top: 0.25rem;
-	}
-
-	.suggestion {
-		aspect-ratio: 1;
-		padding: 0.225em 0.7em;
-
-		font-size: 1rem;
-		font-family: monospace;
-		margin: 0.15rem;
-		background-color: var(--button-bg);
-		color: var(--text-primary);
-	}
-
-	.suggestion:hover {
-		outline: none;
-		background-color: var(--button-hover);
-		color: var(--accent);
+		gap: var(--spacing-sm);
+		margin-top: var(--spacing-md);
+		padding: var(--spacing-lg);
+		background: var(--surface-elevated);
+		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
 	}
 
+	.suggestion {
+		padding: var(--spacing-sm) var(--spacing-md);
+		font-size: 1rem;
+		font-family: monospace;
+		background-color: var(--button-bg);
+		color: var(--text-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		transition: all var(--transition-base);
+	}
+
+	.suggestion:hover {
+		background-color: var(--button-hover);
+		color: var(--accent);
+		border-color: var(--accent);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.suggestion:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
+	}
+
 	.no-suggestions {
-		color: #666;
-		font-size: 0.95rem;
-		padding: 0.25rem 0;
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		padding: var(--spacing-md) 0;
 	}
 </style>

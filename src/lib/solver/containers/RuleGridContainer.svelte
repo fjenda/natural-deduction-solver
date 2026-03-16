@@ -249,14 +249,31 @@
 	}
 </script>
 
-<h2>Deduction Rules</h2>
-<RuleGridLayout>
-	{#each $deductionRules as rule (rule.short)}
-		<RuleSlot
-			{rule}
-			onClick={() => onRuleClick(rule)}
-			onMouseOver={() => onRuleMouseOver(rule)}
-			onMouseOut={onRuleMouseOut}
-		/>
-	{/each}
-</RuleGridLayout>
+<div class="wrapper">
+	<h2>Deduction Rules</h2>
+	<RuleGridLayout>
+		{#each $deductionRules as rule (rule.short)}
+			<RuleSlot
+				{rule}
+				onClick={() => onRuleClick(rule)}
+				onMouseOver={() => onRuleMouseOver(rule)}
+				onMouseOut={onRuleMouseOut}
+			/>
+		{/each}
+	</RuleGridLayout>
+</div>
+
+<style>
+	h2 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.wrapper {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+</style>

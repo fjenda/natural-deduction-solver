@@ -21,9 +21,19 @@
 		width: 100%;
 		font-size: 1em;
 		max-width: 8rem;
-		padding: 0.25rem 0.5rem;
+		padding: var(--spacing-sm);
 		border: 1px solid var(--border);
 		color: var(--text-primary);
+		background: var(--surface);
 		height: auto;
+		border-radius: var(--radius-md);
+		transition: all var(--transition-base);
+	}
+
+	.row-input:focus {
+		border-color: var(--accent);
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px rgba(37, 99, 235, 0.1);
 	}
 </style>

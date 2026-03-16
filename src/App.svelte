@@ -10,11 +10,18 @@
 	import TheoremsContainer from './lib/solver/containers/TheoremsContainer.svelte';
 	import { appPersistence } from './lib/context/persistenceProvider';
 
+	const persist: boolean = false;
+
 	onMount(() => {
 		// load the Prolog module
 		PrologController.instance().then(() => {
 			console.log('[DEBUG] Prolog module loaded.');
 		});
+
+		if (!persist) {
+			loadDefaultValues();
+			return;
+		}
 
 		const hydrated = appPersistence.hydrate();
 		const stopPersisting = appPersistence.start();

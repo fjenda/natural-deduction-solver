@@ -44,27 +44,47 @@
 		align-items: center;
 		background: var(--surface);
 		border-bottom: 1px solid var(--border);
-		padding: 0.5rem 0;
+		box-shadow: var(--shadow-sm);
+		padding: 0;
 		font-size: 1.2rem;
 		height: 4rem;
+		transition: all var(--transition-base);
 	}
 
 	nav ul {
 		list-style: none;
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 		margin: 0;
-		padding: 0 2rem;
+		padding: 0 var(--spacing-xl);
 	}
 
 	nav a {
 		text-decoration: none;
 		color: var(--text-primary);
-		font-weight: bold;
+		font-weight: 600;
+		transition: color var(--transition-base);
+		position: relative;
+		padding: var(--spacing-sm) 0;
+	}
+
+	nav a::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 0;
+		height: 2px;
+		background: var(--accent);
+		transition: width var(--transition-base);
 	}
 
 	nav a:hover {
 		color: var(--accent);
+	}
+
+	nav a:hover::after {
+		width: 100%;
 	}
 </style>

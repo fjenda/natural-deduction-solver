@@ -10,7 +10,7 @@
 	.solver-layout {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 		height: 100%;
 		width: 100%;
 	}

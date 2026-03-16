@@ -4,7 +4,7 @@
 	.separator {
 		width: 100%;
 		height: 1px;
-		background: var(--border);
-		margin: 0.5rem 0;
+		background: linear-gradient(to right, #ffffff0a, var(--border), #ffffff0a);
+		/*margin: var(--spacing-md) 0;*/
 	}
 </style>

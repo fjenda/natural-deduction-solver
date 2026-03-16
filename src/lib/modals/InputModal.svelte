@@ -80,72 +80,88 @@
 	.modal-form {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: var(--spacing-lg);
 		min-width: min(34rem, 85vw);
 	}
 
 	.description {
 		color: var(--text-secondary);
 		font-size: 0.95rem;
-		line-height: 1.4;
+		line-height: 1.6;
 	}
 
 	.input-label {
 		font-weight: 600;
 		font-size: 0.95rem;
+		color: var(--text-primary);
 	}
 
 	input[name='modal-input'] {
 		height: auto;
 		font-size: 1rem;
 		font-family: inherit;
-		padding: 0.7rem 0.85rem;
+		padding: var(--spacing-md);
 	}
 
 	.position-group {
 		border: 1px solid var(--border);
-		border-radius: 0.75rem;
-		padding: 0.75rem;
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-lg);
 		display: grid;
-		gap: 0.5rem;
+		gap: var(--spacing-md);
+		background: var(--surface-elevated);
+		transition: all var(--transition-base);
+	}
+
+	.position-group:hover {
+		border-color: var(--accent);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.position-title {
-		padding: 0 0.35rem;
+		padding: 0 var(--spacing-sm);
 		font-size: 0.9rem;
 		color: var(--text-secondary);
+		font-weight: 500;
 	}
 
 	.position-option {
 		display: flex;
 		align-items: center;
-		gap: 0.6rem;
-		padding: 0.45rem 0.6rem;
+		gap: var(--spacing-md);
+		padding: var(--spacing-sm) var(--spacing-md);
 		border: 1px solid transparent;
-		border-radius: 0.6rem;
+		border-radius: var(--radius-md);
 		cursor: pointer;
+		transition: all var(--transition-base);
 	}
 
 	.position-option:hover {
-		background: var(--button-bg);
-		border-color: var(--border);
+		background: var(--button-hover);
+		border-color: var(--accent);
 	}
 
 	.position-option input[type='radio'] {
-		width: 1rem;
-		height: 1rem;
+		width: 1.125rem;
+		height: 1.125rem;
 		margin: 0;
+		cursor: pointer;
+		accent-color: var(--accent);
+	}
+
+	.position-option span {
+		color: var(--text-primary);
 	}
 
 	.actions {
 		display: flex;
-		gap: 0.75rem;
+		gap: var(--spacing-md);
 		width: 100%;
 	}
 
 	.actions button {
 		font-size: 1rem;
-		padding: 0.65rem 0.95rem;
+		padding: var(--spacing-md) var(--spacing-lg);
 	}
 
 	@media (max-width: 640px) {

@@ -108,11 +108,11 @@
 <style>
 	.row {
 		display: flex;
-		gap: 0.5rem;
+		gap: var(--spacing-md);
 		justify-content: center;
 		align-items: center;
-		padding: 0.5rem;
-		border-radius: 0.5rem;
+		padding: var(--spacing-md);
+		border-radius: var(--radius-md);
 		border: 1px solid var(--border);
 		background: var(--surface);
 		font-family: monospace;
@@ -120,26 +120,36 @@
 		text-decoration: none;
 		color: inherit;
 		cursor: pointer;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.row:hover {
 		background: var(--button-hover);
+		box-shadow: var(--shadow-md);
+		transform: translateY(-1px);
 	}
 
 	.row.highlighted.usable,
 	.row.highlighted {
-		outline: 1px solid #00ff00;
-		border-color: #00ff00;
+		border-color: #4ade80;
+		box-shadow:
+			0 0 0 2px rgba(74, 222, 128, 0.2),
+			var(--shadow-md);
 	}
 
 	.row.usable {
-		outline: 1px solid #ffcc00;
-		border-color: #ffcc00;
+		border-color: #facc15;
+		box-shadow:
+			0 0 0 2px rgba(250, 204, 21, 0.2),
+			var(--shadow-md);
 	}
 
 	.row.invalid {
-		outline: 1px solid #ff0000;
-		border-color: #ff0000;
+		border-color: #ef4444;
+		box-shadow:
+			0 0 0 2px rgba(239, 68, 68, 0.2),
+			var(--shadow-md);
 	}
 
 	.formula-container {
@@ -152,7 +162,7 @@
 	.used-rule,
 	.line-number {
 		text-align: center;
-		padding-inline: 0.5rem;
+		padding-inline: var(--spacing-md);
 	}
 
 	.used-rule {
@@ -185,13 +195,11 @@
 
 	:global(html):not(.dark-mode) {
 		.row.highlighted {
-			border-color: #00c800;
-			outline: 1px solid #00c800;
+			border-color: #22c55e;
 		}
 
 		.row.usable {
-			border-color: #ffcc00;
-			outline: 1px solid #ffcc00;
+			border-color: #eab308;
 		}
 	}
 

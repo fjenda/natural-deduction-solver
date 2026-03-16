@@ -27,7 +27,7 @@
 	.premise-input-wrapper {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 	}
 
 	.premise-input-wrapper button i {
@@ -35,35 +35,48 @@
 	}
 
 	.premise-input-wrapper button {
-		width: 20px;
+		width: 2.5rem;
 		aspect-ratio: 1;
-		padding: 0;
+		padding: var(--spacing-sm);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: none;
-		transition: color 0.2s;
-		background: none;
+		border: 1px solid var(--border);
+		transition: all var(--transition-base);
+		background: var(--button-bg);
+		color: var(--text-primary);
+		border-radius: var(--radius-md);
+		cursor: pointer;
+		box-shadow: var(--shadow-sm);
 	}
 
-	.premise-input-wrapper button:hover {
-		color: #ff0000;
+	.premise-input-wrapper button:hover:not(:disabled) {
+		color: #ef4444;
+		border-color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.premise-input-wrapper button:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
+	}
+
+	.premise-input-wrapper button:active:not(:disabled) {
+		transform: translateY(0);
 	}
 
 	.premise-input-wrapper button:disabled {
 		cursor: not-allowed;
-		color: rgba(255, 255, 255, 0.3);
-	}
-
-	.premise-input-wrapper button:hover,
-	.premise-input-wrapper button:focus {
-		outline: none;
-		border: none;
+		opacity: 0.5;
 	}
 
 	:global(html):not(.dark-mode) {
 		.premise-input-wrapper button:disabled {
-			color: rgba(16, 16, 16, 0.3);
+			opacity: 0.5;
 		}
 	}
 </style>

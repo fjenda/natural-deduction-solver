@@ -19,14 +19,15 @@
 	.assignment-container {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: var(--spacing-lg);
+		font-weight: 500;
 	}
 
 	@media screen and (max-width: 950px) {
 		.assignment-container {
 			flex-direction: column;
 			align-items: center;
-			gap: 0.5rem;
+			gap: var(--spacing-md);
 		}
 	}
 </style>

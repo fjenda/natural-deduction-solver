@@ -44,44 +44,88 @@
 		width: 100%;
 		height: 100%;
 		overflow: auto;
-		background-color: rgba(0, 0, 0, 0.4);
+		background-color: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(4px);
+		animation: fadeIn var(--transition-base);
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
 	.contents {
 		background-color: var(--surface);
-		margin: 5% auto;
-		padding: 1.5rem;
+		margin: 10% auto;
+		padding: var(--spacing-xl);
 		border: 1px solid var(--border);
 		width: fit-content;
 		max-width: 50rem;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-xl);
+		box-shadow: var(--shadow-xl);
+		animation: slideUp var(--transition-slow);
+	}
+
+	@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.header {
 		text-align: center;
 		color: var(--text-primary);
+		margin-bottom: var(--spacing-lg);
+	}
+
+	.header h2 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin: 0;
 	}
 
 	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 0.5rem;
+		gap: var(--spacing-lg);
+		padding: var(--spacing-md) 0;
+		margin-bottom: var(--spacing-lg);
 	}
 
 	.footer {
-		padding: 0.25rem 0.5rem;
+		padding: var(--spacing-md) 0 0 0;
+		border-top: 1px solid var(--border);
 	}
 
 	:global(.footer button) {
 		width: 100%;
-		padding: 0.8rem;
-		font-size: 1.2rem;
+		padding: var(--spacing-md) var(--spacing-lg);
+		font-size: 1rem;
 		text-wrap: nowrap;
+		margin-top: var(--spacing-md);
+	}
+
+	:global(.footer button:first-child) {
+		margin-top: 0;
 	}
 
 	:global(.footer div) {
 		display: flex;
-		gap: 1rem;
+		gap: var(--spacing-md);
+	}
+
+	:global(.footer div button) {
+		flex: 1;
+		margin: 0;
+		padding: var(--spacing-md) var(--spacing-lg);
 	}
 </style>

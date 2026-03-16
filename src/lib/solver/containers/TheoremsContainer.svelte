@@ -35,23 +35,41 @@
 	};
 </script>
 
-<h2>Theorems</h2>
-<StyledButton text="Add Theorem" onClick={addTheorem} />
-<TheoremsLayout>
-	{#if shownTheorems.length === 0}
-		<p>No theorems added yet.</p>
-	{/if}
-
-	{#each $theorems as theorem, i (theorem.solution.name)}
-		{#if shownTheorems.includes(theorem)}
-			<TheoremSlot
-				name={theorem.solution.name}
-				index={i}
-				valid={theorem.solution.valid && theorem.solution.complete}
-				onClick={() => {
-					handleTheoremClick(theorem, i);
-				}}
-			/>
+<div class="wrapper">
+	<h2>Theorems</h2>
+	<StyledButton text="Add Theorem" onClick={addTheorem} />
+	<TheoremsLayout>
+		{#if shownTheorems.length === 0}
+			<p>No theorems added yet.</p>
 		{/if}
-	{/each}
-</TheoremsLayout>
+
+		{#each $theorems as theorem, i (theorem.solution.name)}
+			{#if shownTheorems.includes(theorem)}
+				<TheoremSlot
+					name={theorem.solution.name}
+					index={i}
+					valid={theorem.solution.valid && theorem.solution.complete}
+					onClick={() => {
+						handleTheoremClick(theorem, i);
+					}}
+				/>
+			{/if}
+		{/each}
+	</TheoremsLayout>
+</div>
+
+<style>
+	h2 {
+		margin: 0;
+		font-size: 1.25rem;
+	}
+
+	.wrapper {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: center;
+		flex-direction: column;
+		gap: var(--spacing-md);
+	}
+</style>

@@ -107,30 +107,34 @@
 	.table-wrapper {
 		flex: 1;
 		overflow: hidden auto;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
 		background-color: var(--background);
-		padding: 0.5rem;
+		padding: var(--spacing-md);
+		box-shadow: var(--shadow-md);
 	}
 
 	.table {
 		width: 100%;
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--spacing-sm);
 		max-height: 100%;
 	}
 
 	button {
 		width: 100%;
 		height: 3.5rem;
+		transition: all var(--transition-base);
 	}
 
 	button.disabled {
 		cursor: not-allowed;
+		opacity: 0.5;
 	}
 
 	button.disabled:hover {
 		border: 1px solid var(--border);
+		transform: none;
 	}
 </style>

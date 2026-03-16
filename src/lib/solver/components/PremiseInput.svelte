@@ -120,7 +120,8 @@
 	}
 
 	.wrapper.error {
-		border-color: #ff0000;
+		border-color: #ef4444;
+		box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 	}
 
 	.operator-input {
@@ -129,41 +130,76 @@
 		top: 3.5rem;
 		right: 0;
 		z-index: 10;
-		color: black;
-		padding: 0.25rem;
-		border-radius: 0 0 0.5rem 0.5rem;
+		padding: var(--spacing-sm);
+		border-radius: 0 0 var(--radius-md) var(--radius-md);
 		border: 1px solid var(--border);
+		border-top: none;
 		background-color: var(--background);
+		gap: var(--spacing-xs);
+		box-shadow: var(--shadow-lg);
+		flex-wrap: wrap;
+		animation: slideDown var(--transition-fast) ease-out;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.operator-input button {
 		aspect-ratio: 1;
-		padding: 0.45em 0.8em;
+		padding: var(--spacing-sm);
 		font-size: 1.35em;
 		font-family: monospace;
-		margin: 0.15rem;
-		background-color: var(--surface);
+		background-color: var(--button-bg);
 		color: var(--text-primary);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+		cursor: pointer;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.operator-input button:hover {
-		outline: none;
-		border: 1px solid var(--border);
+		background-color: var(--button-hover);
+		border-color: var(--accent);
+		color: var(--accent);
+		transform: translateY(-1px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.operator-input button:active {
+		transform: translateY(0);
 	}
 
 	.wrapper {
 		width: 100%;
 		height: 3.5rem;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		position: relative;
 		display: flex;
-		overflow: hidden;
+		overflow: visible;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.wrapper:hover:not(:focus-within) {
+		box-shadow: var(--shadow-md);
 	}
 
 	.wrapper:focus-within {
-		border: 0;
+		border-color: var(--accent);
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px rgba(37, 99, 235, 0.1);
 	}
 
 	.wrapper:focus-within .operator-input {
@@ -171,22 +207,24 @@
 	}
 
 	.wrapper:focus-within input {
-		border-radius: 0.5rem 0.5rem 0 0.5rem;
+		border-radius: var(--radius-md) var(--radius-md) 0 0;
 	}
 
 	input[disabled] {
 		color: inherit;
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	@media screen and (max-width: 950px) {
 		.operator-input {
-			padding: 0.15rem;
+			padding: var(--spacing-xs);
 		}
 
 		.operator-input button {
-			padding: 0.35em 0.62em;
+			padding: var(--spacing-xs);
 			font-size: 1.15em;
-			border-radius: 0.35rem;
+			border-radius: var(--radius-sm);
 		}
 	}
 </style>

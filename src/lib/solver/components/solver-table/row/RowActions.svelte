@@ -65,9 +65,8 @@
 <style>
 	.actions-container {
 		display: flex;
-		gap: 0.5rem;
+		gap: var(--spacing-md);
 		align-items: center;
-		/*flex-grow: 0;*/
 	}
 
 	.action-button {
@@ -75,9 +74,12 @@
 		justify-content: center;
 		align-items: center;
 		background: none;
-		border: none;
-		padding: 0.5rem;
+		border: 1px solid var(--border);
+		padding: var(--spacing-sm);
 		cursor: pointer;
+		border-radius: var(--radius-sm);
+		transition: all var(--transition-base);
+		color: var(--text-primary);
 	}
 
 	.action-button:disabled {
@@ -85,16 +87,31 @@
 		opacity: 0.5;
 	}
 
+	.action-button:not(:disabled):hover {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.action-button:not(:disabled):active {
+		transform: translateY(0);
+	}
+
 	.check-button:hover:not(:disabled) {
-		color: #00ff00;
+		color: #4ade80;
+		border-color: #4ade80;
+		background: rgba(74, 222, 128, 0.1);
 	}
 
 	.delete-button:hover:not(:disabled) {
-		color: #ff0000;
+		color: #ef4444;
+		border-color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
 	}
 
 	.edit-button:hover:not(:disabled) {
-		color: #ffcc00;
+		color: #facc15;
+		border-color: #facc15;
+		background: rgba(250, 204, 21, 0.1);
 	}
 
 	@media screen and (max-width: 950px) {

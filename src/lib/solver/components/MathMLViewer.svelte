@@ -27,7 +27,7 @@
 
 	@media screen and (max-width: 950px) {
 		.mathml-viewer {
-			padding: 0.5rem;
+			padding: var(--spacing-md);
 		}
 	}
 </style>

@@ -106,8 +106,8 @@
 		opacity: 0;
 		transform: translateY(-0.5rem);
 		transition:
-			opacity 200ms ease,
-			transform 200ms ease;
+			opacity var(--transition-base),
+			transform var(--transition-base);
 		pointer-events: none;
 		max-height: 0;
 		overflow: hidden;
@@ -117,9 +117,7 @@
 		opacity: 1;
 		transform: translateY(0);
 		pointer-events: auto;
-		max-height: 500px; /* arbitrary large enough value */
-		/*max-width: 250px;*/
-
+		max-height: 500px;
 		overflow: auto hidden;
 		white-space: nowrap;
 		padding-bottom: 4px;
@@ -127,39 +125,50 @@
 
 	p:not(.visible) {
 		opacity: 0;
+		display: none;
 	}
 
 	.theorem-slot {
 		width: 100%;
 		height: 100%;
-		padding: 1rem;
+		padding: var(--spacing-lg);
 		background-color: var(--surface);
-		border-radius: 0.5rem;
-		outline: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--border);
 		display: grid;
 		grid-template-columns: 1fr auto;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 		align-items: center;
 		position: relative;
 		line-height: 0;
 		overflow: hidden;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-md);
 	}
 
-	.theorem-slot:hover,
-	.theorem-slot:focus {
-		outline: 1px solid var(--border);
-	}
-
-	.theorem-slot:hover {
+	.theorem-slot:hover:not(.invalid) {
+		border-color: var(--accent);
+		box-shadow: var(--shadow-lg);
 		cursor: pointer;
+		transform: translateY(-2px);
+	}
+
+	.theorem-slot:focus {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
+	}
+
+	.theorem-slot.invalid {
+		border-color: #ef4444;
+		box-shadow:
+			0 0 0 2px rgba(239, 68, 68, 0.2),
+			var(--shadow-md);
 	}
 
 	.theorem-slot.invalid:hover {
 		cursor: not-allowed;
-	}
-
-	.theorem-slot.invalid {
-		outline-color: #ff0000;
 	}
 
 	.theorem-slot .name {
@@ -169,52 +178,83 @@
 
 	.theorem-slot .name input {
 		width: 100%;
-		padding: 0.5rem;
-		border: none;
-		outline: 1px solid var(--border);
-		border-radius: 0.25rem;
-		background-color: var(--surface);
-		color: #fff;
+		padding: var(--spacing-md);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background-color: var(--surface-elevated);
+		color: var(--text-primary);
+		transition: all var(--transition-base);
+	}
+
+	.theorem-slot .name input:focus {
+		outline: none;
+		border-color: var(--accent);
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 3px rgba(37, 99, 235, 0.1);
 	}
 
 	.theorem-slot .actions {
 		display: flex;
-		gap: 1rem;
+		gap: var(--spacing-md);
 	}
 
 	.theorem-slot .actions button {
-		width: 20px;
+		width: 2.5rem;
 		aspect-ratio: 1;
-		padding: 0;
+		padding: var(--spacing-sm);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		border: none;
-		outline: none;
-		transition: color 0.2s;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: var(--button-bg);
+		color: var(--text-primary);
+		cursor: pointer;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.theorem-slot .actions button i {
 		font-size: 1.25rem;
 	}
 
+	.theorem-slot .actions button:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-md);
+	}
+
+	.theorem-slot .actions button:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
+	}
+
+	.theorem-slot .actions button:active:not(:disabled) {
+		transform: translateY(0);
+	}
+
 	.theorem-slot .actions .edit-button:disabled {
 		cursor: not-allowed;
+		opacity: 0.5;
 	}
 
-	.theorem-slot .actions .delete-button:hover {
-		color: #ff0000;
+	.theorem-slot .actions .delete-button:hover:not(:disabled) {
+		color: #ef4444;
+		border-color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
 	}
 
-	.theorem-slot .actions .save-button:hover {
-		color: #00ff00;
+	.theorem-slot .actions .save-button:hover:not(:disabled) {
+		color: #4ade80;
+		border-color: #4ade80;
+		background: rgba(74, 222, 128, 0.1);
 	}
 
-	.theorem-slot .actions .edit-button:hover:not([disabled]) {
-		color: #ffa500;
-	}
-
-	.theorem-slot .actions button:focus {
-		outline: none;
+	.theorem-slot .actions .edit-button:hover:not(:disabled) {
+		color: #facc15;
+		border-color: #facc15;
+		background: rgba(250, 204, 21, 0.1);
 	}
 </style>

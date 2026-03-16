@@ -61,21 +61,58 @@
 	}
 
 	.dropdown button {
-		padding: 0.45rem 0.7rem;
-		font-size: 0.8em;
+		padding: 0.5rem 1rem;
+		font-size: 0.9rem;
+		border-radius: var(--radius-md);
+		background: var(--button-bg);
+		border: 1px solid var(--border);
+		color: var(--text-primary);
+		font-weight: 500;
+		cursor: pointer;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
+	}
+
+	.dropdown button:hover:not(:disabled) {
+		background: var(--button-hover);
+		border-color: var(--accent);
+		color: var(--accent);
+		box-shadow: var(--shadow-md);
+		transform: translateY(-1px);
+	}
+
+	.dropdown button:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
 	}
 
 	.menu {
 		position: absolute;
-		top: 100%;
+		top: calc(100% + var(--spacing-sm));
 		right: 0;
-		background: var(--background);
+		background: var(--surface);
 		list-style: none;
 		margin: 0;
-		padding: 0.25rem 0;
-		border-radius: 0.25rem;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+		padding: var(--spacing-sm) 0;
+		border-radius: var(--radius-lg);
+		border: 1px solid var(--border);
+		box-shadow: var(--shadow-lg);
 		z-index: 10;
+		min-width: 160px;
+		animation: slideDown var(--transition-fast) ease-out;
+	}
+
+	@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-8px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.menu li {
@@ -84,15 +121,26 @@
 
 	.menu button {
 		width: 100%;
-		padding: 0.5rem 1rem;
+		padding: var(--spacing-sm) var(--spacing-lg);
 		text-align: left;
 		background: none;
 		border: none;
 		color: var(--text-primary);
 		cursor: pointer;
+		transition: all var(--transition-fast);
+		font-weight: 400;
+		box-shadow: none;
 	}
 
 	.menu button:hover {
-		background: var(--button-hover);
+		background: var(--surface-elevated);
+		color: var(--accent);
+		padding-left: calc(var(--spacing-lg) + var(--spacing-sm));
+	}
+
+	.menu button:focus-visible {
+		outline: none;
+		background: var(--surface-elevated);
+		color: var(--accent);
 	}
 </style>

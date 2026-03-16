@@ -20,22 +20,23 @@
 		width: 100%;
 		display: flex;
 		flex-direction: column;
-		/*height: 100%;*/
 		overflow: hidden;
 		background-color: var(--surface);
-		border-radius: 0.5rem;
+		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
+		box-shadow: var(--shadow-md);
+		transition: all var(--transition-base);
 	}
 
 	.content {
 		display: flex;
 		flex-direction: column;
 		height: 100%;
-		gap: 1rem;
+		gap: var(--spacing-lg);
 		flex: 1;
 		align-items: center;
-		border-radius: 0.5rem;
-		padding: 1.5rem;
+		border-radius: var(--radius-lg);
+		padding: var(--spacing-xl);
 		text-align: center;
 	}
 
@@ -49,13 +50,12 @@
 
 	@media screen and (max-width: 950px) {
 		.small {
-			/*width: 100%;*/
 			max-width: none;
 		}
 
 		.content {
-			padding: 0.5rem;
-			gap: 0.5rem;
+			padding: var(--spacing-lg);
+			gap: var(--spacing-md);
 		}
 	}
 </style>

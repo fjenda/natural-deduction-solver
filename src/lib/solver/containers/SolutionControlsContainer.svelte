@@ -89,6 +89,6 @@
 <style>
 	.button-wrapper {
 		display: flex;
-		gap: 1rem;
+		gap: var(--spacing-md);
 	}
 </style>

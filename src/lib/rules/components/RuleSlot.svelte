@@ -67,19 +67,39 @@
 
 	.rule-slot {
 		font-size: 1.25rem;
+		font-weight: 600;
 		width: 100%;
 		aspect-ratio: 1;
-		padding: 1rem;
+		padding: var(--spacing-lg);
 		cursor: pointer;
-		border-radius: 0.5rem;
+		border-radius: var(--radius-md);
 		border: 1px solid var(--border);
 		background: var(--surface);
 		color: var(--text-primary);
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-md);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
-	.rule-slot:hover,
+	.rule-slot:hover {
+		border-color: var(--accent);
+		color: var(--accent);
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-lg);
+	}
+
 	.rule-slot:focus {
-		border: 1px solid var(--border);
+		outline: none;
+		box-shadow:
+			0 0 0 3px var(--surface),
+			0 0 0 5px var(--accent);
+	}
+
+	.rule-slot:active {
+		transform: translateY(0);
+		box-shadow: var(--shadow-md);
 	}
 
 	@media screen and (max-width: 1200px) {

@@ -42,7 +42,7 @@
 				}}>Cancel</button
 			>
 			<button
-				class="button"
+				class="button primary"
 				onclick={() => {
 					onConfirm();
 					close();
@@ -56,21 +56,46 @@
 	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
+		gap: var(--spacing-lg);
 	}
 
 	.arrow-icon {
 		text-align: center;
-		font-size: 1.2rem;
-		color: var(--color-primary);
-		margin: 0.5rem auto;
+		font-size: 1.5rem;
+		color: var(--accent);
+		margin: var(--spacing-md) auto;
+		animation: bounce 1.5s ease-in-out infinite;
+	}
+
+	@keyframes bounce {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(8px);
+		}
 	}
 
 	.wrapper {
 		display: flex;
 		justify-content: center;
-		padding: 0.5rem;
-		border: 1px solid var(--color-border);
-		flex-direction: row;
+		align-items: center;
+		gap: var(--spacing-lg);
+		padding: var(--spacing-lg);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		background: var(--surface-elevated);
+		transition: all var(--transition-base);
+	}
+
+	.wrapper:hover {
+		border-color: var(--accent);
+		box-shadow: var(--shadow-md);
+	}
+
+	.wrapper input {
+		flex: 1;
+		min-width: 0;
 	}
 </style>
