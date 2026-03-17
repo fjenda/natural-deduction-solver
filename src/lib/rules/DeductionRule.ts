@@ -109,7 +109,7 @@ export class DeductionRule implements IRule {
 		'Introduction of Implication',
 		2,
 		1,
-		PrettySyntaxer.toMathML('A, B ⊢ A ⊃ B')
+		PrettySyntaxer.toMathML('B ⊢ A ⊃ B')
 	);
 
 	static MP = new DeductionRule(

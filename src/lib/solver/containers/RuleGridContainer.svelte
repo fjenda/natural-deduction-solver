@@ -141,13 +141,14 @@
 	const openFormulaInputModal = (
 		title: string,
 		content: string,
-		onConfirm: (formula: string, connectivePosition: ConnectivePosition) => void
+		onConfirm: (formula: string, connectivePosition?: ConnectivePosition) => void,
+		showConnectivePosition: boolean = false
 	) => {
 		modals.open(InputModal, {
 			title,
 			content,
 			placeholder: 'Enter the formula',
-			showConnectivePosition: true,
+			showConnectivePosition,
 			defaultConnectivePosition: 'after',
 			onConfirm: (
 				modalInput: HTMLInputElement,
@@ -189,7 +190,18 @@
 			return;
 		}
 
-		if ([NDRule.IDIS, NDRule.IIMP].includes(rule.short)) {
+		if (rule.short === NDRule.IIMP) {
+			return openFormulaInputModal(
+				'Insert Formula',
+				'Write the formula to insert (without the main connective)',
+				(formula) => {
+					premises.unshift(formula);
+					proveProlog(premises, rule, selected, []);
+				}
+			);
+		}
+
+		if (rule.short === NDRule.IDIS) {
 			return openFormulaInputModal(
 				'Insert Formula',
 				'Write the formula to insert (without the main connective)',

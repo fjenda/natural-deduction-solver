@@ -191,9 +191,9 @@
 		box-shadow: var(--shadow-sm);
 	}
 
-	.wrapper:hover:not(:focus-within) {
-		box-shadow: var(--shadow-md);
-	}
+	/*.wrapper:hover:not(:focus-within) {*/
+	/*	box-shadow: var(--shadow-md);*/
+	/*}*/
 
 	.wrapper:focus-within {
 		border-color: var(--accent);
