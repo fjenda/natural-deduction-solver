@@ -121,6 +121,53 @@ describe('theoremsStore', () => {
 		expect(get(solverBackup).name).toBe('BeforeEdit');
 	});
 
+	it('edits theorem in isolated draft without mutating saved theorem', () => {
+		const theorem = new Solution('Editable');
+		theorem.whole = { value: 'A -> A', tree: null };
+		theorems.set([{ solution: theorem, mode: ParseStrategy.PREDICATE }]);
+
+		editTheorem(0);
+
+		solverContent.update((sc) => {
+			sc.whole = { value: 'B -> C', tree: null };
+			return sc;
+		});
+
+		expect(get(theorems)[0].solution.whole.value).toBe('A -> A');
+		expect(get(solverContent).whole.value).toBe('B -> C');
+	});
+
+	it('clears stale proof validity when theorem formula changes on save', () => {
+		theoremRegistry.set({
+			registerTheorem: vi.fn().mockReturnValue(true)
+		} as unknown as TheoremRegistry);
+
+		const theorem = new Solution('ValidTheorem');
+		theorem.whole = { value: 'A -> A', tree: null };
+		theorem.proof = [
+			{
+				line: 1,
+				value: 'A',
+				tree: null,
+				rule: { rule: 'PREM', lines: [], replacements: [] }
+			}
+		];
+		theorem.contradiction = true;
+		theorems.set([{ solution: theorem, mode: ParseStrategy.PREDICATE }]);
+
+		editTheorem(0);
+		solverContent.update((sc) => {
+			sc.whole = { value: 'B -> C', tree: null };
+			return sc;
+		});
+
+		saveTheorem(0);
+
+		expect(get(theorems)[0].solution.whole.value).toBe('B -> C');
+		expect(get(theorems)[0].solution.proof).toHaveLength(0);
+		expect(get(theorems)[0].solution.contradiction).toBe(false);
+	});
+
 	it('removes selected theorem and restores backup solution', () => {
 		const backup = new Solution('BackupAfterRemove');
 		solverBackup.set(backup);

@@ -6,6 +6,8 @@ import { EditState } from '../types/EditState';
 import { TheoremRegistry } from '../lib/rules/TheoremRegistry';
 import { showToast } from '../lib/utils/showToast';
 import { ParseStrategy } from '../types/ParseStrategy';
+import type { ParsedExpression } from '../types/ParsedExpression';
+import type { TreeRuleType } from '../types/TreeRuleType';
 
 /**
  * The theorems store.
@@ -62,6 +64,50 @@ export const addTheorem = (): void => {
 	]);
 };
 
+function cloneParsedExpression(expr: ParsedExpression): ParsedExpression {
+	return { value: expr.value, tree: expr.tree };
+}
+
+function cloneProof(proof: TreeRuleType[]): TreeRuleType[] {
+	return proof.map((row) => ({
+		line: row.line,
+		value: row.value,
+		tree: row.tree,
+		rule: {
+			rule: row.rule.rule,
+			lines: [...row.rule.lines],
+			replacements: [...row.rule.replacements]
+		}
+	}));
+}
+
+function cloneSolution(solution: Solution): Solution {
+	const cloned = new Solution(solution.name);
+	cloned.premises = solution.premises.map((premise) => cloneParsedExpression(premise));
+	cloned.conclusion = cloneParsedExpression(solution.conclusion);
+	cloned.proof = cloneProof(solution.proof);
+	cloned.indirect = solution.indirect;
+	cloned.contradiction = solution.contradiction;
+	cloned.whole = cloneParsedExpression(solution.whole);
+	return cloned;
+}
+
+function prepareTheoremForSave(previous: Solution | undefined, draft: Solution): Solution {
+	const prepared = cloneSolution(draft);
+	const changedWhole = previous ? previous.whole.value !== prepared.whole.value : false;
+
+	if (changedWhole) {
+		prepared.proof = [];
+		prepared.contradiction = false;
+	}
+
+	if (prepared.name.trim() === '') {
+		prepared.name = 'Unnamed';
+	}
+
+	return prepared;
+}
+
 /**
  * Saves a theorem to the theorem store.
  */
@@ -83,14 +129,12 @@ export const saveTheorem = (index: number): void => {
 
 	// save the new theorem to the theorems store
 	theorems.update((theorems) => {
-		// if the solver content name is empty, set it to "Unnamed Theorem"
-		if (get(solverContent).name === '') {
-			get(solverContent).name = 'Unnamed';
-		}
+		const previous = theorems[index]?.solution;
+		const prepared = prepareTheoremForSave(previous, get(solverContent));
 
 		theorems[index] = {
-			solution: get(solverContent),
-			mode: get(solverContent).whole.tree?.logicMode || get(logicMode)
+			solution: prepared,
+			mode: prepared.whole.tree?.logicMode || get(logicMode)
 		};
 		return theorems;
 	});
@@ -116,10 +160,10 @@ export const saveTheorem = (index: number): void => {
  */
 export const editTheorem = (index: number): void => {
 	// save the current solver content to the solver backup
-	solverBackup.set(get(solverContent));
+	solverBackup.set(cloneSolution(get(solverContent)));
 
 	// set the solver content to the selected theorem
-	solverContent.set(get(theorems)[index].solution);
+	solverContent.set(cloneSolution(get(theorems)[index].solution));
 
 	// set the selected theorem index
 	selectedTheorem.set(index);
