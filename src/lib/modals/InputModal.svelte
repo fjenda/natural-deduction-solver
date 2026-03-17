@@ -81,13 +81,17 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
-		min-width: min(34rem, 85vw);
+		width: min(36rem, 100%);
 	}
 
 	.description {
 		color: var(--text-secondary);
 		font-size: 0.95rem;
 		line-height: 1.6;
+		padding: var(--spacing-md);
+		background: var(--surface-elevated);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
 	}
 
 	.input-label {
@@ -166,7 +170,7 @@
 
 	@media (max-width: 640px) {
 		.modal-form {
-			min-width: min(25rem, 90vw);
+			width: 100%;
 		}
 	}
 </style>

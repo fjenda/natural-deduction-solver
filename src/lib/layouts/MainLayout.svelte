@@ -8,13 +8,21 @@
 
 <style>
 	.grid-layout {
-		padding: var(--spacing-lg);
+		padding: var(--spacing-xl);
 		display: flex;
 		width: 100%;
 		max-width: 1920px;
 		height: calc(100% - 4rem);
 		margin: 0 auto;
 		gap: var(--spacing-lg);
+		align-items: stretch;
+	}
+
+	@media screen and (max-width: 1200px) {
+		.grid-layout {
+			padding: var(--spacing-lg);
+			gap: var(--spacing-md);
+		}
 	}
 
 	@media screen and (max-width: 950px) {

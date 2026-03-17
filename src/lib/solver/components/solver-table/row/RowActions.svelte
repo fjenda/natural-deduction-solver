@@ -70,16 +70,19 @@
 	}
 
 	.action-button {
+		width: 2.5rem;
+		aspect-ratio: 1;
+		padding: var(--spacing-sm);
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		background: none;
 		border: 1px solid var(--border);
-		padding: var(--spacing-sm);
-		cursor: pointer;
-		border-radius: var(--radius-sm);
-		transition: all var(--transition-base);
+		border-radius: var(--radius-md);
+		background: var(--button-bg);
 		color: var(--text-primary);
+		cursor: pointer;
+		transition: all var(--transition-base);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.action-button:disabled {

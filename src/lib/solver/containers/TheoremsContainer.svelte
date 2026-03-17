@@ -40,7 +40,7 @@
 	<StyledButton text="Add Theorem" onClick={addTheorem} />
 	<TheoremsLayout>
 		{#if shownTheorems.length === 0}
-			<p>No theorems added yet.</p>
+			<p class="empty-text">No theorems added yet.</p>
 		{/if}
 
 		{#each $theorems as theorem, i (theorem.solution.name)}
@@ -71,5 +71,12 @@
 		align-items: center;
 		flex-direction: column;
 		gap: var(--spacing-md);
+	}
+
+	.empty-text {
+		font-size: 1rem;
+		color: var(--text-secondary);
+		margin-top: var(--spacing-sm);
+		text-align: center;
 	}
 </style>

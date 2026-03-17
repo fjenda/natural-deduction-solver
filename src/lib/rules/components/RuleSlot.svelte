@@ -60,24 +60,24 @@
 
 <style>
 	.wrapper {
-		width: 25%;
+		width: 100%;
 		max-width: 5rem;
 		position: relative;
 	}
 
 	.rule-slot {
-		font-size: 1.25rem;
+		font-size: 1.1rem;
 		font-weight: 600;
 		width: 100%;
 		aspect-ratio: 1;
-		padding: var(--spacing-lg);
+		padding: var(--spacing-md);
 		cursor: pointer;
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border);
-		background: var(--surface);
+		background: var(--surface-elevated);
 		color: var(--text-primary);
 		transition: all var(--transition-base);
-		box-shadow: var(--shadow-md);
+		box-shadow: var(--shadow-sm);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -87,7 +87,7 @@
 		border-color: var(--accent);
 		color: var(--accent);
 		transform: translateY(-2px);
-		box-shadow: var(--shadow-lg);
+		box-shadow: var(--shadow-md);
 	}
 
 	.rule-slot:focus {
@@ -99,12 +99,6 @@
 
 	.rule-slot:active {
 		transform: translateY(0);
-		box-shadow: var(--shadow-md);
-	}
-
-	@media screen and (max-width: 1200px) {
-		.wrapper {
-			width: 33%;
-		}
+		box-shadow: var(--shadow-sm);
 	}
 </style>

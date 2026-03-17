@@ -26,8 +26,7 @@
 	let modalInput: HTMLInputElement;
 	let showSuggestions = $state(false);
 
-	function toggleSuggestions(event: MouseEvent) {
-		event.preventDefault();
+	function toggleSuggestions() {
 		showSuggestions = !showSuggestions;
 	}
 
@@ -43,8 +42,11 @@
 <CustomModal {isOpen} {close} {title} {id} {index}>
 	{#snippet body()}
 		<div class="body">
-			<div class="mathml-row">
-				<MathMLViewer value={row.value} />
+			<div class="formula-card">
+				<p class="label">Selected expression</p>
+				<div class="mathml-row">
+					<MathMLViewer value={row.value} />
+				</div>
 			</div>
 			<div class="input-row">
 				<input
@@ -55,7 +57,12 @@
 					autocomplete="off"
 					class="modal-input"
 				/>
-				<a onclick={toggleSuggestions} class="help-link">Help</a>
+				<button
+					type="button"
+					onclick={toggleSuggestions}
+					class="help-link"
+					aria-expanded={showSuggestions}>{showSuggestions ? 'Hide tips' : 'Show tips'}</button
+				>
 			</div>
 			{#if showSuggestions}
 				<div class="suggestions" role="listbox" aria-label="Suggestions" transition:slide>
@@ -99,6 +106,21 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);
+		width: min(34rem, 100%);
+	}
+
+	.formula-card {
+		padding: var(--spacing-md);
+		background: var(--surface-elevated);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+	}
+
+	.label {
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: var(--text-secondary);
+		margin-bottom: var(--spacing-sm);
 	}
 
 	.input-row {
@@ -107,21 +129,30 @@
 		gap: var(--spacing-md);
 	}
 
+	.modal-input {
+		font-size: 1rem;
+		height: auto;
+		padding: var(--spacing-md);
+	}
+
 	.help-link {
 		user-select: none;
 		color: var(--accent);
 		text-decoration: none;
 		cursor: pointer;
 		font-size: 0.9rem;
-		font-weight: 500;
+		font-weight: 600;
+		border: 1px solid var(--border);
+		background: var(--surface-elevated);
 		transition: all var(--transition-base);
-		padding: var(--spacing-sm);
-		border-radius: var(--radius-sm);
+		padding: var(--spacing-sm) var(--spacing-md);
+		border-radius: var(--radius-md);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.help-link:hover {
 		color: var(--accent-hover);
-		text-decoration: underline;
+		border-color: var(--accent);
 		background: rgba(37, 99, 235, 0.1);
 	}
 
@@ -136,21 +167,22 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: var(--spacing-sm);
-		margin-top: var(--spacing-md);
+		margin-top: var(--spacing-xs);
 		padding: var(--spacing-lg);
 		background: var(--surface-elevated);
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
+		box-shadow: var(--shadow-sm);
 	}
 
 	.suggestion {
 		padding: var(--spacing-sm) var(--spacing-md);
-		font-size: 1rem;
+		font-size: 0.95rem;
 		font-family: monospace;
-		background-color: var(--button-bg);
+		background-color: var(--surface);
 		color: var(--text-primary);
 		border: 1px solid var(--border);
-		border-radius: var(--radius-md);
+		border-radius: 999px;
 		cursor: pointer;
 		transition: all var(--transition-base);
 	}

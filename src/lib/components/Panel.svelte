@@ -9,7 +9,7 @@
 	let { variant = 'fullwidth', children }: PanelProps = $props();
 </script>
 
-<div class="wrapper {variant}">
+<div class="wrapper" class:fullwidth={variant === 'fullwidth'} class:small={variant === 'small'}>
 	<div class="content">
 		{@render children()}
 	</div>
@@ -34,10 +34,11 @@
 		height: 100%;
 		gap: var(--spacing-lg);
 		flex: 1;
-		align-items: center;
+		align-items: stretch;
 		border-radius: var(--radius-lg);
 		padding: var(--spacing-xl);
-		text-align: center;
+		text-align: left;
+		min-height: 0;
 	}
 
 	.fullwidth {
@@ -45,7 +46,7 @@
 	}
 
 	.small {
-		max-width: 600px;
+		max-width: 640px;
 	}
 
 	@media screen and (max-width: 950px) {

@@ -13,12 +13,13 @@
 		width: 100%;
 		/*max-height: 300px;*/
 		flex-grow: 1;
+		min-height: 0;
 		padding: var(--spacing-md);
 		overflow-y: auto;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
-		background: var(--surface);
-		box-shadow: var(--shadow-md);
+		background: var(--surface-elevated);
+		box-shadow: var(--shadow-sm);
 		transition: all var(--transition-base);
 	}
 
