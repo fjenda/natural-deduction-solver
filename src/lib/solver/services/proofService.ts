@@ -168,6 +168,10 @@ export async function usable(
 		if (['IU', 'IEX'].includes(rule.short)) {
 			return { applicable: true, highlighted: [] };
 		}
+
+		if (['EC', 'EE'].includes(rule.short)) {
+			return { applicable: true, highlighted: [] };
+		}
 	}
 
 	for (let i = 0; i < proof.length; i++) {

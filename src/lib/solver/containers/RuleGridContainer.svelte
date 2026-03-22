@@ -212,7 +212,8 @@
 						premises.push(formula);
 					}
 					proveProlog(premises, rule, selected, []);
-				}
+				},
+				true
 			);
 		}
 
