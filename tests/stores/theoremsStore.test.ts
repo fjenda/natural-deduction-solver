@@ -12,6 +12,7 @@ import {
 import { editState, solving } from '../../src/stores/stateStore';
 import {
 	addTheorem,
+	createTheorem,
 	editTheorem,
 	removeTheorem,
 	saveTheorem,
@@ -213,5 +214,17 @@ describe('theoremsStore', () => {
 		expect(get(theorems)[0].solution.whole.value).toBe('A -> A');
 		expect(get(theorems)[0].solution.proof).toHaveLength(1);
 		expect(get(theorems)[0].solution.contradiction).toBe(true);
+	});
+
+	it('creates a theorem and immediately opens theorem editing in solver container', () => {
+		solverContent.set(new Solution('CurrentDraft'));
+
+		createTheorem();
+
+		expect(get(theorems)).toHaveLength(1);
+		expect(get(selectedTheorem)).toBe(0);
+		expect(get(editState)).toBe(EditState.THEOREM);
+		expect(get(solverBackup).name).toBe('CurrentDraft');
+		expect(get(solverContent).name).toBe('Unnamed');
 	});
 });

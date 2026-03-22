@@ -64,6 +64,15 @@ export const addTheorem = (): void => {
 	]);
 };
 
+/**
+ * Creates a new theorem and immediately opens it in theorem edit mode.
+ */
+export const createTheorem = (): void => {
+	const newIndex = get(theorems).length;
+	addTheorem();
+	editTheorem(newIndex);
+};
+
 function cloneParsedExpression(expr: ParsedExpression): ParsedExpression {
 	return { value: expr.value, tree: expr.tree };
 }

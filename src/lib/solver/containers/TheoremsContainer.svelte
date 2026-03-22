@@ -1,6 +1,6 @@
 <script lang="ts">
 	import TheoremsLayout from '../../layouts/TheoremsLayout.svelte';
-	import { addTheorem, theorems } from '../../../stores/theoremsStore';
+	import { createTheorem, theorems } from '../../../stores/theoremsStore';
 	import { logicMode, theoremData } from '../../../stores/solverStore';
 	import TheoremSlot from '../../rules/components/TheoremSlot.svelte';
 	import { solving } from '../../../stores/stateStore';
@@ -37,7 +37,7 @@
 
 <div class="wrapper">
 	<h2>Theorems</h2>
-	<StyledButton text="Add Theorem" onClick={addTheorem} />
+	<StyledButton text="Create Theorem" onClick={createTheorem} />
 	<TheoremsLayout>
 		{#if shownTheorems.length === 0}
 			<p class="empty-text">No theorems added yet.</p>
