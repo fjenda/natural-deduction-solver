@@ -75,8 +75,8 @@ function cloneProof(proof: TreeRuleType[]): TreeRuleType[] {
 		tree: row.tree,
 		rule: {
 			rule: row.rule.rule,
-			lines: [...row.rule.lines],
-			replacements: [...row.rule.replacements]
+			lines: [...(row.rule.lines || [])],
+			replacements: [...(row.rule.replacements || [])]
 		}
 	}));
 }
@@ -94,9 +94,15 @@ function cloneSolution(solution: Solution): Solution {
 
 function prepareTheoremForSave(previous: Solution | undefined, draft: Solution): Solution {
 	const prepared = cloneSolution(draft);
+	const isInitialPlaceholder =
+		!!previous &&
+		previous.whole.value.trim() === '' &&
+		previous.proof.length === 0 &&
+		!previous.contradiction;
 	const changedWhole = previous ? previous.whole.value !== prepared.whole.value : false;
 
-	if (changedWhole) {
+	// keep solved proof when first saving over the default empty theorem slot.
+	if (changedWhole && !isInitialPlaceholder) {
 		prepared.proof = [];
 		prepared.contradiction = false;
 	}
@@ -112,10 +118,13 @@ function prepareTheoremForSave(previous: Solution | undefined, draft: Solution):
  * Saves a theorem to the theorem store.
  */
 export const saveTheorem = (index: number): void => {
+	const previous = get(theorems)[index]?.solution;
+	const prepared = prepareTheoremForSave(previous, get(solverContent));
+
 	// check for circular dependencies
 	let isValid: boolean = true;
 	theoremRegistry.update((registry) => {
-		isValid = registry.registerTheorem(get(solverContent));
+		isValid = registry.registerTheorem(prepared);
 		return registry;
 	});
 
@@ -129,9 +138,6 @@ export const saveTheorem = (index: number): void => {
 
 	// save the new theorem to the theorems store
 	theorems.update((theorems) => {
-		const previous = theorems[index]?.solution;
-		const prepared = prepareTheoremForSave(previous, get(solverContent));
-
 		theorems[index] = {
 			solution: prepared,
 			mode: prepared.whole.tree?.logicMode || get(logicMode)

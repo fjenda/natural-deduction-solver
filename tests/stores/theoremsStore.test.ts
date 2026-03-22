@@ -186,4 +186,32 @@ describe('theoremsStore', () => {
 		expect(get(solverContent).name).toBe('BackupAfterRemove');
 		expect(get(editState)).toBe(EditState.SOLVER);
 	});
+
+	it('keeps solved proof when saving a newly created theorem for the first time', () => {
+		theoremRegistry.set({
+			registerTheorem: vi.fn().mockReturnValue(true)
+		} as unknown as TheoremRegistry);
+		addTheorem();
+
+		solverContent.update((sc) => {
+			sc.name = 'FreshTheorem';
+			sc.whole = { value: 'A -> A', tree: null };
+			sc.proof = [
+				{
+					line: 1,
+					value: 'A',
+					tree: null,
+					rule: { rule: 'PREM', lines: [], replacements: [] }
+				}
+			];
+			sc.contradiction = true;
+			return sc;
+		});
+
+		saveTheorem(0);
+
+		expect(get(theorems)[0].solution.whole.value).toBe('A -> A');
+		expect(get(theorems)[0].solution.proof).toHaveLength(1);
+		expect(get(theorems)[0].solution.contradiction).toBe(true);
+	});
 });
