@@ -52,19 +52,6 @@ export const ArgsTable = {
 			return null;
 		}
 
-		// parse results into a map
-		// const parsedMap = new Map<string, string[]>();
-		//
-		// results.X.forEach((r) => {
-		// 	const key = compoundToString(PrologController.parsePrologCompound(r['0']));
-		// 	const values = r['2'].map((arg: PrologCompound) =>
-		// 		compoundToString(PrologController.parsePrologCompound(arg))
-		// 	);
-		// 	parsedMap.set(key, values);
-		// });
-		//
-		// console.log(parsedMap);
-
 		const parsed = results.X.map((r) => {
 			return r['2'].map((arg: PrologCompound) =>
 				Node.fromPrologFormat(compoundToString(PrologController.parsePrologCompound(arg)))

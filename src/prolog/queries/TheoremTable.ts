@@ -32,7 +32,6 @@ export const TheoremTable = {
 			return null;
 		}
 
-		console.log(result.X);
 		return result.X;
 	},
 
@@ -44,7 +43,6 @@ export const TheoremTable = {
 			return null;
 		}
 
-		console.log(result.X);
 		return result.X;
 	},
 

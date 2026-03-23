@@ -16,18 +16,6 @@ export class Node {
 	children: Array<Node>;
 	varIndex?: number = -1;
 
-	// /**
-	//  * Constructor for the Node class
-	//  * @param type - the type of the node
-	//  * @param value - the value of the node
-	//  * @constructor
-	//  */
-	// constructor(type: NodeType, value?: Operator | string) {
-	//     this.type = type;
-	//     this.value = value;
-	//     this.children = [];
-	// }
-
 	/**
 	 * Constructor for the Node class
 	 * @param type - the type of the node
@@ -114,7 +102,6 @@ export class Node {
 	 */
 	static generateString(node: Node): string {
 		const mode = get(logicMode);
-		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
 
 		// if the node is a constant, keep the parentheses after
 		if (node.type === NodeType.CONSTANT) {
@@ -153,7 +140,6 @@ export class Node {
 				return `${node.value}(${childrenStrings.join(', ')})`;
 
 			case NodeType.QUANTIFIER:
-				// console.log(node);
 				return `${childrenStrings[0]}${childrenStrings[1]} ${childrenStrings[2]}`;
 
 			default:
@@ -336,18 +322,6 @@ export class Node {
 
 			case NodeType.TERM_LIST:
 				return this.children.map((child) => child.toPrologFormat()).join(', ');
-
-			// case NodeType.PARENTHESIS:
-			//     break;
-			//
-			// case NodeType.BRACKET:
-			//     break;
-			//
-			// case NodeType.QUANTIFIER_OPERATOR:
-			//     break;
-			//
-			// case NodeType.CONSTANT:
-			//     break;
 
 			default: {
 				// if value is upper-case, wrap in single quotes
@@ -547,7 +521,6 @@ export class Node {
 
 		const isAtomicPredicate = (node: Node): boolean => {
 			if (node.type !== NodeType.PREDICATE) return false;
-			console.log(node);
 			if (node.children.length !== 0) {
 				const termList = node.children[0];
 				return termList.children.every(isAtomicTerm);
@@ -558,21 +531,8 @@ export class Node {
 		const collect = (node: Node) => {
 			node.varIndex = -1;
 
-			// ignore quantifiers
+			// collect only from the body of quantifiers
 			if (node.type === NodeType.QUANTIFIER) {
-				// const key = `${node.children[0].value}:${node.children[1].value}`;
-				// const prefix = node.children[0].value === Operator.UNIVERSAL ? 'forall' : 'exists';
-				//
-				// if (!indexByKey.has(key)) {
-				// 	indexByKey.set(key, vars.length);
-				// 	vars.push({
-				// 		varName: `${node.children[0].value}${node.children[1].value}`,
-				// 		prologString: `${prefix}(${node.children[1].toPrologFormat()}, X)`,
-				// 		type: NodeType.QUANTIFIER
-				// 	});
-				// }
-
-				// collect only from the body
 				if (node.children.length === 3) {
 					collect(node.children[2]);
 				}
@@ -692,13 +652,9 @@ export class Node {
 	}
 
 	public get logicMode(): ParseStrategy {
-		// check if tree contains any functions/predicates/quantifiers
+		// check if tree contains any functions, predicates, or quantifiers
 		const containsPredicateLogic = (node: Node) => {
-			if (
-				[node.type === NodeType.FUNCTION, NodeType.PREDICATE, NodeType.QUANTIFIER].includes(
-					node.type
-				)
-			) {
+			if ([NodeType.FUNCTION, NodeType.PREDICATE, NodeType.QUANTIFIER].includes(node.type)) {
 				return true;
 			}
 

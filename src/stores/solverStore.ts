@@ -21,17 +21,6 @@ export const deductionRules = writable<DeductionRule[]>(DeductionRule.rules);
 const defaultPremises: ParsedExpression[] = [
 	{ value: '∀x [L(x) ⊃ ¬S(x)]', tree: null },
 	{ value: '∃x [L(x) ∧ P(x)]', tree: null }
-	// { value: 'A', tree: null },
-	// { value: 'B', tree: null }
-	// { value: "∀x [L(x) ∧ P(x)]", tree: null },
-	// { value: '∀x [A(x) ⊃ B(x)]', tree: null },
-	// { value: '∀x [A(x)]', tree: null }
-	// { value: '∃x [P(x)]', tree: null }
-	// { value: 'Q(x)', tree: null }
-	// { value: '∀x [A(x) ⊃ B(x)]', tree: null },
-	// { value: '∀x [A(x)]', tree: null }
-	// { value: '∃x [A(x) ⊃ B(a())]', tree: null },
-	// { value: '∃x [A(x) ⊃ C(b())]', tree: null }
 ];
 
 /**
@@ -39,15 +28,6 @@ const defaultPremises: ParsedExpression[] = [
  */
 const defaultConclusion: ParsedExpression = {
 	value: '∃x [¬S(x) ∧ P(x)]',
-	// value: 'A ∧ B',
-	// value: "∀x ¬S(x)",
-	// value: '∀x [B(x)]',
-	// value: '∀x [P(x) ∧ Q(x)]',
-	// value: '∀x [P(x)]',
-	// value: 'P(x)',
-	// tree: null
-	// value: '∀x [B(x)]',
-	// value: '∃x [B(x)]',
 	tree: null
 };
 

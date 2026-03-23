@@ -1,5 +1,6 @@
 <script lang="ts">
 	import CustomModal, { type CustomModalProps } from './CustomModal.svelte';
+	import OperatorKeyboard from '../components/OperatorKeyboard.svelte';
 
 	type ConnectivePosition = 'before' | 'after';
 
@@ -33,7 +34,15 @@
 		<div class="modal-form">
 			<p class="description">{content}</p>
 			<label class="input-label" for="modal-input">Formula</label>
-			<input id="modal-input" type="text" {placeholder} name="modal-input" bind:this={modalInput} />
+			<OperatorKeyboard>
+				<input
+					id="modal-input"
+					type="text"
+					{placeholder}
+					name="modal-input"
+					bind:this={modalInput}
+				/>
+			</OperatorKeyboard>
 			{#if showConnectivePosition}
 				<fieldset class="position-group">
 					<legend class="position-title">Where should it be placed?</legend>

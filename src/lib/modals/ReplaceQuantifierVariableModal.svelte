@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CustomModal, { type CustomModalProps } from './CustomModal.svelte';
 	import MathMLViewer from '../solver/components/MathMLViewer.svelte';
+	import OperatorKeyboard from '../components/OperatorKeyboard.svelte';
 	import type { TreeRuleType } from '../../types/TreeRuleType';
 	import { slide } from 'svelte/transition';
 
@@ -49,14 +50,16 @@
 				</div>
 			</div>
 			<div class="input-row">
-				<input
-					type="text"
-					{placeholder}
-					name="modal-input"
-					bind:this={modalInput}
-					autocomplete="off"
-					class="modal-input"
-				/>
+				<OperatorKeyboard>
+					<input
+						type="text"
+						{placeholder}
+						name="modal-input"
+						bind:this={modalInput}
+						autocomplete="off"
+						class="modal-input"
+					/>
+				</OperatorKeyboard>
 				<button
 					type="button"
 					onclick={toggleSuggestions}

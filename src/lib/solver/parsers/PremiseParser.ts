@@ -30,18 +30,13 @@ export class PremiseParser {
 
 		// syntax check
 		const mode = get(logicMode);
-		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
 		const parser = new PrattParser(mode);
 		const res = parser.parse(premise);
 
-		// res?.print();
-
 		// if the formula is not valid, return the error
 		if (!res) return tmp;
-		// res.print();
 
 		const tree = res.simplify().parenthesize();
-		// console.log(tree);
 
 		// set the tree
 		tmp.tree = tree;

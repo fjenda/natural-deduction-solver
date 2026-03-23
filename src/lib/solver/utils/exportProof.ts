@@ -156,8 +156,6 @@ export function exportToLatex(solution: Solution): string {
 \\usepackage{array}
 \\newcolumntype{L}{>{\\arraybackslash}m{4in}}
 
-\\EnableBpAbbreviations
-
 \\begin{document}
 
 \\section*{Proof}

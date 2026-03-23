@@ -28,7 +28,6 @@ export class FormulaParser {
 	 */
 	static async parseFormula(formula: string, line: number, ruleStr: string): Promise<TreeRuleType> {
 		const mode = get(logicMode);
-		// if (get(selectedTheorem) !== -1) mode = ParseStrategy.THEOREM;
 		const parser = new PrattParser(mode);
 		const res = parser.parse(formula);
 
@@ -102,8 +101,6 @@ export class FormulaParser {
 			applied.lines,
 			paramsCopy
 		);
-
-		// ProofTable.print();
 
 		// success
 		return {

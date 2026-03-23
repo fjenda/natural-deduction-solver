@@ -8,6 +8,7 @@
 
 <style>
 	.solver-layout {
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		gap: var(--spacing-lg);

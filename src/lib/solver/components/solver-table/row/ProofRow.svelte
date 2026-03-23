@@ -1,14 +1,8 @@
 <script lang="ts">
 	import { type AppliedRule, appliedRuleToString } from '../../../../../types/AppliedRule';
-	import {
-		highlightedRows,
-		logicMode,
-		selectedRows,
-		solverContent
-	} from '../../../../../stores/solverStore';
+	import { highlightedRows, selectedRows, solverContent } from '../../../../../stores/solverStore';
 	import { NDRule } from '../../../../rules/DeductionRule';
 	import { PrettySyntaxer } from '../../../parsers/PrettySyntaxer';
-	import { ParseStrategy } from '../../../../../types/ParseStrategy';
 	import { canDeleteRow } from '../../../services/proofService';
 	import { showToast } from '../../../../utils/showToast';
 	import FormulaEditor from './FormulaEditor.svelte';
@@ -40,17 +34,19 @@
 	let ruleText = $state(appliedRuleToString(rule));
 	let removable = $state(false);
 
+	/**
+	 * Handles Enter key press in the formula editor.
+	 * Triggers the save action with the current formula and rule text.
+	 */
+	const handleSaveFromKeyboard = () => {
+		onSave(formula, ruleText);
+	};
+
 	const highlighted = $derived($selectedRows.includes(line));
 	const usable = $derived($highlightedRows.includes(line));
 	const invalid = $derived(rule.rule === NDRule.UNKNOWN && !editable);
 
 	const mathmlFormula = $derived(PrettySyntaxer.toMathML(formula));
-
-	const operators = $derived(
-		$logicMode === ParseStrategy.PROPOSITIONAL
-			? ['¬', '∧', '∨', '⊃', '≡']
-			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃']
-	);
 
 	const selectRow = () => {
 		if (editable) return;
@@ -86,13 +82,13 @@
 		<div class="line-number">{line}</div>
 		<div class="line-content" class:scrollable={!editable}>
 			{#if editable}
-				<FormulaEditor bind:formula {operators} />
+				<FormulaEditor bind:formula onEnter={handleSaveFromKeyboard} />
 			{:else}
 				{@html mathmlFormula}
 			{/if}
 		</div>
 		<div class="used-rule">
-			<RuleEditor bind:ruleText {rule} {editable} />
+			<RuleEditor bind:ruleText {rule} {editable} onEnter={handleSaveFromKeyboard} />
 		</div>
 	</div>
 
