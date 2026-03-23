@@ -11,6 +11,7 @@
 	import PickTheoremVariantModal from '../../modals/PickTheoremVariantModal.svelte';
 	import type { TheoremVariant } from '../../../types/TheoremVariant';
 	import SelectProofTypeModal from '../../modals/SelectProofTypeModal.svelte';
+	import ExportProofModal from '../../modals/ExportProofModal.svelte';
 	import { setupProof, checkProof, resetSolving } from '../actions/proofActions';
 
 	const startSolver = () => {
@@ -70,6 +71,12 @@
 			indirectProof: () => setup(true)
 		});
 	};
+
+	const openExport = () => {
+		modals.open(ExportProofModal, {
+			title: 'Export Proof'
+		});
+	};
 </script>
 
 <div class="button-wrapper">
@@ -78,6 +85,7 @@
 	{:else}
 		<StyledButton text="Prove" onClick={startSolver} />
 	{/if}
+	<StyledButton text="Export" onClick={openExport} disabled={!$solving} />
 	<StyledButton
 		text="Reset"
 		onClick={resetSolving}
