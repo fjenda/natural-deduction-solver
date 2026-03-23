@@ -110,25 +110,25 @@ h6 {
 
 /* Light theme */
 :root:not(.dark-mode) {
-	--background: #f4f4f8;
+	--background: #eef0f6;
 	--surface: #ffffff;
-	--surface-elevated: #f0f0f5;
-	--border: #e0e0e8;
-	--border-light: #ebebf0;
-	--text-primary: #0f0f12;
-	--text-secondary: #5c5c66;
-	--accent: #6366f1;
-	--accent-hover: #4f46e5;
-	--accent-light: #818cf8;
-	--accent-subtle: rgba(99, 102, 241, 0.06);
-	--button-bg: #f0f0f5;
-	--button-hover: #e5e5ed;
+	--surface-elevated: #f7f8fb;
+	--border: #d4d7e0;
+	--border-light: #e2e5ed;
+	--text-primary: #1a1a2e;
+	--text-secondary: #6b6f80;
+	--accent: #5b5bd6;
+	--accent-hover: #4747c2;
+	--accent-light: #7c7ce8;
+	--accent-subtle: rgba(91, 91, 214, 0.08);
+	--button-bg: #f0f1f5;
+	--button-hover: #e4e6ee;
 	--focus-color: #c7d2fe;
 
-	--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-	--shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
-	--shadow-lg: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
-	--shadow-xl: 0 12px 32px 0 rgba(0, 0, 0, 0.1);
+	--shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+	--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+	--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.06);
+	--shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
 }
 
 :root {
@@ -281,7 +281,7 @@ textarea:focus {
 	border-color: var(--accent);
 	box-shadow:
 		var(--shadow-md),
-		0 0 0 3px rgba(99, 102, 241, 0.1);
+		0 0 0 3px var(--accent-subtle);
 }
 
 input:disabled,

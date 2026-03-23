@@ -51,9 +51,9 @@
 	}
 
 	.premise-input-wrapper button:hover:not(:disabled) {
-		color: #ef4444;
-		border-color: #ef4444;
-		background: rgba(239, 68, 68, 0.1);
+		color: var(--error);
+		border-color: var(--error);
+		background: var(--error-bg);
 		transform: translateY(-1px);
 		box-shadow: var(--shadow-md);
 	}

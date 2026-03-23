@@ -107,8 +107,8 @@
 	}
 
 	.wrapper.error {
-		border-color: #ef4444;
-		box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+		border-color: var(--error);
+		box-shadow: 0 0 0 3px var(--error-bg);
 	}
 
 	.wrapper.valid {
@@ -119,14 +119,14 @@
 		border-color: var(--success);
 		box-shadow:
 			var(--shadow-md),
-			0 0 0 3px rgba(34, 197, 94, 0.1);
+			0 0 0 3px var(--success-bg);
 	}
 
 	.wrapper.error:focus-within {
-		border-color: #ef4444;
+		border-color: var(--error);
 		box-shadow:
 			var(--shadow-md),
-			0 0 0 3px rgba(239, 68, 68, 0.1);
+			0 0 0 3px var(--error-bg);
 	}
 
 	.wrapper {
