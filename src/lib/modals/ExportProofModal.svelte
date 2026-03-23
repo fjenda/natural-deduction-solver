@@ -45,6 +45,8 @@
 				class:active={selectedFormat === 'latex'}
 				onclick={() => (selectedFormat = 'latex')}
 			>
+				<i class="fa-regular fa-file"></i>
+
 				LaTeX
 			</button>
 			<button
@@ -53,6 +55,7 @@
 				class:active={selectedFormat === 'txt'}
 				onclick={() => (selectedFormat = 'txt')}
 			>
+				<i class="fa-regular fa-file-lines"></i>
 				Plain Text
 			</button>
 		</div>
@@ -65,9 +68,18 @@
 	{#snippet buttons()}
 		<div>
 			<button class="button secondary" onclick={handleCopy}>
-				{copied ? 'Copied!' : 'Copy'}
+				{#if copied}
+					<i class="fa-solid fa-check"></i>
+					Copied!
+				{:else}
+					<i class="fa-regular fa-copy"></i>
+					Copy
+				{/if}
 			</button>
-			<button class="button" onclick={handleDownload}>Download</button>
+			<button class="button" onclick={handleDownload}>
+				<i class="fa-solid fa-download"></i>
+				Download
+			</button>
 			<button class="button" onclick={close}>Close</button>
 		</div>
 	{/snippet}
@@ -89,16 +101,23 @@
 		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-base);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
+		font-weight: 500;
 	}
 
 	.format-btn:hover {
 		border-color: var(--accent);
+		color: var(--text-primary);
 	}
 
 	.format-btn.active {
 		background: var(--accent);
 		color: white;
 		border-color: var(--accent);
+		box-shadow: var(--shadow-md);
 	}
 
 	.preview-container {
@@ -112,15 +131,20 @@
 
 	.preview {
 		margin: 0;
-		font-family: monospace;
-		font-size: 0.85rem;
+		font-family: 'JetBrains Mono', 'Fira Code', monospace;
+		font-size: 0.8rem;
 		white-space: pre-wrap;
 		word-break: break-all;
 		color: var(--text-primary);
+		line-height: 1.5;
 	}
 
 	.button.secondary {
 		background: var(--surface-elevated);
 		color: var(--text-primary);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
 	}
 </style>

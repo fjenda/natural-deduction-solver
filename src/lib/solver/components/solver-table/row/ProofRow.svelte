@@ -40,21 +40,18 @@
 	let ruleText = $state(appliedRuleToString(rule));
 	let removable = $state(false);
 
-	// derived states
 	const highlighted = $derived($selectedRows.includes(line));
 	const usable = $derived($highlightedRows.includes(line));
 	const invalid = $derived(rule.rule === NDRule.UNKNOWN && !editable);
 
 	const mathmlFormula = $derived(PrettySyntaxer.toMathML(formula));
 
-	// operators depending on logic mode
 	const operators = $derived(
 		$logicMode === ParseStrategy.PROPOSITIONAL
 			? ['¬', '∧', '∨', '⊃', '≡']
 			: ['¬', '∧', '∨', '⊃', '≡', '∀', '∃']
 	);
 
-	// row selection logic
 	const selectRow = () => {
 		if (editable) return;
 
@@ -73,7 +70,6 @@
 		);
 	};
 
-	// save/remove checks
 	$effect(() => {
 		if (premise) {
 			removable = false;
@@ -87,7 +83,7 @@
 
 <a class="row" class:highlighted class:usable class:invalid onclick={selectRow} role="button">
 	<div class="formula-container">
-		<div class="line-number">{line}.</div>
+		<div class="line-number">{line}</div>
 		<div class="line-content" class:scrollable={!editable}>
 			{#if editable}
 				<FormulaEditor bind:formula {operators} />
@@ -111,17 +107,18 @@
 		gap: var(--spacing-md);
 		justify-content: center;
 		align-items: center;
-		padding: var(--spacing-md);
+		padding: var(--spacing-md) var(--spacing-lg);
 		border-radius: var(--radius-md);
 		border: 1px solid var(--border);
 		background: var(--surface);
 		font-family: monospace;
-		font-size: 1.35em;
+		font-size: 1.3em;
 		text-decoration: none;
 		color: inherit;
 		cursor: pointer;
 		transition: all var(--transition-base);
 		box-shadow: var(--shadow-sm);
+		position: relative;
 	}
 
 	.row:hover {
@@ -132,23 +129,24 @@
 
 	.row.highlighted.usable,
 	.row.highlighted {
-		border-color: #4ade80;
+		border-color: var(--success);
 		box-shadow:
-			0 0 0 2px rgba(74, 222, 128, 0.2),
+			0 0 0 2px var(--success-bg),
 			var(--shadow-md);
+		background: var(--surface);
 	}
 
 	.row.usable {
-		border-color: #facc15;
+		border-color: var(--warning);
 		box-shadow:
-			0 0 0 2px rgba(250, 204, 21, 0.2),
+			0 0 0 2px var(--warning-bg),
 			var(--shadow-md);
 	}
 
 	.row.invalid {
-		border-color: #ef4444;
+		border-color: var(--error);
 		box-shadow:
-			0 0 0 2px rgba(239, 68, 68, 0.2),
+			0 0 0 2px var(--error-bg),
 			var(--shadow-md);
 	}
 
@@ -173,6 +171,10 @@
 
 	.line-number {
 		width: 2.5rem;
+		font-weight: 600;
+		font-size: 0.85em;
+		color: var(--text-secondary);
+		user-select: none;
 	}
 
 	.line-content {
@@ -191,16 +193,6 @@
 	.separator {
 		width: 1px;
 		border-right: 1px solid var(--border);
-	}
-
-	:global(html):not(.dark-mode) {
-		.row.highlighted {
-			border-color: #22c55e;
-		}
-
-		.row.usable {
-			border-color: #eab308;
-		}
 	}
 
 	@media screen and (max-width: 1150px) {

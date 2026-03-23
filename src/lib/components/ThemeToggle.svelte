@@ -36,7 +36,7 @@
 		border-radius: var(--radius-md);
 		background: var(--button-bg);
 		border: 1px solid var(--border);
-		color: var(--text-primary);
+		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-base);
 		box-shadow: var(--shadow-sm);

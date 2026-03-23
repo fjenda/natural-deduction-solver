@@ -21,11 +21,9 @@
 	) => {
 		if (!$solving) return;
 
-		console.log(theorem.solution.whole.tree);
 		const values = theorem.solution.whole.tree?.varNames;
-		console.log(values);
-
 		if (!values) return;
+
 		theoremData.update((td) => {
 			td.theoremId = index;
 			td.vars = values;
@@ -36,7 +34,10 @@
 </script>
 
 <div class="wrapper">
-	<h2>Theorems</h2>
+	<div class="section-header">
+		<i class="fa-solid fa-book"></i>
+		<h2>Theorems</h2>
+	</div>
 	<StyledButton text="Create Theorem" onClick={createTheorem} />
 	<TheoremsLayout>
 		{#if shownTheorems.length === 0}
@@ -59,9 +60,23 @@
 </div>
 
 <style>
+	.section-header {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
+	.section-header i {
+		color: var(--accent);
+		flex-shrink: 0;
+	}
+
 	h2 {
 		margin: 0;
-		font-size: 1.25rem;
+		font-size: 1.15rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
 	}
 
 	.wrapper {
@@ -74,9 +89,10 @@
 	}
 
 	.empty-text {
-		font-size: 1rem;
+		font-size: 0.9rem;
 		color: var(--text-secondary);
 		margin-top: var(--spacing-sm);
 		text-align: center;
+		padding: var(--spacing-xl);
 	}
 </style>

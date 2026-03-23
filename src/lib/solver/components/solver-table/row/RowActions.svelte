@@ -65,12 +65,12 @@
 <style>
 	.actions-container {
 		display: flex;
-		gap: var(--spacing-md);
+		gap: var(--spacing-sm);
 		align-items: center;
 	}
 
 	.action-button {
-		width: 2.5rem;
+		width: 2.25rem;
 		aspect-ratio: 1;
 		padding: var(--spacing-sm);
 		display: flex;
@@ -79,7 +79,7 @@
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--button-bg);
-		color: var(--text-primary);
+		color: var(--text-secondary);
 		cursor: pointer;
 		transition: all var(--transition-base);
 		box-shadow: var(--shadow-sm);
@@ -87,11 +87,11 @@
 
 	.action-button:disabled {
 		cursor: not-allowed;
-		opacity: 0.5;
+		opacity: 0.4;
 	}
 
 	.action-button:not(:disabled):hover {
-		transform: translateY(-2px);
+		transform: translateY(-1px);
 		box-shadow: var(--shadow-md);
 	}
 
@@ -100,21 +100,25 @@
 	}
 
 	.check-button:hover:not(:disabled) {
-		color: #4ade80;
-		border-color: #4ade80;
-		background: rgba(74, 222, 128, 0.1);
+		color: var(--success);
+		border-color: var(--success);
+		background: var(--success-bg);
 	}
 
 	.delete-button:hover:not(:disabled) {
-		color: #ef4444;
-		border-color: #ef4444;
-		background: rgba(239, 68, 68, 0.1);
+		color: var(--error);
+		border-color: var(--error);
+		background: var(--error-bg);
 	}
 
 	.edit-button:hover:not(:disabled) {
-		color: #facc15;
-		border-color: #facc15;
-		background: rgba(250, 204, 21, 0.1);
+		color: var(--warning);
+		border-color: var(--warning);
+		background: var(--warning-bg);
+	}
+
+	button {
+		font-size: 0.7em;
 	}
 
 	@media screen and (max-width: 950px) {

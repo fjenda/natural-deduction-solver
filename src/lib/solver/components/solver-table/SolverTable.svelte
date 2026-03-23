@@ -124,17 +124,31 @@
 
 	button {
 		width: 100%;
-		height: 3.5rem;
+		height: 3rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: var(--spacing-sm);
 		transition: all var(--transition-base);
+		color: var(--text-secondary);
+		border-style: dashed;
+	}
+
+	button i {
+		transition: transform var(--transition-base);
+	}
+
+	button:hover:not(:disabled) i {
+		transform: rotate(90deg);
 	}
 
 	button.disabled {
 		cursor: not-allowed;
-		opacity: 0.5;
+		opacity: 0.4;
 	}
 
 	button.disabled:hover {
-		border: 1px solid var(--border);
+		border: 1px dashed var(--border);
 		transform: none;
 	}
 </style>

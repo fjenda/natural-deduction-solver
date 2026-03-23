@@ -66,7 +66,7 @@
 	}
 
 	.rule-slot {
-		font-size: 1.1rem;
+		font-size: 1rem;
 		font-weight: 600;
 		width: 100%;
 		aspect-ratio: 1;
@@ -81,13 +81,30 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.rule-slot::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(circle at center, var(--accent-subtle), transparent 70%);
+		opacity: 0;
+		transition: opacity var(--transition-base);
 	}
 
 	.rule-slot:hover {
 		border-color: var(--accent);
 		color: var(--accent);
 		transform: translateY(-2px);
-		box-shadow: var(--shadow-md);
+		box-shadow:
+			var(--shadow-md),
+			0 0 0 1px var(--accent-subtle);
+	}
+
+	.rule-slot:hover::before {
+		opacity: 1;
 	}
 
 	.rule-slot:focus {

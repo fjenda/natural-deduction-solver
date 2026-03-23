@@ -12,7 +12,9 @@
 <main>
 	<nav>
 		<ul>
-			<li><a href="/"> Natural Deduction Solver </a></li>
+			<li>
+				<a href="/"> Natural Deduction Solver</a>
+			</li>
 		</ul>
 		<ul>
 			<li>
@@ -46,16 +48,28 @@
 		border-bottom: 1px solid var(--border);
 		box-shadow: var(--shadow-sm);
 		padding: 0;
-		font-size: 1.2rem;
-		height: 4rem;
+		font-size: 1.05rem;
+		height: 3.5rem;
 		transition: all var(--transition-base);
+		position: relative;
+	}
+
+	nav::after {
+		content: '';
+		position: absolute;
+		bottom: -1px;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: linear-gradient(90deg, transparent, var(--accent), transparent);
+		opacity: 0.4;
 	}
 
 	nav ul {
 		list-style: none;
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-lg);
+		gap: var(--spacing-md);
 		margin: 0;
 		padding: 0 var(--spacing-xl);
 	}
@@ -65,26 +79,18 @@
 		color: var(--text-primary);
 		font-weight: 600;
 		transition: color var(--transition-base);
-		position: relative;
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
 		padding: var(--spacing-sm) 0;
 	}
 
-	nav a::after {
-		content: '';
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		width: 0;
-		height: 2px;
-		background: var(--accent);
-		transition: width var(--transition-base);
+	nav a svg {
+		color: var(--accent);
+		flex-shrink: 0;
 	}
 
 	nav a:hover {
 		color: var(--accent);
-	}
-
-	nav a:hover::after {
-		width: 100%;
 	}
 </style>

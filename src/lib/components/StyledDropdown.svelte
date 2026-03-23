@@ -30,7 +30,8 @@
 
 <div class="dropdown" bind:this={dropdownRef} class:disabled>
 	<button onclick={() => (open = !open)} aria-label="Toggle Dropdown" title="Toggle Dropdown">
-		{label} ▾
+		{label}
+		<i class:open class="fa-solid fa-chevron-down chevron"></i>
 	</button>
 
 	{#if open}
@@ -56,13 +57,13 @@
 	}
 
 	.dropdown.disabled button {
-		opacity: 0.5;
+		opacity: 0.4;
 		pointer-events: none;
 	}
 
 	.dropdown button {
-		padding: 0.5rem 1rem;
-		font-size: 0.9rem;
+		padding: 0.45rem 0.85rem;
+		font-size: 0.85rem;
 		border-radius: var(--radius-md);
 		background: var(--button-bg);
 		border: 1px solid var(--border);
@@ -71,6 +72,19 @@
 		cursor: pointer;
 		transition: all var(--transition-base);
 		box-shadow: var(--shadow-sm);
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+	}
+
+	.chevron {
+		transition: transform var(--transition-fast);
+		color: var(--text-secondary);
+		flex-shrink: 0;
+	}
+
+	.chevron.open {
+		transform: rotate(180deg);
 	}
 
 	.dropdown button:hover:not(:disabled) {
@@ -79,6 +93,10 @@
 		color: var(--accent);
 		box-shadow: var(--shadow-md);
 		transform: translateY(-1px);
+	}
+
+	.dropdown button:hover:not(:disabled) .chevron {
+		color: var(--accent);
 	}
 
 	.dropdown button:focus-visible {
@@ -95,7 +113,7 @@
 		background: var(--surface);
 		list-style: none;
 		margin: 0;
-		padding: var(--spacing-sm) 0;
+		padding: var(--spacing-xs) 0;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--border);
 		box-shadow: var(--shadow-lg);
@@ -107,7 +125,7 @@
 	@keyframes slideDown {
 		from {
 			opacity: 0;
-			transform: translateY(-8px);
+			transform: translateY(-6px);
 		}
 		to {
 			opacity: 1;
@@ -125,22 +143,24 @@
 		text-align: left;
 		background: none;
 		border: none;
+		border-radius: 0;
 		color: var(--text-primary);
 		cursor: pointer;
 		transition: all var(--transition-fast);
 		font-weight: 400;
 		box-shadow: none;
+		transform: none;
 	}
 
 	.menu button:hover {
-		background: var(--surface-elevated);
+		background: var(--accent-subtle);
 		color: var(--accent);
-		padding-left: calc(var(--spacing-lg) + var(--spacing-sm));
 	}
 
 	.menu button:focus-visible {
 		outline: none;
-		background: var(--surface-elevated);
+		background: var(--accent-subtle);
 		color: var(--accent);
+		box-shadow: none;
 	}
 </style>
