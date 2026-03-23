@@ -6,6 +6,7 @@
 	import { solving } from '../../../stores/stateStore';
 	import { fillVariables } from '../actions/proofActions';
 	import StyledButton from '../../components/StyledButton.svelte';
+	import Hint from '../../components/Hint.svelte';
 	import { ParseStrategy } from '../../../types/ParseStrategy';
 	import type { Solution } from '../Solution';
 
@@ -37,6 +38,10 @@
 	<div class="section-header">
 		<i class="fa-solid fa-book"></i>
 		<h2>Theorems</h2>
+		<Hint
+			title="Saved Theorems"
+			text="Create and prove reusable theorems. Once saved, you can click a theorem while solving to apply it as a rule via variable substitution."
+		/>
 	</div>
 	<StyledButton text="Create Theorem" onClick={createTheorem} disabled={$solving} />
 	<TheoremsLayout>

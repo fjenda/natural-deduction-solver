@@ -13,6 +13,7 @@
 	import { DeductionRule, NDRule } from '../../rules/DeductionRule';
 	import { showToast } from '../../utils/showToast';
 	import { modals } from 'svelte-modals';
+	import Hint from '../../components/Hint.svelte';
 	import ReplaceQuantifierVariableModal from '../../modals/ReplaceQuantifierVariableModal.svelte';
 	import { NodeType } from '../../syntax-checker/NodeType';
 	import InputModal from '../../modals/InputModal.svelte';
@@ -39,7 +40,6 @@
 		modalInput.value = PrettySyntaxer.clean(modalInput.value);
 		const formula = PremiseParser.parsePremise(modalInput.value);
 
-		// console.log(formula);
 		if (!formula.tree) {
 			showToast('Invalid formula', 'error');
 			return null;
@@ -79,8 +79,6 @@
 			[NodeType.CONSTANT, NodeType.VARIABLE].includes(v.type)
 		);
 
-		console.log(variables);
-
 		let quantifierVar = isElimination
 			? { varName: rowTree?.children[1]?.value, type: NodeType.VARIABLE }
 			: [...(variables ?? [])][0];
@@ -116,10 +114,6 @@
 					return showToast('The term needs to be a variable', 'error');
 				}
 
-				console.log(quantifierVar);
-				console.log(placeholder);
-				console.log(formula.tree);
-
 				const quantifierVarFormat =
 					quantifierVar.type === NodeType.VARIABLE
 						? `var(${placeholder})`
@@ -131,8 +125,6 @@
 				provePrologLines(selected, rule, extraArgs).then(() => {
 					selectedRows.set([]);
 				});
-
-				console.log(extraArgs);
 			},
 			suggestions
 		});
@@ -263,7 +255,13 @@
 </script>
 
 <div class="wrapper">
-	<h2>Deduction Rules</h2>
+	<div class="header-row">
+		<h2>Deduction Rules</h2>
+		<Hint
+			title="Using Rules"
+			text="Select one or two rows from the proof table, then click a rule to apply it. Hover over a rule to see which rows are compatible. The number on each rule shows how many inputs it needs."
+		/>
+	</div>
 	<RuleGridLayout>
 		{#each $deductionRules as rule (rule.short)}
 			<RuleSlot
@@ -280,6 +278,13 @@
 	h2 {
 		margin: 0;
 		font-size: 1.25rem;
+	}
+
+	.header-row {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-sm);
+		width: 100%;
 	}
 
 	.wrapper {

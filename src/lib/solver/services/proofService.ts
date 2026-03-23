@@ -2,6 +2,7 @@ import type { IRule } from '../../rules/IRule';
 import { ProofHandler } from '../../../prolog/queries/ProofHandler';
 import { get } from 'svelte/store';
 import { solverContent } from '../../../stores/solverStore';
+import { pushHistory } from '../../../stores/historyStore';
 import type { TheoremData } from '../../../types/TheoremData';
 import { theorems } from '../../../stores/theoremsStore';
 import { Node } from '../../syntax-checker/Node';
@@ -114,6 +115,9 @@ export async function addProof(
 	replacements: string[] = [],
 	trees?: Node[] | null
 ) {
+	// save history before modifying the proof
+	pushHistory();
+
 	// update svelte store (Sync)
 	const acceptedResults = addProofToStore(results, rule, lines, replacements, trees);
 
@@ -122,9 +126,6 @@ export async function addProof(
 		await ProofTable.write(r, rule, lines, replacements);
 		await ArgsTable.write(r);
 	}
-
-	await ProofTable.print();
-	// await ArgsTable.print();
 }
 
 /**

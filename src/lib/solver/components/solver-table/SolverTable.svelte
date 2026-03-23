@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { solverContent } from '../../../../stores/solverStore';
+	import { pushHistory } from '../../../../stores/historyStore';
 	import { FormulaParser } from '../../parsers/FormulaParser';
 	import { NDRule } from '../../../rules/DeductionRule';
-	import { FormulaComparer } from '../../FormulaComparer';
 	import type { TableRowData } from '../../../../types/TableRow';
 	import type { TreeRuleType } from '../../../../types/TreeRuleType';
 	import { showToast } from '../../../utils/showToast';
 	import { removeRow } from '../../actions/proofActions';
 	import ProofRow from './row/ProofRow.svelte';
 	import { existsInProof } from '../../utils/proofUtils';
-	import { ProofTable } from '../../../../prolog/queries/ProofTable';
 
 	interface SolverTableProps {
 		data: TreeRuleType[];
@@ -74,6 +73,7 @@
 						return;
 					}
 
+					pushHistory();
 					$solverContent.proof.splice(i, 0, res);
 
 					row.formula = $solverContent.proof[i].value;
@@ -82,6 +82,7 @@
 				}}
 				onEdit={() => {
 					// remove the row from the proof
+					pushHistory();
 					row.editable = true;
 					$solverContent.proof.splice(i, 1);
 				}}

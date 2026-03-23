@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import { PrologController } from './prolog/PrologController';
 	import { loadDefaultValues } from './lib/utils/loadDefaultValues';
+	import { setupKeyboardShortcuts } from './lib/utils/keyboardShortcuts';
 	import WorkspaceSidebar from './lib/solver/containers/WorkspaceSidebar.svelte';
 	import { appPersistence } from './lib/context/persistenceProvider';
 
@@ -13,12 +14,15 @@
 	onMount(() => {
 		// load the Prolog module
 		PrologController.instance().then(() => {
-			console.log('[DEBUG] Prolog module loaded.');
+			// Prolog module ready
 		});
+
+		// setup global keyboard shortcuts
+		const cleanupKeyboard = setupKeyboardShortcuts();
 
 		if (!persist) {
 			loadDefaultValues();
-			return;
+			return cleanupKeyboard;
 		}
 
 		const hydrated = appPersistence.hydrate();
@@ -31,6 +35,7 @@
 
 		return () => {
 			stopPersisting();
+			cleanupKeyboard();
 		};
 	});
 </script>

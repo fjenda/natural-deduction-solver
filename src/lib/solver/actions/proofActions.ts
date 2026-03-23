@@ -6,6 +6,7 @@ import {
 	solverContent,
 	theoremData
 } from '../../../stores/solverStore';
+import { endSession, pushHistory } from '../../../stores/historyStore';
 import { PremiseParser } from '../parsers/PremiseParser';
 import { ParseStrategy } from '../../../types/ParseStrategy';
 import { get } from 'svelte/store';
@@ -14,20 +15,13 @@ import { modals } from 'svelte-modals';
 import FillVariablesModal from '../../modals/FillVariablesModal.svelte';
 import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 import { showToast } from '../../utils/showToast';
-import {
-	addProof,
-	isExistentialEliminationValid,
-	substitute,
-	validateSubstitution
-} from '../services/proofService';
+import { addProof, substitute, validateSubstitution } from '../services/proofService';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { editState, solving } from '../../../stores/stateStore';
 import { ProofHandler } from '../../../prolog/queries/ProofHandler';
 import { EditState } from '../../../types/EditState';
 import { theorems } from '../../../stores/theoremsStore';
-import { isIn } from 'eslint-plugin-svelte/lib/utils/ast-utils';
-
 // --- State Setters ---
 
 /**
@@ -154,9 +148,12 @@ export async function setupProof(): Promise<boolean> {
 }
 
 /**
- * Resets the solving state
+ * Resets the solving state.
+ * Clears the proof and ends the undo/redo session so
+ * no history carries over to the next solution.
  */
 export async function resetSolving() {
+	endSession();
 	selectedRows.set([]);
 	solverContent.update((sc) => {
 		sc.proof = [];
@@ -173,6 +170,7 @@ export async function resetSolving() {
  * @param index - the index of the row to remove
  */
 export async function removeRow(index: number) {
+	pushHistory();
 	solverContent.update((sc) => {
 		sc.proof.splice(index, 1);
 		return sc;
@@ -256,68 +254,6 @@ function validateVariableInput(
 	return { valid: true, prolog: formula.tree.toPrologFormat() };
 }
 
-// /**
-//  * Opens the fill variables modal and handles the variable substitution
-//  */
-// export function fillVariables() {
-// 	modals.open(FillVariablesModal, {
-// 		title: 'Fill Variables',
-// 		onConfirm: () => {
-// 			const theorem = get(theorems)[get(theoremData).theoremId].solution.whole.tree;
-// 			if (!theorem) return showToast('Theorem is invalid', 'error');
-//
-// 			// console.log(get(theorems)[get(theoremData).theoremId]);
-//
-// 			// get the lines selected
-// 			const vars = get(theoremData).vars;
-// 			const varInputs = get(theoremData).varInputs;
-//
-// 			let unfulfilledDep = false;
-// 			let badFormula = false;
-// 			const formulas = vars.map((v, i) => {
-// 				const theoremFormula = PremiseParser.parsePremise(PrettySyntaxer.clean(v.varName));
-// 				const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(varInputs[i]));
-//
-// 				// console.log(theoremFormula, formula);
-//
-// 				if (!formula.tree) {
-// 					badFormula = true;
-// 					showToast('Invalid formula', 'error');
-// 					return '';
-// 				}
-//
-// 				const dependencies = theoremFormula.tree!.getFreeVars();
-// 				// console.log(dependencies, theoremFormula);
-// 				if (dependencies.size > 0) {
-// 					dependencies.forEach((d) => {
-// 						if (!validateSubstitution(formula.tree!, d)) {
-// 							showToast(`${formula.value} has unfulfilled dependency for ${d}`, 'error');
-// 							unfulfilledDep = true;
-// 						}
-// 					});
-// 				}
-//
-// 				// console.log(formula);
-// 				return formula.tree.toPrologFormat();
-// 			});
-//
-// 			if (formulas.some((f) => f === '')) {
-// 				showToast('Please fill in all variables correctly', 'warning');
-// 			}
-//
-// 			theoremData.update((td) => {
-// 				td.varInputs = [];
-// 				return td;
-// 			});
-//
-// 			// console.log(formulas);
-//
-// 			// replace the variables with the values
-// 			if (!unfulfilledDep && !badFormula) substitute(get(theoremData), formulas);
-// 		}
-// 	});
-// }
-
 /**
  * Checks if the final proof is correct, updates the store and shows toasts.
  */
@@ -325,16 +261,7 @@ export async function checkProof() {
 	const contradiction = await ProofHandler.hasContradiction();
 	const isIndirect = get(indirectSolving);
 
-	// TODO: Check if this is needed?
-	// 1. predicate logic check
-	// if (get(logicMode) === ParseStrategy.PREDICATE) {
-	// 	if (!(await isExistentialEliminationValid())) {
-	// 		showToast('Proof contains an invalid use of Existential Elimination', 'error');
-	// 		return;
-	// 	}
-	// }
-
-	// 2. contradiction logic
+	// contradiction logic
 	if (contradiction) {
 		if (isIndirect) {
 			showToast('Proof contains a contradiction, it is correct', 'success');
@@ -366,4 +293,40 @@ export async function checkProof() {
 			: 'Proof does not contain a valid row with the conclusion',
 		exists ? 'success' : 'error'
 	);
+}
+
+/**
+ * Loads a starter example into the solver.
+ * Switches logic mode if needed, sets premises and conclusion,
+ * and re-parses all expressions.
+ * @param example - the starter example to load
+ */
+export function loadExample(example: {
+	name: string;
+	premises: string[];
+	conclusion: string;
+	mode: ParseStrategy;
+}) {
+	// switch logic mode if needed
+	if (get(logicMode) !== example.mode) {
+		switchMode(example.mode);
+	}
+
+	// update solver content
+	solverContent.update((sc) => {
+		sc.name = example.name;
+		sc.premises = example.premises.map((p) => ({ value: p, tree: null }));
+		sc.conclusion = { value: example.conclusion, tree: null };
+		sc.proof = [];
+		sc.indirect = false;
+		sc.contradiction = false;
+		sc.whole = { value: '', tree: null };
+		return sc;
+	});
+
+	// re-parse all premises and conclusion
+	example.premises.forEach((premise, index) => {
+		onChangePremise(premise, index);
+	});
+	onChangeConclusion(example.conclusion);
 }
