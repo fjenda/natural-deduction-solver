@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Context from './lib/context/Context.svelte';
 	import Panel from './lib/components/Panel.svelte';
+	import WorkspaceTabs from './lib/components/WorkspaceTabs.svelte';
 	import SolverContainer from './lib/solver/containers/SolverContainer.svelte';
 	import { onMount } from 'svelte';
 	import { PrologController } from './prolog/PrologController';
@@ -8,6 +9,7 @@
 	import { setupKeyboardShortcuts } from './lib/utils/keyboardShortcuts';
 	import WorkspaceSidebar from './lib/solver/containers/WorkspaceSidebar.svelte';
 	import { appPersistence } from './lib/context/persistenceProvider';
+	import { initializeWorkspaces } from './stores/workspaceStore';
 
 	const persist: boolean = false;
 
@@ -22,6 +24,7 @@
 
 		if (!persist) {
 			loadDefaultValues();
+			initializeWorkspaces();
 			return cleanupKeyboard;
 		}
 
@@ -33,6 +36,8 @@
 			loadDefaultValues();
 		}
 
+		initializeWorkspaces();
+
 		return () => {
 			stopPersisting();
 			cleanupKeyboard();
@@ -41,10 +46,28 @@
 </script>
 
 <Context>
-	<Panel>
-		<SolverContainer />
-	</Panel>
+	<div class="main-area">
+		<WorkspaceTabs />
+		<Panel>
+			<SolverContainer />
+		</Panel>
+	</div>
 	<Panel variant="small">
 		<WorkspaceSidebar />
 	</Panel>
 </Context>
+
+<style>
+	.main-area {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+	}
+
+	.main-area > :global(.wrapper) {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		border-top: none;
+	}
+</style>

@@ -10,6 +10,12 @@ import { editState, solving } from '../../stores/stateStore';
 import { EditState } from '../../types/EditState';
 import { indirectSolving, logicMode, solverBackup, solverContent } from '../../stores/solverStore';
 import { selectedTheorem, theorems } from '../../stores/theoremsStore';
+import {
+	workspaces,
+	activeWorkspaceIndex,
+	restoreWorkspaces,
+	type Workspace
+} from '../../stores/workspaceStore';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -34,6 +40,14 @@ type PersistedTheorem = {
 	mode: ParseStrategy;
 };
 
+type PersistedWorkspace = {
+	id: string;
+	name: string;
+	solution: PersistedSolution;
+	isSolving: boolean;
+	indirect: boolean;
+};
+
 type PersistedState = {
 	version: number;
 	logicMode: ParseStrategy;
@@ -41,6 +55,8 @@ type PersistedState = {
 	solver: PersistedSolution;
 	solverBackup: PersistedSolution;
 	theorems: PersistedTheorem[];
+	workspaces: PersistedWorkspace[];
+	activeWorkspaceIndex: number;
 };
 
 export type PersistenceProvider = {
@@ -51,8 +67,8 @@ export type PersistenceProvider = {
 
 export const persistenceContextKey = Symbol('persistence-provider');
 
-const STORAGE_KEY = 'natural-deduction-solver:state:v1';
-const STORAGE_VERSION = 1;
+const STORAGE_KEY = 'natural-deduction-solver:state:v2';
+const STORAGE_VERSION = 2;
 
 const hasStorage = (storage: StorageLike | null): storage is StorageLike => storage !== null;
 
@@ -228,13 +244,42 @@ const normalizePersistedState = (value: unknown): PersistedState | null => {
 		});
 	}
 
+	// normalize workspaces
+	const persistedWorkspaces = Array.isArray(source.workspaces) ? source.workspaces : [];
+	const normalizedWorkspaces: PersistedWorkspace[] = [];
+
+	for (const ws of persistedWorkspaces) {
+		if (!ws || typeof ws !== 'object') continue;
+		const parsedWs = ws as Partial<PersistedWorkspace>;
+		if (typeof parsedWs.id !== 'string') continue;
+		if (typeof parsedWs.name !== 'string') continue;
+		const parsedSolution = normalizePersistedSolution(parsedWs.solution);
+		if (!parsedSolution) continue;
+		normalizedWorkspaces.push({
+			id: parsedWs.id,
+			name: parsedWs.name,
+			solution: parsedSolution,
+			isSolving: Boolean(parsedWs.isSolving),
+			indirect: Boolean(parsedWs.indirect)
+		});
+	}
+
+	const activeWsIndex =
+		typeof source.activeWorkspaceIndex === 'number' &&
+		Number.isFinite(source.activeWorkspaceIndex) &&
+		source.activeWorkspaceIndex >= 0
+			? source.activeWorkspaceIndex
+			: 0;
+
 	return {
 		version: STORAGE_VERSION,
 		logicMode: source.logicMode,
 		indirectSolving: Boolean(source.indirectSolving),
 		solver,
 		solverBackup,
-		theorems: normalizedTheorems
+		theorems: normalizedTheorems,
+		workspaces: normalizedWorkspaces,
+		activeWorkspaceIndex: Math.min(activeWsIndex, Math.max(0, normalizedWorkspaces.length - 1))
 	};
 };
 
@@ -262,6 +307,7 @@ export const createPersistenceProvider = (storage?: StorageLike): PersistencePro
 	const writeState = () => {
 		if (!hasStorage(resolvedStorage)) return;
 
+		const ws = get(workspaces);
 		const state: PersistedState = {
 			version: STORAGE_VERSION,
 			logicMode: get(logicMode),
@@ -271,7 +317,15 @@ export const createPersistenceProvider = (storage?: StorageLike): PersistencePro
 			theorems: get(theorems).map((theorem) => ({
 				solution: serializeSolution(theorem.solution),
 				mode: theorem.mode
-			}))
+			})),
+			workspaces: ws.map((w) => ({
+				id: w.id,
+				name: w.name,
+				solution: serializeSolution(w.solution),
+				isSolving: w.isSolving,
+				indirect: w.indirect
+			})),
+			activeWorkspaceIndex: get(activeWorkspaceIndex)
 		};
 
 		resolvedStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -295,6 +349,19 @@ export const createPersistenceProvider = (storage?: StorageLike): PersistencePro
 		indirectSolving.set(state.indirectSolving);
 		solving.set(false);
 
+		// restore workspaces if present
+		if (state.workspaces.length > 0) {
+			const restoredWs: Workspace[] = state.workspaces.map((ws) => ({
+				id: ws.id,
+				name: ws.name,
+				solution: deserializeSolution(ws.solution, state.logicMode),
+				isSolving: ws.isSolving,
+				indirect: ws.indirect
+			}));
+			restoreWorkspaces(restoredWs);
+			activeWorkspaceIndex.set(state.activeWorkspaceIndex);
+		}
+
 		return true;
 	};
 
@@ -306,7 +373,9 @@ export const createPersistenceProvider = (storage?: StorageLike): PersistencePro
 			solverBackup.subscribe(() => writeState()),
 			theorems.subscribe(() => writeState()),
 			logicMode.subscribe(() => writeState()),
-			indirectSolving.subscribe(() => writeState())
+			indirectSolving.subscribe(() => writeState()),
+			workspaces.subscribe(() => writeState()),
+			activeWorkspaceIndex.subscribe(() => writeState())
 		];
 
 		return () => {

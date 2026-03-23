@@ -24,6 +24,8 @@ import { ParseStrategy } from '../../src/types/ParseStrategy';
 import { editState, solving } from '../../src/stores/stateStore';
 import { selectedTheorem, theoremRegistry, theorems } from '../../src/stores/theoremsStore';
 
+const STORAGE_KEY = 'natural-deduction-solver:state:v2';
+
 const createMemoryStorage = () => {
 	const state = new Map<string, string>();
 
@@ -82,7 +84,7 @@ describe('persistenceProvider', () => {
 		]);
 		logicMode.set(ParseStrategy.PROPOSITIONAL);
 
-		const raw = storage.getItem('natural-deduction-solver:state:v1');
+		const raw = storage.getItem(STORAGE_KEY);
 		expect(raw).toBeTruthy();
 		expect(raw).toContain('In progress');
 		expect(raw).toContain('Saved theorem');
@@ -96,9 +98,9 @@ describe('persistenceProvider', () => {
 	it('hydrates solver and theorem data from storage', () => {
 		const storage = createMemoryStorage();
 		storage.setItem(
-			'natural-deduction-solver:state:v1',
+			STORAGE_KEY,
 			JSON.stringify({
-				version: 1,
+				version: 2,
 				logicMode: ParseStrategy.PROPOSITIONAL,
 				indirectSolving: true,
 				solver: {
@@ -135,7 +137,9 @@ describe('persistenceProvider', () => {
 							contradiction: false
 						}
 					}
-				]
+				],
+				workspaces: [],
+				activeWorkspaceIndex: 0
 			})
 		);
 
@@ -161,21 +165,21 @@ describe('persistenceProvider', () => {
 
 	it('clears persisted state', () => {
 		const storage = createMemoryStorage();
-		storage.setItem('natural-deduction-solver:state:v1', '{"version":1}');
+		storage.setItem(STORAGE_KEY, '{"version":2}');
 		storage.removeItem('temporary');
 		const provider = createPersistenceProvider(storage);
 
 		provider.clear();
 
-		expect(storage.getItem('natural-deduction-solver:state:v1')).toBeNull();
+		expect(storage.getItem(STORAGE_KEY)).toBeNull();
 	});
 
 	it('clears invalid payloads safely', () => {
 		const storage = createMemoryStorage();
-		storage.setItem('natural-deduction-solver:state:v1', '{bad-json}');
+		storage.setItem(STORAGE_KEY, '{bad-json}');
 		const provider = createPersistenceProvider(storage);
 
 		expect(provider.hydrate()).toBe(false);
-		expect(storage.getItem('natural-deduction-solver:state:v1')).toBeNull();
+		expect(storage.getItem(STORAGE_KEY)).toBeNull();
 	});
 });

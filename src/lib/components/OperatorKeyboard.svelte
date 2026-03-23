@@ -53,12 +53,11 @@
 	 * This escapes any overflow:hidden ancestors.
 	 */
 	const updatePosition = () => {
-		if (!focusedInput || !container) return;
+		if (!focusedInput) return;
 
 		const inputRect = focusedInput.getBoundingClientRect();
-		const containerRect = container.getBoundingClientRect();
 
-		// position relative to the wrapper so we can use absolute inside a fixed overlay
+		// position using fixed so the bar escapes overflow:hidden ancestors
 		barStyle = `position:fixed; left:${inputRect.left}px; top:${inputRect.bottom}px; width:${inputRect.width}px;`;
 	};
 
