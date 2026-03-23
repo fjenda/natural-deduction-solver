@@ -38,7 +38,7 @@
 		<i class="fa-solid fa-book"></i>
 		<h2>Theorems</h2>
 	</div>
-	<StyledButton text="Create Theorem" onClick={createTheorem} />
+	<StyledButton text="Create Theorem" onClick={createTheorem} disabled={$solving} />
 	<TheoremsLayout>
 		{#if shownTheorems.length === 0}
 			<p class="empty-text">No theorems added yet.</p>
