@@ -52,7 +52,7 @@ const RULE_NAMES: Record<string, { txt: string; tex: string }> = {
 	IEX: { txt: '∃I', tex: '\\exists I' },
 	EEX: { txt: '∃E', tex: '\\exists E' },
 	PREM: { txt: 'Premise', tex: '\\text{Premise}' },
-	CONC: { txt: 'Conclusion', tex: '\\text{Conclusion}' }
+	CONC: { txt: 'Indirect Premise', tex: '\\text{Indirect Premise}' }
 };
 
 function getRuleName(ruleStr: string): { txt: string; tex: string } {
@@ -76,6 +76,18 @@ function getUsedTheorems(proof: TreeRuleType[]): string[] {
 	}
 
 	return allTheorems.filter((t) => used.has(t.solution.name)).map((t) => t.solution.name);
+}
+
+function findContradictionLines(proof: TreeRuleType[]): [number, number] | null {
+	const rows = proof.filter((r) => r.tree);
+	for (let i = 0; i < rows.length; i++) {
+		for (let j = i + 1; j < rows.length; j++) {
+			if (rows[i].tree!.equals(rows[j].tree!.negate())) {
+				return [rows[i].line, rows[j].line];
+			}
+		}
+	}
+	return null;
 }
 
 function buildProofLines(proof: TreeRuleType[]): { latex: string[]; txt: string[] } {
@@ -150,6 +162,25 @@ export function exportToLatex(solution: Solution): string {
 		theoremsSection = `\\paragraph{Used Theorems:}\n${items}`;
 	}
 
+	const proofType = solution.indirect
+		? '\\textbf{Proof Type:} Indirect (Reductio ad Absurdum)\n\n'
+		: '';
+
+	let statusLine = '';
+	if (solution.complete) {
+		statusLine = '\\textbf{Status:} Proof complete.\n\n';
+	} else {
+		statusLine = '\\textbf{Status:} Proof incomplete.\n\n';
+	}
+
+	let contradictionLine = '';
+	if (solution.indirect && solution.contradiction) {
+		const pair = findContradictionLines(proof);
+		if (pair) {
+			contradictionLine = `\\textbf{Contradiction:} Lines ${pair[0]} and ${pair[1]}\n\n`;
+		}
+	}
+
 	return `\\documentclass[12pt]{article}
 \\usepackage{amsmath}
 \\usepackage{amssymb}
@@ -160,7 +191,7 @@ export function exportToLatex(solution: Solution): string {
 
 \\section*{Proof}
 
-\\textbf{Premises:}%
+${proofType}${statusLine}${contradictionLine}\\textbf{Premises:}%
 \\begin{itemize}
 ${premisesList}
 \\end{itemize}
@@ -189,11 +220,28 @@ export function exportToTxt(solution: Solution): string {
 
 	const { txt: proofLines } = buildProofLines(proof);
 
+	const proofType = solution.indirect ? 'Proof Type: Indirect (Reductio ad Absurdum)\n\n' : '';
+
+	let statusLine = '';
+	if (solution.complete) {
+		statusLine = 'Status: Proof complete.';
+	} else {
+		statusLine = 'Status: Proof incomplete.';
+	}
+
+	let contradictionLine = '';
+	if (solution.indirect && solution.contradiction) {
+		const pair = findContradictionLines(proof);
+		if (pair) {
+			contradictionLine = `\nContradiction: Lines ${pair[0]} and ${pair[1]}`;
+		}
+	}
+
 	return `${divider}
 NATURAL DEDUCTION PROOF
 ${divider}
 
-PREMISES:
+${proofType}PREMISES:
 ${premisesList}
 
 CONCLUSION:
@@ -205,7 +253,7 @@ ${divider}
 ${proofLines.join('\n')}
 
 ${divider}
-Proof complete.
+${statusLine}${contradictionLine}
 ${divider}`;
 }
 

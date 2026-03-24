@@ -29,6 +29,7 @@ export class Solution {
 	 */
 	constructor(name: string, conclusion?: ParsedExpression) {
 		this.name = name;
+		this.premises = [{ value: '', tree: null }];
 
 		if (conclusion) {
 			this.conclusion = conclusion;

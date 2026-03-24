@@ -5,7 +5,6 @@ import type { Compound } from '../types/prolog/Compound';
 import ruleset from './pl/ruleset.pl?raw';
 import free_vars from './pl/free_vars.pl?raw';
 import substitute from './pl/substitute.pl?raw';
-import test_rules from './pl/test_rules.pl?raw';
 import proof_table from './pl/proof_table.pl?raw';
 import args_table from './pl/args_table.pl?raw';
 import theorem_table from './pl/theorem_table.pl?raw';
@@ -37,13 +36,12 @@ export class PrologController {
 				}
 			});
 
-			// await PrologController.loadString(ruleset, "rules");
 			await PrologController.loadString(free_vars, 'free_vars');
 			await PrologController.loadString(substitute, 'substitute');
 			await PrologController.loadString(proof_table, 'proof_table');
 			await PrologController.loadString(args_table, 'args_table');
 			await PrologController.loadString(theorem_table, 'theorem_table');
-			await PrologController.loadString(test_rules, 'test_rules');
+			await PrologController.loadString(ruleset, 'ruleset');
 		}
 
 		return PrologController.module;

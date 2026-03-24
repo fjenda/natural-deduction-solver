@@ -1,3 +1,7 @@
+%:- consult('substitute.pl').
+%:- consult('proof_table.pl').
+%:- consult('free_vars.pl').
+
 % Rule format: rule(Name, PremiseCount, ApplyPredicate)
 rule('IC', 2, and_intro).
 rule('EC', 1, and_elim).
@@ -8,6 +12,77 @@ rule('MP', 2, imp_elim).
 rule('IE', 2, eq_intro).
 rule('EE', 1, eq_elim).
 rule('NI', 1, is_negation).
+
+% Predicate logic
+rule('EU', 1, forall_elim).   % Universal Elimination
+rule('IU', 1, forall_intro).  % Universal Introduction
+rule('IEX', 1, exists_intro).  % Existential Introduction
+rule('EEX', 1, exists_elim).   % Existential Elimination
+
+is_var(var(_)).
+
+% Get the topmost ancestor
+top_ancestor(Line, TopAncestor) :-
+    proof_row(Line, Term, _, Parents, _),
+    ( Parents = [] ->
+        TopAncestor = Term
+    ;
+        Parents = [FirstParent|_],
+        top_ancestor(FirstParent, TopAncestor)
+    ).
+
+% IU applicable
+iu_applicable(Var, _Line, Root) :-
+    \+ free_in(Var, Root).
+
+forall_elim([forall(Var, Formula), Var, Term], Result) :-
+    substitute_free(Var, Term, Formula, Result).
+
+forall_intro([Formula, Term, Var], forall(Var, Result)) :-
+    % find the proof row that produced Formula so we can inspect its root
+    proof_row(Line, Formula, _, _, _),
+
+    % collect top ancestor
+    top_ancestor(Line, Root),
+
+    % check IU restriction
+    iu_applicable(Var, Line, Root),
+
+    % now perform substitution (after we've checked freshness)
+    substitute_free(Term, Var, Formula, Result).
+%    substitute(Formula, [Term], [Var], Result).
+
+% Term is provided by user, but we check freshness
+exists_elim([exists(Var, Formula), Var, Term], Result) :-
+    % if Var === var(Y) and Term === Z, its a usability test, we don't need to check further
+    % we can assume user provided a fresh constant
+    (   Var = Term ->
+        format('[Debug] Skipping freshness check (~w == ~w)~n', [Var, Term]),
+        substitute_free(Var, Term, Formula, Result),
+        !
+    ;
+        % 1. Rebuild table
+        args_table_rebuild,
+
+        % 2. Check if the term is actually fresh
+        (   args_table_term_exists(Term)
+        ->  format('[Error] Term ~w is not fresh! It already appears in the proof.~n', [Term]),
+            !, fail
+        ;   true
+        ),
+
+        format('[Debug] Using fresh term ~w for ~w~n', [Term, Var]),
+        substitute_free(Var, Term, Formula, Result)
+    ),
+
+    format('[Debug] Result after substitution: ~w~n', [Result]),
+    !.
+
+
+% === Existential introduction ===
+exists_intro([Formula, Term, Var], exists(Var, Result)) :-
+    substitute_free(Term, Var, Formula, Result).
+
 
 % Actual rule logic
 
@@ -20,6 +95,8 @@ and_elim([and(_, B)], B).
 or_intro([A, B], or(A, B)).
 or_elim([or(A, B), not(A)], B).
 or_elim([or(A, B), not(B)], A).
+or_elim([or(A, not(B)),  B], A).
+or_elim([or(not(A), B), A], B).
 
 % Implication
 imp_intro([A, B], imp(A, B)).
@@ -36,10 +113,12 @@ is_negation([not(A)], A).
 is_negation([A], not(A)).
 
 % Generic rule checker
-prove_handler(Premises, Conclusion, Rule) :-
-    rule(Rule, PremiseCount, Predicate),
-    length(Premises, PremiseCount),
-    call(Predicate, Premises, Conclusion).
+prove_handler(Premises, Conclusion, RuleName, Parameters) :-
+    rule(RuleName, _, Predicate),
+%    length(Premises, PremiseCount),
+    append(Premises, Parameters, AllArgs),
+    format('Debug: Proving ~w using rule ~w with args: ~w~n', [Conclusion, RuleName, AllArgs]),
+    call(Predicate, AllArgs, Conclusion).
 
 find_conflict([A | Rest], A, not(A)) :- member(not(A), Rest), !.
 find_conflict([not(A) | Rest], not(A), A) :- member(A, Rest), !.
@@ -55,3 +134,9 @@ conflict_handler(Proof, Conflict1, Conflict2, Result) :-
         Conflict2 = none,
         Result = false
     ).
+
+
+prove(Lines, Conclusion, Rule, Params) :-
+    % get premises from lines in proof_table
+    maplist(proof_table_get, Lines, Premises),
+    prove_handler(Premises, Conclusion, Rule, Params).
