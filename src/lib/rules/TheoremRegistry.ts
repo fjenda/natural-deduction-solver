@@ -3,9 +3,19 @@ import type { TreeRuleType } from '../../types/TreeRuleType';
 import { DeductionRule } from './DeductionRule';
 
 type TheoremName = string;
+
+/**
+ * Registry that manages theorem dependencies and detects circular references
+ * @property {Record<TheoremName, TheoremName[]>} dependencyGraph - graph of theorem dependencies
+ */
 export class TheoremRegistry {
 	private dependencyGraph: Record<TheoremName, TheoremName[]> = {};
 
+	/**
+	 * Registers a theorem in the dependency graph, rejecting circular dependencies
+	 * @param theorem - the solution (theorem) to register
+	 * @returns {boolean} true if the theorem was registered, false if it would cause a cycle
+	 */
 	registerTheorem(theorem: Solution): boolean {
 		const name = theorem.name;
 		// temporarily add to graph to check for cycle
@@ -20,6 +30,11 @@ export class TheoremRegistry {
 		return true;
 	}
 
+	/**
+	 * Extracts the names of theorems used in a proof
+	 * @param proof - the proof steps to extract dependencies from
+	 * @returns {string[]} array of theorem names that the proof depends on
+	 */
 	private extractDependencies(proof: TreeRuleType[]): string[] {
 		const mapped = proof.map((row) => DeductionRule.getRule(row.rule.rule));
 		// if the rule is unknown, it's a theorem, and we want the original name
@@ -39,6 +54,11 @@ export class TheoremRegistry {
 		return Array.from(new Set(filteredNames));
 	}
 
+	/**
+	 * Checks if adding a theorem would create a circular dependency using DFS
+	 * @param start - the theorem name to start the cycle check from
+	 * @returns {boolean} true if a cycle is detected
+	 */
 	private hasCycle(start: TheoremName): boolean {
 		const visited = new Set<TheoremName>();
 		const stack = new Set<TheoremName>();
@@ -61,6 +81,10 @@ export class TheoremRegistry {
 		return dfs(start);
 	}
 
+	/**
+	 * Returns the current dependency graph
+	 * @returns {Record<TheoremName, TheoremName[]>} the dependency graph mapping theorem names to their dependencies
+	 */
 	getGraph(): Record<TheoremName, TheoremName[]> {
 		return this.dependencyGraph;
 	}

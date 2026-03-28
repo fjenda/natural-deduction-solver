@@ -109,7 +109,11 @@ export class FormulaParser {
 		};
 	}
 
-	/** Helper functions for the main parseFormula function **/
+	/**
+	 * Checks if the given line numbers exist in the current proof
+	 * @param lines - the line numbers to check
+	 * @returns {boolean} true if all lines exist
+	 */
 	private static linesExist(lines: number[]): boolean {
 		const proof = get(solverContent).proof;
 		for (const l of lines) {
@@ -121,6 +125,11 @@ export class FormulaParser {
 		return true;
 	}
 
+	/**
+	 * Finds a rule by name, checking both deduction rules and theorems
+	 * @param ruleName - the name of the rule to find
+	 * @returns {IRule} the matching rule, or DeductionRule.UNKNOWN if not found
+	 */
 	private static findRule(ruleName: string): IRule {
 		let rule: IRule = DeductionRule.getRule(ruleName);
 		if (rule === DeductionRule.UNKNOWN) {
@@ -132,6 +141,11 @@ export class FormulaParser {
 		return rule;
 	}
 
+	/**
+	 * Retrieves the premise formulas from the proof at the given line numbers
+	 * @param lines - the line numbers to retrieve premises from
+	 * @returns {Array} the first and second premise (second may be null)
+	 */
 	private static getPremises(lines: number[]) {
 		const proof = get(solverContent).proof;
 		const first = proof[lines[0] - 1];
@@ -139,6 +153,15 @@ export class FormulaParser {
 		return [first, second];
 	}
 
+	/**
+	 * Verifies that a rule application is correct using the Prolog engine
+	 * @param target - the target formula node
+	 * @param rule - the rule being applied
+	 * @param first - the first premise
+	 * @param second - the second premise (may be null)
+	 * @param params - the parameters for the rule application
+	 * @returns {Promise<boolean>} true if the rule application is valid
+	 */
 	private static async checkRuleApplication(
 		target: Node,
 		rule: IRule,

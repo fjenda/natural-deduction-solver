@@ -71,6 +71,13 @@ export const ProofHandler = {
 		return result.Z as boolean;
 	},
 
+	/**
+	 * Substitutes variables in a theorem with new values using the Prolog engine
+	 * @param theoremPFL - the theorem in Prolog format
+	 * @param oldVars - the original variables to replace
+	 * @param newVars - the new variables to substitute in
+	 * @returns {string} the substituted formula as a string
+	 */
 	async substitute(theoremPFL: string, oldVars: string[], newVars: string[]) {
 		const result = await PrologController.queryOnce<SubstitutionResult>(
 			Queries.SUBSTITUTE(theoremPFL, oldVars, newVars)

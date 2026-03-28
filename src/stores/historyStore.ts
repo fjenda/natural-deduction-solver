@@ -1,6 +1,9 @@
 import { writable, get } from 'svelte/store';
 import { solverContent } from './solverStore';
 import type { TreeRuleType } from '../types/TreeRuleType';
+import { ProofTable } from '../prolog/queries/ProofTable';
+import { ArgsTable } from '../prolog/queries/ArgsTable';
+import { Node } from '../lib/syntax-checker/Node';
 
 /**
  * Maximum number of undo steps to keep in memory per solution.
@@ -73,11 +76,41 @@ export function pushHistory(): void {
 }
 
 /**
+ * Rebuilds the Prolog proof_table and args_table from the current Svelte store.
+ * Must be called after any operation that restores proof rows without going
+ * through the normal addProof path (e.g. undo/redo).
+ */
+async function syncPrologFromStore(): Promise<void> {
+	await ProofTable.clear();
+	await ArgsTable.clear();
+
+	const proof = get(solverContent).proof;
+
+	for (const row of proof) {
+		const term = row.tree?.toPrologFormat() ?? '';
+		const rule = row.rule.rule;
+		const lines = row.rule.lines ?? [];
+
+		// row.rule.replacements stores display strings (e.g. "x", "a").
+		// Prolog expects Prolog format (e.g. "var(x)", "const(a)").
+		// Convert via round-trip through Node.
+		const replacements = (row.rule.replacements ?? []).map((r) => {
+			const node = Node.fromPrologFormat(r);
+			return node.toPrologFormat();
+		});
+
+		await ProofTable.write(term, rule, lines, replacements);
+	}
+
+	await ArgsTable.rebuild();
+}
+
+/**
  * Undoes the last proof action by restoring the most recent history snapshot.
  * The current proof rows are pushed onto the redo stack.
  * Premises and conclusion are never affected.
  */
-export function undo(): void {
+export async function undo(): Promise<void> {
 	if (past.length === 0 || !get(sessionActive)) return;
 
 	// save current proof for redo
@@ -90,6 +123,10 @@ export function undo(): void {
 		sc.proof = previousProof;
 		return sc;
 	});
+
+	// sync Prolog database to match restored state
+	await syncPrologFromStore();
+
 	updateFlags();
 }
 
@@ -97,7 +134,7 @@ export function undo(): void {
  * Redoes the last undone proof action by restoring the most recent redo snapshot.
  * The current proof rows are pushed back onto the undo stack.
  */
-export function redo(): void {
+export async function redo(): Promise<void> {
 	if (future.length === 0 || !get(sessionActive)) return;
 
 	// save current proof for undo
@@ -110,6 +147,10 @@ export function redo(): void {
 		sc.proof = nextProof;
 		return sc;
 	});
+
+	// sync Prolog database to match restored state
+	await syncPrologFromStore();
+
 	updateFlags();
 }
 

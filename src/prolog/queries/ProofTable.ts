@@ -17,6 +17,10 @@ const Queries = {
 };
 
 export const ProofTable = {
+	/**
+	 * Retrieves all rows from the proof_table in Prolog
+	 * @returns {string[] | undefined} array of string representations of all proof rows
+	 */
 	async getAll() {
 		const result = await PrologController.queryOnce<ProofTableResult[]>(Queries.GET_ALL);
 
