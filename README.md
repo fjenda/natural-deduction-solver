@@ -17,7 +17,7 @@
 ## 🖥️ Demo / Preview
 
 <p align="center">
-  <img src="./DP/Figures/UI/basic.png" alt="Natural Deduction Solver — main workspace interface" width="800" />
+  <img src=".github/screenshots/basic.png" alt="Natural Deduction Solver — main workspace interface" width="800" />
 </p>
 <p align="center"><em>The main workspace — enter premises, a conclusion, and build your proof step by step.</em></p>
 
@@ -161,7 +161,7 @@ The built files will be output to the `dist/` directory.
 Define your proof by entering logical formulas in the **Premises & Conclusion** panel. Use the on-screen operator keyboard or type formulas directly using the supported syntax.
 
 <p align="center">
-  <img src="./DP/Figures/UI/basic.png" alt="Entering premises and conclusion in the workspace" width="700" />
+  <img src=".github/screenshots/basic.png" alt="Entering premises and conclusion in the workspace" width="700" />
 </p>
 <p align="center"><em>Enter premises using logical operators (∧, ∨, ⊃, ≡, ¬, ∀, ∃) and click "Prove" to begin.</em></p>
 
@@ -186,7 +186,7 @@ Define your proof by entering logical formulas in the **Premises & Conclusion** 
 Once in proof mode, apply rules from the **Deduction Rules** grid on the right-hand sidebar. Select one or more rows in the proof table, then click a rule button to apply it.
 
 <p align="center">
-  <img src="./DP/Figures/UI/rule-application.png" alt="Applying a deduction rule to selected proof rows" width="700" />
+  <img src=".github/screenshots/rule-application.png" alt="Applying a deduction rule to selected proof rows" width="700" />
 </p>
 <p align="center"><em>Select rows and apply rules — the system verifies correctness automatically.</em></p>
 
@@ -214,12 +214,12 @@ Once in proof mode, apply rules from the **Deduction Rules** grid on the right-h
 Create reusable theorems to streamline your proofs. Any proven result can be saved as a theorem and applied as a single-step rule in future proofs.
 
 <p align="center">
-  <img src="./DP/Figures/UI/create-theorem.png" alt="Creating a custom theorem" width="700" />
+  <img src=".github/screenshots/create-theorem.png" alt="Creating a custom theorem" width="700" />
 </p>
 <p align="center"><em>Define custom theorems with premises and a conclusion.</em></p>
 
 <p align="center">
-  <img src="./DP/Figures/UI/apply-theorem.png" alt="Applying a saved theorem in a proof" width="700" />
+  <img src=".github/screenshots/apply-theorem.png" alt="Applying a saved theorem in a proof" width="700" />
 </p>
 <p align="center"><em>Apply a saved theorem as a derived rule during proof construction.</em></p>
 
@@ -230,12 +230,12 @@ Create reusable theorems to streamline your proofs. Any proven result can be sav
 The solver provides real-time feedback on proof validity. When your proof is complete and correct, you can export it.
 
 <p align="center">
-  <img src="./DP/Figures/UI/check-proof.png" alt="A completed and verified proof" width="700" />
+  <img src=".github/screenshots/check-proof.png" alt="A completed and verified proof" width="700" />
 </p>
 <p align="center"><em>A completed proof with all rules verified.</em></p>
 
 <p align="center">
-  <img src="./DP/Figures/UI/export-proof.png" alt="Exporting a proof" width="700" />
+  <img src=".github/screenshots/export-proof.png" alt="Exporting a proof" width="700" />
 </p>
 <p align="center"><em>Export your proof as formatted LaTeX.</em></p>
 
