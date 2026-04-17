@@ -1,11 +1,14 @@
 <script lang="ts">
+	import type { AppliedRule } from '../../../../../types/AppliedRule';
+
 	interface RowActionsProps {
 		editable: boolean;
 		premise: boolean;
 		removable: boolean;
 		formula: string;
-		ruleText: string;
-		onSave: (formula: string, ruleText: string) => void;
+		ruleDraft: AppliedRule;
+		canSave: boolean;
+		onSave: (formula: string, ruleDraft: AppliedRule) => void;
 		onEdit: () => void;
 		onDelete: () => void;
 	}
@@ -15,7 +18,8 @@
 		premise,
 		removable,
 		formula,
-		ruleText,
+		ruleDraft,
+		canSave,
 		onSave,
 		onEdit,
 		onDelete
@@ -23,7 +27,8 @@
 
 	const handleSave = (e: Event) => {
 		e.stopPropagation();
-		onSave(formula, ruleText);
+		if (!canSave) return;
+		onSave(formula, ruleDraft);
 	};
 
 	const handleEdit = (e: Event) => {
@@ -39,7 +44,7 @@
 
 <div class="actions-container">
 	{#if editable}
-		<button class="action-button check-button" aria-label="Save" onclick={handleSave}>
+		<button class="action-button check-button" aria-label="Save" onclick={handleSave} disabled={!canSave}>
 			<i class="fas fa-check"></i>
 		</button>
 	{:else}

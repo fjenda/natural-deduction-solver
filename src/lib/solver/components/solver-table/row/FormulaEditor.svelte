@@ -2,6 +2,8 @@
 	import { PrettySyntaxer } from '../../../parsers/PrettySyntaxer';
 	import { PremiseParser } from '../../../parsers/PremiseParser';
 	import OperatorKeyboard from '../../../../components/OperatorKeyboard.svelte';
+	import ParseDiagnosticHint from '../../ParseDiagnosticHint.svelte';
+	import type { ParseDiagnostic } from '../../../../../types/ParseDiagnostic';
 
 	interface FormulaEditorProps {
 		formula: string;
@@ -14,6 +16,7 @@
 
 	let isValid = $state(true);
 	let hasContent = $state(false);
+	let diagnostic = $state<ParseDiagnostic | undefined>(undefined);
 
 	/**
 	 * Validates the formula in real-time using PremiseParser.
@@ -25,12 +28,14 @@
 
 		if (!hasContent) {
 			isValid = true;
+			diagnostic = undefined;
 			onValidationChange?.(true);
 			return;
 		}
 
 		const parsed = PremiseParser.parsePremise(trimmed);
 		isValid = parsed.tree !== null;
+		diagnostic = parsed.diagnostic;
 		onValidationChange?.(isValid);
 	};
 
@@ -48,6 +53,8 @@
 	 * @param event - the keyboard event
 	 */
 	const handleKeydown = (event: KeyboardEvent) => {
+		event.stopPropagation();
+
 		if (event.key === 'Enter' && onEnter) {
 			event.preventDefault();
 			onEnter();
@@ -55,32 +62,46 @@
 	};
 </script>
 
-<OperatorKeyboard>
-	<input
-		id="row-input"
-		class="row-input"
-		class:valid={hasContent && isValid}
-		class:invalid={hasContent && !isValid}
-		type="text"
-		bind:value={formula}
-		oninput={validateFormula}
-		onchange={handleInputChange}
-		onkeydown={handleKeydown}
-		placeholder="Enter formula..."
-	/>
-</OperatorKeyboard>
+<div class="editor-stack">
+	<OperatorKeyboard>
+		<input
+			id="row-input"
+			class="row-input"
+			class:valid={hasContent && isValid}
+			class:invalid={hasContent && !isValid}
+			type="text"
+			bind:value={formula}
+			oninput={validateFormula}
+			onchange={handleInputChange}
+			onkeydown={handleKeydown}
+			placeholder="Enter formula..."
+		/>
+	</OperatorKeyboard>
+
+	{#if hasContent && diagnostic}
+		<ParseDiagnosticHint {diagnostic} />
+	{/if}
+</div>
 
 <style>
+	.editor-stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
 	.row-input {
 		width: 100%;
-		font-size: 1em;
-		padding: var(--spacing-sm);
+		font-size: 1.05em;
+		padding: var(--spacing-md);
 		border: 1px solid var(--border);
 		color: var(--text-primary);
 		background: var(--surface);
 		height: auto;
 		border-radius: var(--radius-md);
 		transition: all var(--transition-base);
+		min-height: 3rem;
 	}
 
 	.row-input:focus {

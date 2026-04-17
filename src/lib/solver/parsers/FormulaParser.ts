@@ -9,8 +9,14 @@ import { Theorem } from '../../rules/Theorem';
 import type { IRule } from '../../rules/IRule';
 import { showToast } from '../../utils/showToast';
 import { verifyProlog } from '../services/proofService';
-import { appliedRuleFromString } from '../../../types/AppliedRule';
+import {
+	appliedRuleFromString,
+	cloneAppliedRule,
+	normalizeAppliedRule,
+	type AppliedRule
+} from '../../../types/AppliedRule';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
+import { appliedRuleToPrologReplacements, getMissingProofLines } from '../utils/appliedRuleUtils';
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid.
@@ -23,10 +29,14 @@ export class FormulaParser {
 	 * Parses a formula and checks if it is a valid application of a deduction rule
 	 * @param formula - the formula to parse
 	 * @param line - the line number of the formula
-	 * @param ruleStr - the rule applied to the formula as a string
+	 * @param ruleInput - the rule applied to the formula
 	 * @returns a TreeRuleType object containing the parsed formula and the rule applied
 	 */
-	static async parseFormula(formula: string, line: number, ruleStr: string): Promise<TreeRuleType> {
+	static async parseFormula(
+		formula: string,
+		line: number,
+		ruleInput: string | AppliedRule
+	): Promise<TreeRuleType> {
 		const mode = get(logicMode);
 		const parser = new PrattParser(mode);
 		const res = parser.parse(formula);
@@ -35,7 +45,8 @@ export class FormulaParser {
 			line,
 			tree: null,
 			rule: { rule: NDRule.UNKNOWN },
-			value: formula
+			value: formula,
+			diagnostic: parser.lastDiagnostic ?? undefined
 		};
 
 		// stop early if syntax is wrong
@@ -44,21 +55,17 @@ export class FormulaParser {
 		// normalize formula
 		base.tree = res.simplify().parenthesize();
 		base.value = Node.generateString(base.tree);
+		base.diagnostic = undefined;
 
-		// normalize rule string
-		const cleanRule = PrettySyntaxer.cleanupRule(ruleStr);
+		const applied = FormulaParser.normalizeRuleInput(ruleInput);
 
 		// trivial rules
-		if (cleanRule === 'PREM') return base;
-		if (cleanRule === 'CONC') return { ...base, rule: { rule: NDRule.CONC } };
-		if (!cleanRule) return base;
-
-		// parse applied rule (e.g. "EC 1,2")
-		const applied = appliedRuleFromString(cleanRule);
-		if (!applied.lines) return base;
+		if (applied.rule === 'PREM') return { ...base, rule: { rule: NDRule.PREM } };
+		if (applied.rule === 'CONC') return { ...base, rule: { rule: NDRule.CONC } };
+		if (!applied.rule) return base;
 
 		// validate lines
-		if (!FormulaParser.linesExist(applied.lines)) {
+		if (!FormulaParser.linesExist(applied.lines ?? [])) {
 			showToast("One or more specified lines don't exist", 'error');
 			return base;
 		}
@@ -71,19 +78,17 @@ export class FormulaParser {
 		}
 
 		// get premises from solver store
-		const [first, second] = FormulaParser.getPremises(applied.lines);
-
-		// apply rule
-		const params = applied.replacements ?? [];
-		const paramsCopy = [...params];
-		if (['EEX', 'EU'].includes(usedRule.short)) {
-			paramsCopy[0] = `var(${params[0]})`;
-		} else if (['IEX', 'IU'].includes(usedRule.short)) {
-			paramsCopy[1] = `var(${params[1]})`;
+		const [first, second] = FormulaParser.getPremises(applied.lines ?? []);
+		if (!FormulaParser.hasRequiredPremises(applied.lines ?? [], usedRule, first)) {
+			return base;
 		}
 
-		// We can only use a constant in EEX
-		if (usedRule.short === 'EEX') paramsCopy[1] = `const(${params[1]})`;
+		// apply rule
+		const paramsCopy = appliedRuleToPrologReplacements(applied);
+		if (paramsCopy === null) {
+			showToast('Invalid substitution input.', 'error');
+			return base;
+		}
 
 		const ok = await FormulaParser.checkRuleApplication(
 			base.tree,
@@ -98,15 +103,23 @@ export class FormulaParser {
 			base.line,
 			base.tree.toPrologFormat(),
 			usedRule.short,
-			applied.lines,
+			applied.lines ?? [],
 			paramsCopy
 		);
 
 		// success
 		return {
 			...base,
-			rule: { rule: usedRule.short, lines: applied.lines, replacements: params }
+			rule: { ...cloneAppliedRule(applied), rule: usedRule.short }
 		};
+	}
+
+	private static normalizeRuleInput(ruleInput: string | AppliedRule): AppliedRule {
+		if (typeof ruleInput === 'string') {
+			return normalizeAppliedRule(appliedRuleFromString(PrettySyntaxer.cleanupRule(ruleInput)));
+		}
+
+		return normalizeAppliedRule(ruleInput);
 	}
 
 	/**
@@ -115,13 +128,15 @@ export class FormulaParser {
 	 * @returns {boolean} true if all lines exist
 	 */
 	private static linesExist(lines: number[]): boolean {
-		const proof = get(solverContent).proof;
-		for (const l of lines) {
-			if (l < 1 || l > proof.length) {
-				showToast(`Row ${l} doesn't exist`, 'error');
-				return false;
-			}
+		if (lines.length === 0) return true;
+
+		const proofLength = get(solverContent).proof.length;
+		const missingLines = getMissingProofLines(lines, proofLength);
+		if (missingLines.length > 0) {
+			showToast(`Row ${missingLines[0]} doesn't exist`, 'error');
+			return false;
 		}
+
 		return true;
 	}
 
@@ -151,6 +166,18 @@ export class FormulaParser {
 		const first = proof[lines[0] - 1];
 		const second = lines[1] ? proof[lines[1] - 1] : null;
 		return [first, second];
+	}
+
+	private static hasRequiredPremises(
+		lines: number[],
+		rule: IRule,
+		first: TreeRuleType | null | undefined
+	): boolean {
+		if (lines.length > 0 && first?.tree) return true;
+		if (rule.inputSize === 0) return true;
+
+		showToast('Please reference at least one valid row.', 'error');
+		return false;
 	}
 
 	/**

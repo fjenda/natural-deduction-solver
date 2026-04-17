@@ -4,6 +4,7 @@ import { showToast } from '../../utils/showToast';
 import { FormulaComparer } from '../FormulaComparer';
 import type { TreeRuleType } from '../../../types/TreeRuleType';
 import { Node } from '../../syntax-checker/Node';
+import { replacementFromProlog } from './appliedRuleUtils';
 
 /**
  * Returns a boolean indicating if the formula already exists in the proof
@@ -29,9 +30,7 @@ export function addProofToStore(
 	replacements: string[] = [],
 	trees?: Node[] | null
 ): string[] {
-	const replacementsString = replacements
-		.map((r) => Node.fromPrologFormat(r).value)
-		.filter((r): r is string => r !== undefined);
+	const typedReplacements = replacements.map(replacementFromProlog);
 
 	const acceptedResults: string[] = [];
 
@@ -44,7 +43,7 @@ export function addProofToStore(
 				line: sc.proof.length + 1,
 				tree: tree.simplify().parenthesize(),
 				value: Node.generateString(tree),
-				rule: { rule, lines, replacements: replacementsString }
+				rule: { rule, lines, replacements: typedReplacements }
 			};
 
 			if (!existsInProof(newRow)) {

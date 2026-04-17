@@ -1,4 +1,5 @@
 import type { Node } from '../lib/syntax-checker/Node';
+import type { ParseDiagnostic } from './ParseDiagnostic';
 
 /**
  * ParsedExpression type
@@ -9,4 +10,5 @@ import type { Node } from '../lib/syntax-checker/Node';
 export type ParsedExpression = {
 	tree: Node | null;
 	value: string;
+	diagnostic?: ParseDiagnostic;
 };

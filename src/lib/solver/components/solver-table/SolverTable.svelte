@@ -9,6 +9,7 @@
 	import { removeRow } from '../../actions/proofActions';
 	import ProofRow from './row/ProofRow.svelte';
 	import { existsInProof } from '../../utils/proofUtils';
+	import { cloneAppliedRule } from '../../../../types/AppliedRule';
 
 	interface SolverTableProps {
 		data: TreeRuleType[];
@@ -77,7 +78,7 @@
 					$solverContent.proof.splice(i, 0, res);
 
 					row.formula = $solverContent.proof[i].value;
-					row.rule = $solverContent.proof[i].rule;
+					row.rule = cloneAppliedRule($solverContent.proof[i].rule);
 					row.editable = false;
 				}}
 				onEdit={() => {

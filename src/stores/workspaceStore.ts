@@ -3,6 +3,7 @@ import { Solution } from '../lib/solver/Solution';
 import { solverContent, indirectSolving } from './solverStore';
 import { endSession, startSession } from './historyStore';
 import { solving } from './stateStore';
+import { cloneAppliedRule } from '../types/AppliedRule';
 
 /**
  * Represents a saved workspace containing a proof problem and its state.
@@ -46,11 +47,7 @@ function cloneSolution(source: Solution): Solution {
 		line: row.line,
 		value: row.value,
 		tree: row.tree,
-		rule: {
-			rule: row.rule.rule,
-			lines: row.rule.lines ? [...row.rule.lines] : [],
-			replacements: row.rule.replacements ? [...row.rule.replacements] : []
-		}
+		rule: cloneAppliedRule(row.rule)
 	}));
 	clone.indirect = source.indirect;
 	clone.contradiction = source.contradiction;

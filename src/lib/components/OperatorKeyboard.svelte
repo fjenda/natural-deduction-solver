@@ -12,8 +12,10 @@
 
 	let container: HTMLDivElement | null = $state(null);
 	let focusedInput: HTMLInputElement | HTMLTextAreaElement | null = $state(null);
+	let barElement: HTMLDivElement | null = $state(null);
 	let visible = $state(false);
 	let barStyle = $state('');
+	let reservedHeight = $state(0);
 
 	/**
 	 * Logical operators grouped by category.
@@ -59,6 +61,10 @@
 
 		// position using fixed so the bar escapes overflow:hidden ancestors
 		barStyle = `position:fixed; left:${inputRect.left}px; top:${inputRect.bottom}px; width:${inputRect.width}px;`;
+
+		requestAnimationFrame(() => {
+			reservedHeight = (barElement?.offsetHeight ?? 0) + 8;
+		});
 	};
 
 	/**
@@ -111,6 +117,7 @@
 		visible = false;
 		focusedInput = null;
 		barStyle = '';
+		reservedHeight = 0;
 	};
 
 	/**
@@ -143,6 +150,8 @@
 
 <div
 	class="operator-keyboard-wrapper"
+	class:keyboard-visible={visible}
+	style={`padding-bottom:${visible ? reservedHeight : 0}px;`}
 	bind:this={container}
 	onfocusin={handleFocusIn}
 	onfocusout={handleFocusOut}
@@ -152,7 +161,7 @@
 
 {#if visible}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
-	<div class="keyboard-bar" style={barStyle} onmousedown={handleButtonMousedown}>
+	<div class="keyboard-bar" bind:this={barElement} style={barStyle} onmousedown={handleButtonMousedown}>
 		{#each operators as op (op.symbol)}
 			<button class="key" type="button" onclick={() => insertOperator(op.symbol)} title={op.title}>
 				{op.label}
@@ -165,6 +174,7 @@
 	.operator-keyboard-wrapper {
 		position: relative;
 		width: 100%;
+		transition: padding-bottom var(--transition-base);
 	}
 
 	.keyboard-bar {

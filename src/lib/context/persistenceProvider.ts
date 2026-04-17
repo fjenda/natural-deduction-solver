@@ -3,7 +3,7 @@ import { Solution } from '../solver/Solution';
 import { ParseStrategy } from '../../types/ParseStrategy';
 import type { ParsedExpression } from '../../types/ParsedExpression';
 import type { TreeRuleType } from '../../types/TreeRuleType';
-import type { AppliedRule } from '../../types/AppliedRule';
+import type { AppliedRule, AppliedRuleReplacement, RuleReplacementKind } from '../../types/AppliedRule';
 import { Node } from '../syntax-checker/Node';
 import { PrattParser } from '../syntax-checker/PrattParser';
 import { editState, solving } from '../../stores/stateStore';
@@ -16,6 +16,7 @@ import {
 	restoreWorkspaces,
 	type Workspace
 } from '../../stores/workspaceStore';
+import { cloneAppliedRule } from '../../types/AppliedRule';
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
@@ -82,6 +83,10 @@ const getStorage = (storage?: StorageLike): StorageLike | null => {
 	return window.localStorage;
 };
 
+const isReplacementKind = (value: unknown): value is RuleReplacementKind => {
+	return value === 'variable' || value === 'constant' || value === 'term';
+};
+
 const parseExpression = (value: string, mode: ParseStrategy): ParsedExpression => {
 	const expression: ParsedExpression = {
 		value,
@@ -113,9 +118,23 @@ const normalizeRule = (value: unknown): AppliedRule | null => {
 		? rawLines.filter((line): line is number => typeof line === 'number' && Number.isFinite(line))
 		: [];
 	const replacements = Array.isArray(rawReplacements)
-		? rawReplacements.filter(
-				(replacement): replacement is string => typeof replacement === 'string'
-			)
+		? rawReplacements
+				.map((replacement): AppliedRuleReplacement | null => {
+					if (typeof replacement === 'string') {
+						return { value: replacement };
+					}
+
+					if (!replacement || typeof replacement !== 'object') return null;
+
+					const parsedReplacement = replacement as Partial<AppliedRuleReplacement>;
+					if (typeof parsedReplacement.value !== 'string') return null;
+
+					return {
+						value: parsedReplacement.value,
+						kind: isReplacementKind(parsedReplacement.kind) ? parsedReplacement.kind : undefined
+					};
+				})
+				.filter((replacement): replacement is AppliedRuleReplacement => replacement !== null)
 		: [];
 
 	return {
@@ -151,11 +170,7 @@ const normalizeProof = (value: unknown): PersistedProofStep[] => {
 const serializeProofStep = (step: TreeRuleType): PersistedProofStep => ({
 	line: step.line,
 	value: step.value,
-	rule: {
-		rule: step.rule.rule,
-		lines: step.rule.lines ? [...step.rule.lines] : [],
-		replacements: step.rule.replacements ? [...step.rule.replacements] : []
-	}
+	rule: cloneAppliedRule(step.rule)
 });
 
 const deserializeProofStep = (

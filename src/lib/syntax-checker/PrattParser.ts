@@ -24,6 +24,7 @@ import { Node } from './Node';
 import { NodeType } from './NodeType';
 import { Operator } from './Operator';
 import { ParseStrategy } from '../../types/ParseStrategy';
+import type { ParseDiagnostic } from '../../types/ParseDiagnostic';
 
 /**
  * Precedence table for operators
@@ -46,6 +47,8 @@ const PRECEDENCE: { [key: string]: number } = {
 export class PrattParser {
 	private tokenStream!: TokenStream;
 	private readonly strategy!: ParseStrategy;
+	private diagnostic: ParseDiagnostic | null = null;
+	private source = '';
 
 	/**
 	 * Constructor for the PrattParser
@@ -62,14 +65,27 @@ export class PrattParser {
 	 * @returns the root of the parsed tree
 	 */
 	parse(formula: string): Node | null {
+		this.source = formula;
 		this.tokenStream = new TokenStream(formula);
+		this.diagnostic = null;
 		const tree = this.parseExpression(0);
+		if (!tree) {
+			if (!this.diagnostic) {
+				this.recordDiagnostic('Unable to parse formula.', ['valid formula']);
+			}
+			return null;
+		}
 
 		if (!this.tokenStream.isAtEnd()) {
+			this.recordDiagnostic('Unexpected trailing token.', ['end of input']);
 			return null;
 		}
 
 		return tree;
+	}
+
+	get lastDiagnostic(): ParseDiagnostic | null {
+		return this.diagnostic;
 	}
 
 	/**
@@ -100,16 +116,26 @@ export class PrattParser {
 	private parseToken(): Node | null {
 		const token = this.tokenStream.current();
 		const beforeToken = this.tokenStream.save();
-		this.tokenStream.advance();
 
-		if (!token) return null;
+		if (!token) {
+			this.recordDiagnostic('Unexpected end of input.', ['formula']);
+			return null;
+		}
+
+		this.tokenStream.advance();
 
 		// small character
 		if (/[a-z]/.test(token)) {
 			// function or constant
 			if (this.tokenStream.match('(') && this.strategy === ParseStrategy.PREDICATE) {
+				if (!this.tokenStream.current()) {
+					this.recordDiagnostic(`Missing closing ')' after function ${token}.`, [')']);
+					return null;
+				}
+
 				const termList = this.parseTermList();
 				if (!this.tokenStream.match(')')) {
+					this.recordDiagnostic(`Missing closing ')' after function ${token}.`, [')']);
 					return null;
 				}
 
@@ -138,12 +164,19 @@ export class PrattParser {
 				this.tokenStream.match('(') &&
 				[ParseStrategy.PREDICATE, ParseStrategy.THEOREM].includes(this.strategy)
 			) {
-				const termList = this.parseTermList();
-				if (!this.tokenStream.match(')')) {
+				if (!this.tokenStream.current() || this.tokenStream.current() === ')') {
+					this.recordDiagnostic(`Predicate ${token} requires at least one argument.`, ['term']);
 					return null;
 				}
 
+				const termList = this.parseTermList();
 				if (!termList) {
+					this.recordDiagnostic(`Predicate ${token} requires at least one argument.`, ['term']);
+					return null;
+				}
+
+				if (!this.tokenStream.match(')')) {
+					this.recordDiagnostic(`Missing closing ')' after predicate ${token}.`, [')']);
 					return null;
 				}
 
@@ -171,12 +204,16 @@ export class PrattParser {
 
 			const variable = this.parseVariable();
 			if (!variable) {
+				this.recordDiagnostic('Expected a variable after the quantifier.', ['variable']);
 				return null;
 			}
 			node.children.push(variable);
 
 			const formula = this.parseToken();
-			if (!formula) return null;
+			if (!formula) {
+				this.recordDiagnostic('Expected a formula after the quantifier variable.', ['formula']);
+				return null;
+			}
 			node.children.push(formula);
 
 			return node;
@@ -185,6 +222,7 @@ export class PrattParser {
 		if (['¬'].includes(token)) {
 			const right = this.parseExpression(PRECEDENCE[token]);
 			if (!right) {
+				this.recordDiagnostic('Expected a formula after negation.', ['formula']);
 				return null;
 			}
 
@@ -197,6 +235,7 @@ export class PrattParser {
 		if (token === '(') {
 			const inner = this.parseExpression(0);
 			if (!this.tokenStream.match(')')) {
+				this.recordDiagnostic(`Missing closing ')'.`, [')']);
 				return null;
 			}
 
@@ -213,6 +252,7 @@ export class PrattParser {
 		if (token === '[') {
 			const inner = this.parseExpression(0);
 			if (!this.tokenStream.match(']')) {
+				this.recordDiagnostic(`Missing closing ']'.`, [']']);
 				return null;
 			}
 
@@ -227,6 +267,12 @@ export class PrattParser {
 		}
 
 		this.tokenStream.restore(beforeToken);
+		this.recordDiagnostic(`Unexpected token '${token}'.`, [
+			'formula',
+			'predicate',
+			'variable',
+			'constant'
+		]);
 		return null;
 	}
 
@@ -244,6 +290,7 @@ export class PrattParser {
 			const right = this.parseExpression(precedence);
 
 			if (!right) {
+				this.recordDiagnostic(`Expected a formula after '${operator}'.`, ['formula']);
 				return null;
 			}
 
@@ -267,6 +314,7 @@ export class PrattParser {
 		const term = this.parseExpression(0);
 
 		if (!term) {
+			this.recordDiagnostic('Expected a term.', ['term']);
 			return null;
 		}
 		node.children.push(term!);
@@ -274,6 +322,7 @@ export class PrattParser {
 		while (this.tokenStream.match(',')) {
 			const nextTerm = this.parseExpression(0);
 			if (!nextTerm) {
+				this.recordDiagnostic('Expected a term after the comma.', ['term']);
 				return null;
 			}
 			node.children.push(nextTerm!);
@@ -296,6 +345,30 @@ export class PrattParser {
 		}
 
 		return null;
+	}
+
+	private recordDiagnostic(message: string, expected: string[] = []): void {
+		const { start, end } = this.tokenStream.currentSpan();
+		const found = this.tokenStream.currentInfo()?.raw ?? this.tokenStream.current();
+		const severity = found ? 'error' : 'warning';
+
+		if (
+			this.diagnostic &&
+			(start < this.diagnostic.start ||
+				(start === this.diagnostic.start && end <= this.diagnostic.end))
+		) {
+			return;
+		}
+
+		this.diagnostic = {
+			message,
+			severity,
+			start,
+			end,
+			source: this.source,
+			found,
+			expected
+		};
 	}
 
 	/**

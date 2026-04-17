@@ -1,5 +1,6 @@
 import type { Node } from '../lib/syntax-checker/Node';
 import type { AppliedRule } from './AppliedRule';
+import type { ParseDiagnostic } from './ParseDiagnostic';
 
 /**
  * TreeRuleType type
@@ -14,4 +15,5 @@ export type TreeRuleType = {
 	tree: Node | null;
 	rule: AppliedRule;
 	value: string;
+	diagnostic?: ParseDiagnostic;
 };

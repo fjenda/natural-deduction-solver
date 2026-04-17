@@ -3,7 +3,8 @@ import { solverContent } from './solverStore';
 import type { TreeRuleType } from '../types/TreeRuleType';
 import { ProofTable } from '../prolog/queries/ProofTable';
 import { ArgsTable } from '../prolog/queries/ArgsTable';
-import { Node } from '../lib/syntax-checker/Node';
+import { cloneAppliedRule } from '../types/AppliedRule';
+import { appliedRuleToPrologReplacements } from '../lib/solver/utils/appliedRuleUtils';
 
 /**
  * Maximum number of undo steps to keep in memory per solution.
@@ -46,11 +47,7 @@ function snapshotProofRows(): TreeRuleType[] {
 		line: row.line,
 		value: row.value,
 		tree: row.tree,
-		rule: {
-			rule: row.rule.rule,
-			lines: row.rule.lines ? [...row.rule.lines] : [],
-			replacements: row.rule.replacements ? [...row.rule.replacements] : []
-		}
+		rule: cloneAppliedRule(row.rule)
 	}));
 }
 
@@ -91,13 +88,7 @@ async function syncPrologFromStore(): Promise<void> {
 		const rule = row.rule.rule;
 		const lines = row.rule.lines ?? [];
 
-		// row.rule.replacements stores display strings (e.g. "x", "a").
-		// Prolog expects Prolog format (e.g. "var(x)", "const(a)").
-		// Convert via round-trip through Node.
-		const replacements = (row.rule.replacements ?? []).map((r) => {
-			const node = Node.fromPrologFormat(r);
-			return node.toPrologFormat();
-		});
+		const replacements = appliedRuleToPrologReplacements(row.rule) ?? [];
 
 		await ProofTable.write(term, rule, lines, replacements);
 	}

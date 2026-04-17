@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { type AppliedRule, appliedRuleToString } from '../../../../../types/AppliedRule';
+	import { cloneAppliedRule, type AppliedRule } from '../../../../../types/AppliedRule';
 	import { highlightedRows, selectedRows, solverContent } from '../../../../../stores/solverStore';
 	import { NDRule } from '../../../../rules/DeductionRule';
-	import { PrettySyntaxer } from '../../../parsers/PrettySyntaxer';
 	import { canDeleteRow } from '../../../services/proofService';
 	import { showToast } from '../../../../utils/showToast';
 	import FormulaEditor from './FormulaEditor.svelte';
+	import MathMLViewer from '../../MathMLViewer.svelte';
 	import RuleEditor from './RuleEditor.svelte';
 	import RowActions from './RowActions.svelte';
 
@@ -15,7 +15,7 @@
 		rule: AppliedRule;
 		premise: boolean;
 		editable: boolean;
-		onSave: (content: string, rule: string) => void;
+		onSave: (content: string, rule: AppliedRule) => void;
 		onEdit: () => void;
 		onDelete: () => void;
 	}
@@ -31,22 +31,23 @@
 		onDelete
 	}: ProofRowProps = $props();
 
-	let ruleText = $state(appliedRuleToString(rule));
+	let ruleDraft = $state(cloneAppliedRule(rule));
 	let removable = $state(false);
+	let formulaValid = $state(true);
+	let ruleValid = $state(true);
 
 	/**
 	 * Handles Enter key press in the formula editor.
 	 * Triggers the save action with the current formula and rule text.
 	 */
 	const handleSaveFromKeyboard = () => {
-		onSave(formula, ruleText);
+		if (!formulaValid || !ruleValid) return;
+		onSave(formula, ruleDraft);
 	};
 
 	const highlighted = $derived($selectedRows.includes(line));
 	const usable = $derived($highlightedRows.includes(line));
 	const invalid = $derived(rule.rule === NDRule.UNKNOWN && !editable);
-
-	const mathmlFormula = $derived(PrettySyntaxer.toMathML(formula));
 
 	const selectRow = () => {
 		if (editable) return;
@@ -66,6 +67,26 @@
 		);
 	};
 
+	const handleRowKeydown = (event: KeyboardEvent) => {
+		if (editable) return;
+
+		const target = event.target as HTMLElement | null;
+		if (target?.closest('input, textarea, select, button, [contenteditable="true"]')) {
+			return;
+		}
+
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			selectRow();
+		}
+	};
+
+	$effect(() => {
+		ruleDraft = cloneAppliedRule(rule);
+		formulaValid = true;
+		ruleValid = true;
+	});
+
 	$effect(() => {
 		if (premise) {
 			removable = false;
@@ -77,25 +98,80 @@
 	});
 </script>
 
-<a class="row" class:highlighted class:usable class:invalid onclick={selectRow} role="button">
-	<div class="formula-container">
-		<div class="line-number">{line}</div>
-		<div class="line-content" class:scrollable={!editable}>
-			{#if editable}
-				<FormulaEditor bind:formula onEnter={handleSaveFromKeyboard} />
-			{:else}
-				{@html mathmlFormula}
-			{/if}
+<div
+	class="row"
+	class:highlighted
+	class:usable
+	class:invalid
+	class:editing={editable}
+	onclick={selectRow}
+	onkeydown={handleRowKeydown}
+	role="button"
+	tabindex="0"
+>
+	{#if editable}
+		<div class="edit-main">
+			<div class="line-number">{line}</div>
+			<div class="line-content editing">
+				<FormulaEditor
+					bind:formula
+					onEnter={handleSaveFromKeyboard}
+					onValidationChange={(valid) => {
+						formulaValid = valid;
+					}}
+				/>
+			</div>
 		</div>
-		<div class="used-rule">
-			<RuleEditor bind:ruleText {rule} {editable} onEnter={handleSaveFromKeyboard} />
+
+		<div class="edit-footer">
+			<div class="used-rule editing">
+				<RuleEditor
+					bind:ruleDraft
+					{editable}
+					onEnter={handleSaveFromKeyboard}
+					onValidationChange={(valid) => {
+						ruleValid = valid;
+					}}
+				/>
+			</div>
+			<RowActions
+				{editable}
+				{premise}
+				{removable}
+				{formula}
+				{ruleDraft}
+				canSave={formulaValid && ruleValid}
+				{onSave}
+				{onEdit}
+				{onDelete}
+			/>
 		</div>
-	</div>
+	{:else}
+		<div class="formula-container">
+			<div class="line-number">{line}</div>
+			<div class="line-content" class:scrollable={!editable}>
+				<MathMLViewer value={formula} style="justify-content: flex-start;" />
+			</div>
+			<div class="used-rule">
+				<RuleEditor bind:ruleDraft {editable} onEnter={handleSaveFromKeyboard} />
+			</div>
+		</div>
 
-	<div class="separator">&nbsp;</div>
+		<div class="separator">&nbsp;</div>
 
-	<RowActions {editable} {premise} {removable} {formula} {ruleText} {onSave} {onEdit} {onDelete} />
-</a>
+		<RowActions
+			{editable}
+			{premise}
+			{removable}
+			{formula}
+			{ruleDraft}
+			canSave={true}
+			{onSave}
+			{onEdit}
+			{onDelete}
+		/>
+	{/if}
+</div>
 
 <style>
 	.row {
@@ -120,7 +196,7 @@
 	.row:hover {
 		background: var(--button-hover);
 		box-shadow: var(--shadow-md);
-		transform: translateY(-1px);
+		/*transform: translateY(-1px);*/
 	}
 
 	.row.highlighted.usable,
@@ -153,6 +229,23 @@
 		min-width: 0;
 	}
 
+	.edit-main {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-md);
+		width: 100%;
+		min-width: 0;
+	}
+
+	.edit-footer {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--spacing-md);
+		width: 100%;
+		padding-left: calc(2.5rem + var(--spacing-md));
+	}
+
 	.used-rule,
 	.line-number {
 		text-align: center;
@@ -163,6 +256,11 @@
 		width: auto;
 		flex-grow: 0;
 		flex-shrink: 1;
+	}
+
+	.used-rule.editing {
+		flex: 1;
+		padding-inline: 0;
 	}
 
 	.line-number {
@@ -180,6 +278,10 @@
 		min-width: 0;
 	}
 
+	.line-content.editing {
+		flex: 1;
+	}
+
 	.line-content.scrollable {
 		overflow-x: auto;
 		white-space: nowrap;
@@ -189,6 +291,11 @@
 	.separator {
 		width: 1px;
 		border-right: 1px solid var(--border);
+	}
+
+	.row.editing {
+		flex-direction: column;
+		align-items: stretch;
 	}
 
 	@media screen and (max-width: 1150px) {
@@ -203,6 +310,15 @@
 		.row {
 			flex-direction: column;
 			align-items: stretch;
+		}
+
+		.edit-main {
+			align-items: stretch;
+		}
+
+		.edit-footer {
+			padding-left: 0;
+			flex-direction: column;
 		}
 
 		.separator {

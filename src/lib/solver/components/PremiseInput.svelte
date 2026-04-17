@@ -3,6 +3,8 @@
 	import { PremiseParser } from '../parsers/PremiseParser';
 	import MathMLViewer from './MathMLViewer.svelte';
 	import OperatorKeyboard from '../../components/OperatorKeyboard.svelte';
+	import ParseDiagnosticHint from './ParseDiagnosticHint.svelte';
+	import type { ParseDiagnostic } from '../../../types/ParseDiagnostic';
 
 	interface PremiseInputProps {
 		placeholder: string;
@@ -25,6 +27,7 @@
 	let inputElement: HTMLInputElement | undefined = $state();
 	let show: boolean = $state(false);
 	let isValid: boolean = $state(true);
+	let diagnostic = $state<ParseDiagnostic | undefined>(undefined);
 
 	/**
 	 * Validates the formula in real-time.
@@ -34,10 +37,12 @@
 		const trimmed = (value ?? '').trim();
 		if (!trimmed) {
 			isValid = true;
+			diagnostic = undefined;
 			return;
 		}
 		const parsed = PremiseParser.parsePremise(trimmed);
 		isValid = parsed.tree !== null;
+		diagnostic = parsed.diagnostic;
 	};
 
 	/**
@@ -74,26 +79,39 @@
 	{#if !show}
 		<MathMLViewer {value} />
 	{:else}
-		<OperatorKeyboard>
-			<input
-				type="text"
-				{placeholder}
-				name="formula-{index}"
-				{disabled}
-				bind:this={inputElement}
-				bind:value
-				oninput={validateInput}
-				onchange={() => {
-					value = PrettySyntaxer.clean(value ?? '');
-					onChange(value ?? '', index);
-				}}
-				tabindex={index + 1}
-			/>
-		</OperatorKeyboard>
+		<div class="editor-stack">
+			<OperatorKeyboard>
+				<input
+					type="text"
+					{placeholder}
+					name="formula-{index}"
+					{disabled}
+					bind:this={inputElement}
+					bind:value
+					oninput={validateInput}
+					onchange={() => {
+						value = PrettySyntaxer.clean(value ?? '');
+						onChange(value ?? '', index);
+					}}
+					tabindex={index + 1}
+				/>
+			</OperatorKeyboard>
+
+			{#if (value ?? '').trim().length > 0 && diagnostic}
+				<ParseDiagnosticHint {diagnostic} />
+			{/if}
+		</div>
 	{/if}
 </div>
 
 <style>
+	.editor-stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--spacing-sm);
+		width: 100%;
+	}
+
 	input {
 		height: 3.5rem;
 		text-decoration: none;
@@ -131,15 +149,17 @@
 
 	.wrapper {
 		width: 100%;
-		height: 3.5rem;
+		min-height: 3.5rem;
 		border-radius: var(--radius-md);
 		background: var(--surface);
 		border: 1px solid var(--border);
 		position: relative;
 		display: flex;
+		flex-direction: column;
 		overflow: visible;
 		transition: all var(--transition-base);
 		box-shadow: var(--shadow-sm);
+		padding: 0;
 	}
 
 	.wrapper:focus-within {

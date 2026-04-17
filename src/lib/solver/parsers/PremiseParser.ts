@@ -14,10 +14,13 @@ export class PremiseParser {
 	 * @returns the parsed premise
 	 */
 	static parsePremise(premise: string): ParsedExpression {
+		const rawPremise = premise;
+
 		// construct the return object
 		const tmp: ParsedExpression = {
 			tree: null,
-			value: premise
+			value: premise,
+			diagnostic: undefined
 		};
 
 		// if the premise is empty, return the object
@@ -34,13 +37,18 @@ export class PremiseParser {
 		const res = parser.parse(premise);
 
 		// if the formula is not valid, return the error
-		if (!res) return tmp;
+		if (!res) {
+			tmp.value = rawPremise;
+			tmp.diagnostic = parser.lastDiagnostic ?? undefined;
+			return tmp;
+		}
 
 		const tree = res.simplify().parenthesize();
 
 		// set the tree
 		tmp.tree = tree;
 		tmp.value = Node.generateString(tree);
+		tmp.diagnostic = undefined;
 
 		return tmp;
 	}

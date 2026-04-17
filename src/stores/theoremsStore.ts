@@ -8,6 +8,7 @@ import { showToast } from '../lib/utils/showToast';
 import { ParseStrategy } from '../types/ParseStrategy';
 import type { ParsedExpression } from '../types/ParsedExpression';
 import type { TreeRuleType } from '../types/TreeRuleType';
+import { cloneAppliedRule } from '../types/AppliedRule';
 
 /**
  * The theorems store.
@@ -82,11 +83,7 @@ function cloneProof(proof: TreeRuleType[]): TreeRuleType[] {
 		line: row.line,
 		value: row.value,
 		tree: row.tree,
-		rule: {
-			rule: row.rule.rule,
-			lines: [...(row.rule.lines || [])],
-			replacements: [...(row.rule.replacements || [])]
-		}
+		rule: cloneAppliedRule(row.rule)
 	}));
 }
 
