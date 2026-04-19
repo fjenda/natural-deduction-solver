@@ -52,9 +52,11 @@
 			<SolverContainer />
 		</Panel>
 	</div>
-	<Panel variant="small">
-		<WorkspaceSidebar />
-	</Panel>
+	<div class="side-area">
+		<Panel variant="small">
+			<WorkspaceSidebar />
+		</Panel>
+	</div>
 </Context>
 
 <style>
@@ -69,5 +71,11 @@
 		border-top-left-radius: 0;
 		border-top-right-radius: 0;
 		border-top: none;
+	}
+
+	.side-area {
+		display: flex;
+		max-width: 500px;
+		width: 100%;
 	}
 </style>

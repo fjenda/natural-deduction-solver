@@ -77,7 +77,7 @@
 	class:valid={isValid && show && (value ?? '').trim().length > 0}
 >
 	{#if !show}
-		<MathMLViewer {value} />
+		<MathMLViewer {value} style="justify-content: flex-start;" />
 	{:else}
 		<div class="editor-stack">
 			<OperatorKeyboard>

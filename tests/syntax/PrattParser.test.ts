@@ -45,6 +45,28 @@ describe('PrattParser diagnostics', () => {
 		});
 	});
 
+	it('rejects bare uppercase atoms in predicate mode', () => {
+		const parser = new PrattParser(ParseStrategy.PREDICATE);
+		const result = parser.parse('A');
+
+		expect(result).toBeNull();
+		expect(parser.lastDiagnostic).toMatchObject({
+			message: 'Predicate A requires parentheses with at least one argument in predicate mode.',
+			severity: 'warning',
+			start: 1,
+			end: 1,
+			found: null
+		});
+	});
+
+	it('accepts bare uppercase schema atoms in theorem mode', () => {
+		const parser = new PrattParser(ParseStrategy.THEOREM);
+		const result = parser.parse('A ⊃ A');
+
+		expect(result).not.toBeNull();
+		expect(parser.lastDiagnostic).toBeNull();
+	});
+
 	it("reports missing closing ']' inside quantified formulas", () => {
 		const parser = new PrattParser(ParseStrategy.PREDICATE);
 		const result = parser.parse('∀x[P(x)');
@@ -98,6 +120,20 @@ describe('PrattParser diagnostics', () => {
 			start: 5,
 			end: 5,
 			found: null
+		});
+	});
+
+	it('reports missing closing parenthesis inside quantified bracketed predicates', () => {
+		const parser = new PrattParser(ParseStrategy.PREDICATE);
+		const result = parser.parse('∃x [L(x) ∧ P(x]');
+
+		expect(result).toBeNull();
+		expect(parser.lastDiagnostic).toMatchObject({
+			message: "Missing closing ')' after predicate P.",
+			severity: 'error',
+			start: 14,
+			end: 15,
+			found: ']'
 		});
 	});
 

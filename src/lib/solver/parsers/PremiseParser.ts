@@ -2,18 +2,33 @@ import { PrattParser } from '../../syntax-checker/PrattParser';
 import { Node } from '../../syntax-checker/Node';
 import { get } from 'svelte/store';
 import { logicMode } from '../../../stores/solverStore';
+import { editState } from '../../../stores/stateStore';
 import type { ParsedExpression } from '../../../types/ParsedExpression';
+import { ParseStrategy } from '../../../types/ParseStrategy';
+import { EditState } from '../../../types/EditState';
 
 /**
  * This class is responsible for parsing the premises
  */
 export class PremiseParser {
+	private static resolveStrategy(strategy?: ParseStrategy): ParseStrategy {
+		if (strategy) return strategy;
+
+		const mode = get(logicMode);
+		if (get(editState) === EditState.THEOREM && mode === ParseStrategy.PREDICATE) {
+			return ParseStrategy.THEOREM;
+		}
+
+		return mode;
+	}
+
 	/**
 	 * Parses the premise using the PrattParser
 	 * @param premise - the premise to parse
+	 * @param strategy - strategy used for the parsing
 	 * @returns the parsed premise
 	 */
-	static parsePremise(premise: string): ParsedExpression {
+	static parsePremise(premise: string, strategy?: ParseStrategy): ParsedExpression {
 		const rawPremise = premise;
 
 		// construct the return object
@@ -32,7 +47,7 @@ export class PremiseParser {
 		premise = premise.replace(/\s/g, '');
 
 		// syntax check
-		const mode = get(logicMode);
+		const mode = PremiseParser.resolveStrategy(strategy);
 		const parser = new PrattParser(mode);
 		const res = parser.parse(premise);
 

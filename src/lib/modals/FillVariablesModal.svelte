@@ -8,6 +8,7 @@
 	import { validateSubstitution } from '../solver/services/proofService';
 	import { ProofHandler } from '../../prolog/queries/ProofHandler';
 	import { Node } from '../syntax-checker/Node';
+	import { ParseStrategy } from '../../types/ParseStrategy';
 
 	interface FillVariablesModalProps extends CustomModalProps {
 		onConfirm: () => void;
@@ -173,7 +174,10 @@
 			return { status: 'empty', message: 'Enter a formula for this variable.' };
 		}
 
-		const theoremFormula = PremiseParser.parsePremise(PrettySyntaxer.clean(varName));
+		const theoremFormula = PremiseParser.parsePremise(
+			PrettySyntaxer.clean(varName),
+			ParseStrategy.THEOREM
+		);
 		const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(normalizedInput));
 		if (!formula.tree) {
 			return { status: 'invalid', message: 'Invalid formula syntax.' };

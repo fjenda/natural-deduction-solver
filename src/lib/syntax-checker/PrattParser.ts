@@ -1,23 +1,24 @@
-// Formula -> SimpleFormula FormulaPrime
-// FormulaPrime -> LogicalOp SimpleFormula FormulaPrime | ε
-// FormulaSimple -> '[' Formula ']'
-//                | '(' Formula ')'
-//                | '!' Formula
-//                | Quantifier Small Formula
-//                | Predicate '(' TermList ')'
-//                | Constant
-//
-// LogicalOp -> '&' | '|' | '>' | '='
-// Quantifier -> '@' | '?'
-// TermList -> Term TermListTail
-// TermListTail -> ',' Term TermListTail | ε
-// Term -> Function '(' TermList ')'
-// Predicate -> Large | Small
-// Function -> Small
-// Constant -> [a-g]
-// Variable -> [h-z]
-// Large -> [A-Z]
-// Small -> [a-z]
+// Parser-faithful grammar over normalized tokens (see TokenStream for ASCII aliases):
+// Formula      ::= Equiv
+// Equiv        ::= Impl ( '≡' Impl )*
+// Impl         ::= Or ( '⊃' Or )*
+// Or           ::= And ( '∨' And )*
+// And          ::= Prefix ( '∧' Prefix )*
+// Prefix       ::= '¬' Prefix | Quantified | Primary
+// Quantified   ::= ('∀' | '∃') Variable Prefix
+//                // quantified bodies bind only a prefix form; larger bodies must be wrapped in [] or ()
+// Primary      ::= '(' Formula ')' | '[' Formula ']' | Atomic
+// Atomic (PROP):: Upper | Lower
+// Atomic (PRED):: Upper '(' NonEmptyTermList ')' | Lower | Lower '(' [ TermList ] ')'
+// Atomic (THEOREM)
+//              ::= Upper [ '(' NonEmptyTermList ')' ]
+//               | Lower
+//               | Lower '(' [ TermList ] ')'
+// TermList     ::= Term ( ',' Term )*
+// Term         ::= Lower '(' TermList ')' | Lower
+// Variable     ::= Lower
+// Upper        ::= [A-Z]
+// Lower        ::= [a-z]
 
 import { TokenStream } from './TokenStream';
 import { Node } from './Node';
@@ -68,6 +69,7 @@ export class PrattParser {
 		this.source = formula;
 		this.tokenStream = new TokenStream(formula);
 		this.diagnostic = null;
+
 		const tree = this.parseExpression(0);
 		if (!tree) {
 			if (!this.diagnostic) {
@@ -103,6 +105,10 @@ export class PrattParser {
 			const token = this.tokenStream.current();
 			this.tokenStream.advance();
 			left = this.parseLed(token!, left!);
+
+			if (!left) {
+				return null;
+			}
 		}
 
 		return left;
@@ -186,10 +192,16 @@ export class PrattParser {
 				return node;
 			}
 
-			// TODO: Does this need to be here?
-			if (this.strategy === ParseStrategy.PREDICATE) {
-				// return null;
+			if (this.strategy === ParseStrategy.THEOREM) {
 				return new Node(NodeType.PREDICATE, token);
+			}
+
+			if (this.strategy === ParseStrategy.PREDICATE) {
+				this.recordDiagnostic(
+					`Predicate ${token} requires parentheses with at least one argument in predicate mode.`,
+					['(']
+				);
+				return null;
 			}
 
 			return new Node(NodeType.CONSTANT, token);
@@ -234,6 +246,10 @@ export class PrattParser {
 
 		if (token === '(') {
 			const inner = this.parseExpression(0);
+			if (!inner) {
+				return null;
+			}
+
 			if (!this.tokenStream.match(')')) {
 				this.recordDiagnostic(`Missing closing ')'.`, [')']);
 				return null;
@@ -251,6 +267,10 @@ export class PrattParser {
 
 		if (token === '[') {
 			const inner = this.parseExpression(0);
+			if (!inner) {
+				return null;
+			}
+
 			if (!this.tokenStream.match(']')) {
 				this.recordDiagnostic(`Missing closing ']'.`, [']']);
 				return null;
@@ -311,24 +331,66 @@ export class PrattParser {
 	private parseTermList(): Node | null {
 		const node = new Node(NodeType.TERM_LIST);
 
-		const term = this.parseExpression(0);
+		const term = this.parseTerm();
 
 		if (!term) {
-			this.recordDiagnostic('Expected a term.', ['term']);
 			return null;
 		}
-		node.children.push(term!);
+		node.children.push(term);
 
 		while (this.tokenStream.match(',')) {
-			const nextTerm = this.parseExpression(0);
+			const nextTerm = this.parseTerm();
 			if (!nextTerm) {
 				this.recordDiagnostic('Expected a term after the comma.', ['term']);
 				return null;
 			}
-			node.children.push(nextTerm!);
+			node.children.push(nextTerm);
 		}
 
 		return node;
+	}
+
+	/**
+	 * Parse a single term (variable, constant, or function application)
+	 * @returns the parsed node or null if the term is not valid
+	 * @private
+	 */
+	private parseTerm(): Node | null {
+		const token = this.tokenStream.current();
+
+		if (!token || !/[a-z]/.test(token)) {
+			this.recordDiagnostic('Expected a term.', ['term']);
+			return null;
+		}
+
+		this.tokenStream.advance();
+
+		// function application: f(t1, t2, ...)
+		if (this.tokenStream.match('(')) {
+			if (!this.tokenStream.current()) {
+				this.recordDiagnostic(`Missing closing ')' after function ${token}.`, [')']);
+				return null;
+			}
+
+			const termList = this.parseTermList();
+
+			if (!this.tokenStream.match(')')) {
+				this.recordDiagnostic(`Missing closing ')' after function ${token}.`, [')']);
+				return null;
+			}
+
+			// empty termlist -> constant
+			if (!termList) {
+				return new Node(NodeType.CONSTANT, token);
+			}
+
+			const node = new Node(NodeType.FUNCTION, token);
+			node.children.push(termList);
+			return node;
+		}
+
+		// bare lowercase: variable
+		return new Node(NodeType.VARIABLE, token);
 	}
 
 	/**

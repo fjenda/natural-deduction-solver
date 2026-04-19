@@ -43,8 +43,8 @@ export class FormulaComparer {
 		// first we check the strings without the parentheses
 		// if they are different, then there's no need to check the actual structure of the trees
 		// also we check if the trees are defined
-		const f1NoParen = f1.value.replace(/(\(|\))/g, '');
-		const f2NoParen = f2.value.replace(/(\(|\))/g, '');
+		const f1NoParen = f1.value.replace(/[()]/g, '');
+		const f2NoParen = f2.value.replace(/[()]/g, '');
 		if (f1NoParen !== f2NoParen) {
 			return false;
 		}

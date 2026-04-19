@@ -40,7 +40,7 @@
 		<h2>Theorems</h2>
 		<Hint
 			title="Saved Theorems"
-			text="Create and prove reusable theorems. Once saved, you can click a theorem while solving to apply it as a rule via variable substitution."
+			text="Create and prove reusable theorems. Once saved, apply them from this panel while solving: the dialog will ask only for the needed variables and will check dependencies for you."
 		/>
 	</div>
 	<StyledButton text="Create Theorem" onClick={createTheorem} disabled={$solving} />

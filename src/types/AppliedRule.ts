@@ -59,7 +59,7 @@ export function cloneAppliedRule(appliedRule: AppliedRule): AppliedRule {
 
 export function normalizeAppliedRule(appliedRule: AppliedRule): AppliedRule {
 	return {
-		rule: appliedRule.rule.trim().toUpperCase(),
+		rule: appliedRule.rule.trim(),
 		lines: (appliedRule.lines ?? []).filter((line) => Number.isFinite(line)),
 		replacements: (appliedRule.replacements ?? [])
 			.map((replacement) => ({

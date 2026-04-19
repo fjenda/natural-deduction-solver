@@ -4,8 +4,8 @@ import type { TreeRuleType } from '../../../types/TreeRuleType';
 import { get } from 'svelte/store';
 import { PrettySyntaxer } from './PrettySyntaxer';
 import { logicMode, solverContent } from '../../../stores/solverStore';
+import { editState } from '../../../stores/stateStore';
 import { Node } from '../../syntax-checker/Node';
-import { Theorem } from '../../rules/Theorem';
 import type { IRule } from '../../rules/IRule';
 import { showToast } from '../../utils/showToast';
 import { verifyProlog } from '../services/proofService';
@@ -17,6 +17,8 @@ import {
 } from '../../../types/AppliedRule';
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { appliedRuleToPrologReplacements, getMissingProofLines } from '../utils/appliedRuleUtils';
+import { ParseStrategy } from '../../../types/ParseStrategy';
+import { EditState } from '../../../types/EditState';
 
 /**
  * The FormulaParser class is used to parse a formula and check if it is valid.
@@ -25,6 +27,15 @@ import { appliedRuleToPrologReplacements, getMissingProofLines } from '../utils/
  * If the formula is not valid, it returns the formula and the unknown rule.
  */
 export class FormulaParser {
+	private static resolveStrategy(): ParseStrategy {
+		const mode = get(logicMode);
+		if (get(editState) === EditState.THEOREM && mode === ParseStrategy.PREDICATE) {
+			return ParseStrategy.THEOREM;
+		}
+
+		return mode;
+	}
+
 	/**
 	 * Parses a formula and checks if it is a valid application of a deduction rule
 	 * @param formula - the formula to parse
@@ -37,7 +48,7 @@ export class FormulaParser {
 		line: number,
 		ruleInput: string | AppliedRule
 	): Promise<TreeRuleType> {
-		const mode = get(logicMode);
+		const mode = FormulaParser.resolveStrategy();
 		const parser = new PrattParser(mode);
 		const res = parser.parse(formula);
 
@@ -64,16 +75,16 @@ export class FormulaParser {
 		if (applied.rule === 'CONC') return { ...base, rule: { rule: NDRule.CONC } };
 		if (!applied.rule) return base;
 
-		// validate lines
-		if (!FormulaParser.linesExist(applied.lines ?? [])) {
-			showToast("One or more specified lines don't exist", 'error');
-			return base;
-		}
-
 		// resolve deduction/theorem rule
 		const usedRule = FormulaParser.findRule(applied.rule);
 		if (usedRule === DeductionRule.UNKNOWN) {
 			showToast(`Rule ${applied.rule} doesn't exist`, 'error');
+			return base;
+		}
+
+		// validate lines
+		if (!FormulaParser.linesExist(applied.lines ?? [])) {
+			showToast("One or more specified lines don't exist", 'error');
 			return base;
 		}
 
@@ -146,14 +157,7 @@ export class FormulaParser {
 	 * @returns {IRule} the matching rule, or DeductionRule.UNKNOWN if not found
 	 */
 	private static findRule(ruleName: string): IRule {
-		let rule: IRule = DeductionRule.getRule(ruleName);
-		if (rule === DeductionRule.UNKNOWN) {
-			rule = Theorem.getRule(ruleName);
-			if (rule.detail === '' && rule.inputSize === 0 && rule.outputSize === 0) {
-				rule = DeductionRule.UNKNOWN;
-			}
-		}
-		return rule;
+		return DeductionRule.getRule(ruleName);
 	}
 
 	/**

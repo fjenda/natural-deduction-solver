@@ -239,7 +239,10 @@ function validateVariableInput(
 	varName: string,
 	inputVal: string
 ): { valid: boolean; error?: string; prolog?: string } {
-	const theoremFormula = PremiseParser.parsePremise(PrettySyntaxer.clean(varName));
+	const theoremFormula = PremiseParser.parsePremise(
+		PrettySyntaxer.clean(varName),
+		ParseStrategy.THEOREM
+	);
 	const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(inputVal));
 
 	if (!formula.tree) return { valid: false, error: 'Invalid formula' };

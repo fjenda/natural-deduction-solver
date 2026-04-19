@@ -110,47 +110,51 @@
 	tabindex="0"
 >
 	{#if editable}
-		<div class="edit-main">
-			<div class="line-number">{line}</div>
-			<div class="line-content editing">
-				<FormulaEditor
-					bind:formula
-					onEnter={handleSaveFromKeyboard}
-					onValidationChange={(valid) => {
-						formulaValid = valid;
-					}}
-				/>
+		<div class="edit-layout">
+			<div class="edit-main">
+				<div class="line-number">{line}</div>
+				<div class="line-content editing">
+					<FormulaEditor
+						bind:formula
+						onEnter={handleSaveFromKeyboard}
+						onValidationChange={(valid) => {
+							formulaValid = valid;
+						}}
+					/>
+				</div>
 			</div>
-		</div>
 
-		<div class="edit-footer">
-			<div class="used-rule editing">
-				<RuleEditor
-					bind:ruleDraft
-					{editable}
-					onEnter={handleSaveFromKeyboard}
-					onValidationChange={(valid) => {
-						ruleValid = valid;
-					}}
-				/>
+			<div class="edit-footer">
+				<div class="used-rule editing">
+					<RuleEditor
+						bind:ruleDraft
+						{editable}
+						onEnter={handleSaveFromKeyboard}
+						onValidationChange={(valid) => {
+							ruleValid = valid;
+						}}
+					/>
+				</div>
+				<div class="edit-actions">
+					<RowActions
+						{editable}
+						{premise}
+						{removable}
+						{formula}
+						{ruleDraft}
+						canSave={formulaValid && ruleValid}
+						{onSave}
+						{onEdit}
+						{onDelete}
+					/>
+				</div>
 			</div>
-			<RowActions
-				{editable}
-				{premise}
-				{removable}
-				{formula}
-				{ruleDraft}
-				canSave={formulaValid && ruleValid}
-				{onSave}
-				{onEdit}
-				{onDelete}
-			/>
 		</div>
 	{:else}
 		<div class="formula-container">
 			<div class="line-number">{line}</div>
 			<div class="line-content" class:scrollable={!editable}>
-				<MathMLViewer value={formula} style="justify-content: flex-start;" />
+				<MathMLViewer value={formula} style="justify-content: flex-start; padding: 0" />
 			</div>
 			<div class="used-rule">
 				<RuleEditor bind:ruleDraft {editable} onEnter={handleSaveFromKeyboard} />
@@ -237,13 +241,27 @@
 		min-width: 0;
 	}
 
-	.edit-footer {
+	.edit-layout {
 		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
+		flex-direction: column;
+		gap: var(--spacing-md);
+		width: 100%;
+	}
+
+	.edit-footer {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
 		gap: var(--spacing-md);
 		width: 100%;
 		padding-left: calc(2.5rem + var(--spacing-md));
+	}
+
+	.edit-actions {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		align-self: center;
 	}
 
 	.used-rule,
@@ -261,6 +279,7 @@
 	.used-rule.editing {
 		flex: 1;
 		padding-inline: 0;
+		min-width: 0;
 	}
 
 	.line-number {
@@ -306,6 +325,18 @@
 		}
 	}
 
+	@media screen and (max-width: 1180px) {
+		.edit-footer {
+			padding-left: 0;
+			grid-template-columns: 1fr;
+		}
+
+		.edit-actions {
+			width: 100%;
+			justify-content: flex-end;
+		}
+	}
+
 	@media screen and (max-width: 950px) {
 		.row {
 			flex-direction: column;
@@ -316,10 +347,6 @@
 			align-items: stretch;
 		}
 
-		.edit-footer {
-			padding-left: 0;
-			flex-direction: column;
-		}
 
 		.separator {
 			width: 100%;
