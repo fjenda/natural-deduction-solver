@@ -216,7 +216,7 @@
 				<div class="panel-header">
 					<p>Original theorem</p>
 				</div>
-				<MathMLViewer value={theoremValue} />
+				<MathMLViewer value={theoremValue} style="height: auto;" />
 			</div>
 
 			<div class="panel variable-panel">

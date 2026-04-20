@@ -76,7 +76,10 @@
 		{:else}
 			<p class:visible={!hovered}>{name}</p>
 			<div class="mathml-viewer-wrapper" class:visible={hovered}>
-				<MathMLViewer value={$theorems[index].solution.whole.value} style="font-size: 1.1rem" />
+				<MathMLViewer
+					value={$theorems[index].solution.whole.value}
+					style="font-size: 1.1rem; justify-content: flex-start;"
+				/>
 			</div>
 		{/if}
 	</div>
