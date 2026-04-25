@@ -7,6 +7,9 @@
 		body?: Snippet;
 		buttons?: Snippet;
 		contentWidth?: string;
+		onPrimaryAction?: () => void;
+		submitOnEnter?: boolean;
+		closeOnEscape?: boolean;
 	}
 
 	const {
@@ -17,6 +20,9 @@
 		body,
 		buttons,
 		contentWidth,
+		onPrimaryAction,
+		submitOnEnter = false,
+		closeOnEscape = true,
 		...rest
 	}: CustomModalProps = $props();
 
@@ -26,10 +32,35 @@
 			close();
 		}
 	};
+
+	const handleKeydown = (event: KeyboardEvent) => {
+		if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
+
+		const target = event.target as HTMLElement | null;
+		if (closeOnEscape && event.key === 'Escape') {
+			event.preventDefault();
+			close();
+			return;
+		}
+
+		if (!submitOnEnter || event.key !== 'Enter') return;
+		if (target?.closest('button, a, [role="button"], textarea, [contenteditable="true"]')) return;
+
+		event.preventDefault();
+		onPrimaryAction?.();
+	};
 </script>
 
 {#if isOpen}
-	<div {id} {...rest} role="dialog" aria-modal="true" class="modal" onclick={handleClose}>
+	<div
+		{id}
+		{...rest}
+		role="dialog"
+		aria-modal="true"
+		class="modal"
+		onclick={handleClose}
+		onkeydown={handleKeydown}
+	>
 		<div class="contents" style={contentWidth ? `--modal-width:${contentWidth};` : ''}>
 			<div class="header">
 				<h2>{title}</h2>

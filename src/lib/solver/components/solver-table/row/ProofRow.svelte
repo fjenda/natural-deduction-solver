@@ -15,9 +15,11 @@
 		rule: AppliedRule;
 		premise: boolean;
 		editable: boolean;
+		isManualDraft?: boolean;
 		onSave: (content: string, rule: AppliedRule) => void;
 		onEdit: () => void;
 		onDelete: () => void;
+		onCancel?: () => void;
 	}
 
 	let {
@@ -26,9 +28,11 @@
 		rule,
 		premise = false,
 		editable = false,
+		isManualDraft = false,
 		onSave,
 		onEdit,
-		onDelete
+		onDelete,
+		onCancel
 	}: ProofRowProps = $props();
 
 	let ruleDraft = $state(cloneAppliedRule(rule));
@@ -140,12 +144,14 @@
 						{editable}
 						{premise}
 						{removable}
+						{isManualDraft}
 						{formula}
 						{ruleDraft}
 						canSave={formulaValid && ruleValid}
 						{onSave}
 						{onEdit}
 						{onDelete}
+						{onCancel}
 					/>
 				</div>
 			</div>
@@ -167,12 +173,14 @@
 			{editable}
 			{premise}
 			{removable}
+			{isManualDraft}
 			{formula}
 			{ruleDraft}
 			canSave={true}
 			{onSave}
 			{onEdit}
 			{onDelete}
+			{onCancel}
 		/>
 	{/if}
 </div>

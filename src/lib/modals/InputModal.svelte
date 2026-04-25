@@ -33,21 +33,27 @@
 
 	let connectivePosition = $state<ConnectivePosition>(defaultConnectivePosition);
 	let modalInput = $state<HTMLInputElement | undefined>(undefined);
-	let value = $state('');
+	let value = $state<string | number>('');
 	let diagnostic = $state<ParseDiagnostic | undefined>(undefined);
 	let isValid = $state(true);
 
 	const usesFormulaInput = $derived(inputMode === 'formula');
+	const normalizedValue = $derived(String(value ?? '').trim());
 	const inputLabel = $derived(
 		inputMode === 'number' ? 'Row' : usesFormulaInput ? 'Formula' : 'Input'
 	);
 	const canConfirm = $derived.by(() => {
-		const trimmed = value.trim();
-		if (!trimmed) return false;
+		if (!normalizedValue) return false;
 		if (inputMode === 'formula') return isValid;
-		if (inputMode === 'number') return /^\d+$/.test(trimmed);
+		if (inputMode === 'number') return /^\d+$/.test(normalizedValue);
 		return true;
 	});
+
+	function handleConfirm() {
+		if (!modalInput || !canConfirm) return;
+		onConfirm(modalInput, showConnectivePosition ? connectivePosition : undefined);
+		close();
+	}
 
 	function validateInput(currentValue: string) {
 		if (inputMode !== 'formula') {
@@ -76,6 +82,8 @@
 	{id}
 	{index}
 	contentWidth="min(35rem, calc(100vw - 2 * var(--spacing-lg)))"
+	onPrimaryAction={handleConfirm}
+	submitOnEnter={true}
 >
 	{#snippet body()}
 		<div class="modal-form">
@@ -89,21 +97,23 @@
 							type="text"
 							{placeholder}
 							name="modal-input"
-							class:invalid={!isValid && value.trim().length > 0}
+							class:invalid={!isValid && normalizedValue.length > 0}
 							bind:this={modalInput}
 							bind:value
-							oninput={() => validateInput(value)}
+							oninput={() => validateInput(String(value ?? ''))}
 						/>
 					</OperatorKeyboard>
-					{#if diagnostic && value.trim().length > 0}
+					{#if diagnostic && normalizedValue.length > 0}
 						<ParseDiagnosticHint {diagnostic} variant="compact" />
 					{/if}
 				{:else}
 					<input
 						id="modal-input"
-						type={inputMode === 'number' ? 'number' : 'text'}
+							type="text"
 						{placeholder}
 						name="modal-input"
+							inputmode={inputMode === 'number' ? 'numeric' : undefined}
+							pattern={inputMode === 'number' ? '[0-9]*' : undefined}
 						bind:this={modalInput}
 						bind:value
 					/>
@@ -143,11 +153,7 @@
 			<button
 				class="button primary"
 				disabled={!canConfirm}
-				onclick={() => {
-					if (!modalInput) return;
-					onConfirm(modalInput, showConnectivePosition ? connectivePosition : undefined);
-					close();
-				}}>Confirm</button
+				onclick={handleConfirm}>Confirm</button
 			>
 		</div>
 	{/snippet}

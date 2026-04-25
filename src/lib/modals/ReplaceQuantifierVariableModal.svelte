@@ -38,9 +38,24 @@
 		}
 		showSuggestions = false;
 	}
+
+	function handleConfirm() {
+		if (!modalInput) return;
+		onConfirm(modalInput);
+		showSuggestions = false;
+		close();
+	}
 </script>
 
-<CustomModal {isOpen} {close} {title} {id} {index}>
+<CustomModal
+	{isOpen}
+	{close}
+	{title}
+	{id}
+	{index}
+	onPrimaryAction={handleConfirm}
+	submitOnEnter={true}
+>
 	{#snippet body()}
 		<div class="body">
 			<div class="formula-card">
@@ -94,11 +109,7 @@
 			>
 			<button
 				class="button primary"
-				onclick={() => {
-					onConfirm(modalInput);
-					showSuggestions = false;
-					close();
-				}}>Confirm</button
+				onclick={handleConfirm}>Confirm</button
 			>
 		</div>
 	{/snippet}

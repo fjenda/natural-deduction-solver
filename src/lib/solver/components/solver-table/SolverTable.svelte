@@ -10,6 +10,8 @@
 	import ProofRow from './row/ProofRow.svelte';
 	import { existsInProof } from '../../utils/proofUtils';
 	import { cloneAppliedRule } from '../../../../types/AppliedRule';
+	import { ProofTable } from '../../../../prolog/queries/ProofTable';
+	import { ArgsTable } from '../../../../prolog/queries/ArgsTable';
 
 	interface SolverTableProps {
 		data: TreeRuleType[];
@@ -20,7 +22,13 @@
 	let rows: TableRowData[] = $state([]);
 
 	$effect(() => {
-		rows = data.map((d) => ({ line: d.line, formula: d.value, rule: d.rule, editable: false }));
+		rows = data.map((d) => ({
+			line: d.line,
+			formula: d.value,
+			rule: d.rule,
+			editable: false,
+			isManualDraft: false
+		}));
 	});
 	let container: HTMLDivElement;
 
@@ -34,7 +42,8 @@
 				line: rows.length + 1,
 				formula: '',
 				rule: { rule: NDRule.UNKNOWN },
-				editable: true
+				editable: true,
+				isManualDraft: true
 			}
 		];
 
@@ -54,6 +63,10 @@
 	const canAddRow = (): boolean => {
 		return rows.filter((r) => r.editable).length < 1;
 	};
+
+	const cancelDraftRow = (index: number) => {
+		rows = rows.filter((_, rowIndex) => rowIndex !== index);
+	};
 </script>
 
 <div class="table-wrapper" bind:this={container}>
@@ -65,11 +78,22 @@
 				rule={row.rule}
 				premise={i <= $solverContent.premises.length - 1}
 				editable={row.editable}
+				isManualDraft={row.isManualDraft ?? false}
 				onSave={async (content, rule) => {
 					const res = await FormulaParser.parseFormula(content, i + 1, rule);
 
+					if (!res.tree || res.rule.rule === NDRule.UNKNOWN) {
+						row.formula = content;
+						row.rule = cloneAppliedRule(rule);
+						row.editable = true;
+						return;
+					}
+
 					// check if the formula already exists in any other row
 					if (existsInProof(res)) {
+						row.formula = content;
+						row.rule = cloneAppliedRule(rule);
+						row.editable = true;
 						showToast('Formula already exists in the proof.', 'error');
 						return;
 					}
@@ -80,15 +104,21 @@
 					row.formula = $solverContent.proof[i].value;
 					row.rule = cloneAppliedRule($solverContent.proof[i].rule);
 					row.editable = false;
+					row.isManualDraft = false;
 				}}
-				onEdit={() => {
+				onEdit={async () => {
 					// remove the row from the proof
 					pushHistory();
 					row.editable = true;
 					$solverContent.proof.splice(i, 1);
+					await ProofTable.remove(row.line);
+					await ArgsTable.rebuild();
 				}}
 				onDelete={() => {
 					removeRow(i);
+				}}
+				onCancel={() => {
+					cancelDraftRow(i);
 				}}
 			/>
 		{/each}

@@ -5,24 +5,28 @@
 		editable: boolean;
 		premise: boolean;
 		removable: boolean;
+		isManualDraft?: boolean;
 		formula: string;
 		ruleDraft: AppliedRule;
 		canSave: boolean;
 		onSave: (formula: string, ruleDraft: AppliedRule) => void;
 		onEdit: () => void;
 		onDelete: () => void;
+		onCancel?: () => void;
 	}
 
 	let {
 		editable,
 		premise,
 		removable,
+		isManualDraft = false,
 		formula,
 		ruleDraft,
 		canSave,
 		onSave,
 		onEdit,
-		onDelete
+		onDelete,
+		onCancel
 	}: RowActionsProps = $props();
 
 	const handleSave = (e: Event) => {
@@ -40,6 +44,11 @@
 		e.stopPropagation();
 		onDelete();
 	};
+
+	const handleCancel = (e: Event) => {
+		e.stopPropagation();
+		onCancel?.();
+	};
 </script>
 
 <div class="actions-container">
@@ -47,6 +56,16 @@
 		<button class="action-button check-button" aria-label="Save" onclick={handleSave} disabled={!canSave}>
 			<i class="fas fa-check"></i>
 		</button>
+		{#if isManualDraft}
+			<button
+				class="action-button delete-button"
+				aria-label="Remove draft row"
+				title="Remove draft row"
+				onclick={handleCancel}
+			>
+				<i class="fas fa-times"></i>
+			</button>
+		{/if}
 	{:else}
 		<button
 			class="action-button edit-button"

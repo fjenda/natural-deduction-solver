@@ -18,6 +18,14 @@ const PROLOG_ERRORS: Record<string, string> = {
 	EEX: 'The constant is not fresh! It already appears in the proof.'
 };
 
+function formatRuleLabel(rule: IRule): string {
+	return rule.short || rule.title;
+}
+
+function getRuleFailureMessage(rule: IRule, fallback: string): string {
+	return PROLOG_ERRORS[rule.short] ?? fallback;
+}
+
 /**
  * Unified handler for Prolog proof steps.
  * @param fetchStrategy - A function that returns the specific promise (lines vs premises)
@@ -32,8 +40,13 @@ async function runPrologStep(
 	const results = await fetchStrategy();
 
 	if (results.length === 0) {
-		const msg = PROLOG_ERRORS[rule.short];
-		if (msg) showToast(msg, 'error');
+		showToast(
+			getRuleFailureMessage(
+				rule,
+				`Rule ${formatRuleLabel(rule)} is not applicable to the selected rows.`
+			),
+			'error'
+		);
 		return;
 	}
 
@@ -92,12 +105,25 @@ export async function verifyProlog(
 	const results = await ProofHandler.prove(premises, rule, params);
 
 	if (results.length === 0) {
-		const msg = PROLOG_ERRORS[rule.short];
-		if (msg) showToast(msg, 'error');
+		showToast(
+			getRuleFailureMessage(
+				rule,
+				`Rule ${formatRuleLabel(rule)} is not applicable to the cited rows.`
+			),
+			'error'
+		);
 		return false;
 	}
 
-	return results.includes(result.toPrologFormat());
+	if (results.includes(result.toPrologFormat())) {
+		return true;
+	}
+
+	showToast(
+		`The entered formula does not follow from the cited rows by rule ${formatRuleLabel(rule)}.`,
+		'error'
+	);
+	return false;
 }
 
 /**

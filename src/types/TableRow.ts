@@ -13,4 +13,5 @@ export type TableRowData = {
 	formula: string;
 	rule: AppliedRule;
 	editable: boolean;
+	isManualDraft?: boolean;
 };

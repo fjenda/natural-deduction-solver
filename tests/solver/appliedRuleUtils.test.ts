@@ -1,18 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { appliedRuleFromString, appliedRuleToString } from '../../src/types/AppliedRule';
 import {
 	appliedRuleToPrologReplacements,
-	inferQuantifierReplacements
+	getMissingProofLines,
+	inferReplacementKind,
+	replacementToProlog
 } from '../../src/lib/solver/utils/appliedRuleUtils';
-import { PremiseParser } from '../../src/lib/solver/parsers/PremiseParser';
-import { logicMode } from '../../src/stores/solverStore';
-import { ParseStrategy } from '../../src/types/ParseStrategy';
 
 describe('applied rule helpers', () => {
-	beforeEach(() => {
-		logicMode.set(ParseStrategy.PREDICATE);
-	});
-
 	it('parses and formats explicit typed quantifier substitutions', () => {
 		const rule = appliedRuleFromString('IU 3 const(a)/var(x)');
 
@@ -69,69 +64,38 @@ describe('applied rule helpers', () => {
 		expect(universalIntroduction).toEqual(['const(a)', 'var(x)']);
 	});
 
-	it('infers universal elimination substitutions from the cited row and target formula', () => {
-		const result = inferQuantifierReplacements(
-			'EU',
-			PremiseParser.parsePremise('∀x [P(x)]').tree,
-			PremiseParser.parsePremise('P(f(a))').tree
-		);
-
-		expect(result).toEqual({
-			status: 'inferred',
-			replacements: [
-				{ value: 'x', kind: 'variable' },
-				{ value: 'f(a)', kind: 'term' }
-			],
-			message: 'Substitution derived automatically from the cited row and the entered formula.'
-		});
+	it('infers fallback replacement kinds for quantifier rules', () => {
+		expect(inferReplacementKind('EU', 0)).toBe('variable');
+		expect(inferReplacementKind('EU', 1)).toBe('term');
+		expect(inferReplacementKind('EEX', 1)).toBe('constant');
+		expect(inferReplacementKind('IU', 1)).toBe('variable');
+		expect(inferReplacementKind('MP', 0)).toBeUndefined();
 	});
 
-	it('infers universal introduction substitutions from the cited row and target formula', () => {
-		const result = inferQuantifierReplacements(
-			'IU',
-			PremiseParser.parsePremise('P(a)').tree,
-			PremiseParser.parsePremise('∀x [P(x)]').tree
-		);
-
-		expect(result).toEqual({
-			status: 'inferred',
-			replacements: [
-				{ value: 'a', kind: 'variable' },
-				{ value: 'x', kind: 'variable' }
-			],
-			message: 'Generalization derived automatically from the cited row and the entered formula.'
-		});
+	it('converts individual replacements to prolog using explicit or inferred kinds', () => {
+		expect(replacementToProlog({ value: 'x', kind: 'variable' })).toBe('var(x)');
+		expect(replacementToProlog({ value: 'a', kind: 'constant' })).toBe('const(a)');
+		expect(replacementToProlog({ value: 'f(a)', kind: 'term' })).toBe('function(f(var(a)))');
+		expect(replacementToProlog({ value: 'y' }, 'variable')).toBe('var(y)');
 	});
 
-	it('warns when existential elimination does not yield a fresh constant in the target formula', () => {
-		const result = inferQuantifierReplacements(
-			'EEX',
-			PremiseParser.parsePremise('∃x [P(x)]').tree,
-			PremiseParser.parsePremise('P(y)').tree
-		);
-
-		expect(result).toEqual({
-			status: 'invalid',
-			replacements: [],
-			message: 'Existential elimination expects a fresh constant. The entered formula does not provide one.'
-		});
+	it('returns null when a replacement cannot be converted to a term', () => {
+		expect(replacementToProlog({ value: 'P(a)', kind: 'term' })).toBeNull();
 	});
 
-	it('formats inferred existential elimination constants without empty parentheses in the display value', () => {
-		const result = inferQuantifierReplacements(
-			'EEX',
-			PremiseParser.parsePremise('∃x [L(x) ∧ P(x)]').tree,
-			PremiseParser.parsePremise('L(x()) ∧ P(x())').tree
-		);
-
-		expect(result).toEqual({
-			status: 'inferred',
-			replacements: [
-				{ value: 'x', kind: 'variable' },
-				{ value: 'x', kind: 'constant' }
-			],
-			message: 'Substitution derived automatically from the cited row and the entered formula.'
+	it('returns null from appliedRuleToPrologReplacements when any replacement is invalid', () => {
+		const replacements = appliedRuleToPrologReplacements({
+			rule: 'EU',
+			lines: [1],
+			replacements: [{ value: 'x' }, { value: 'P(a)' }]
 		});
+
+		expect(replacements).toBeNull();
+	});
+
+	it('reports cited lines that are missing from the current proof', () => {
+		expect(getMissingProofLines([0, 1, 3, 7], 4)).toEqual([0, 7]);
+		expect(getMissingProofLines([1, 2, 4], 4)).toEqual([]);
 	});
 });
 

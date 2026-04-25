@@ -215,6 +215,12 @@
 	function handleActiveVariableInput(event: Event) {
 		updateVariable(activeIndex, (event.currentTarget as HTMLInputElement).value);
 	}
+
+	function handleConfirm() {
+		if (!canConfirm) return;
+		onConfirm();
+		close();
+	}
 </script>
 
 <CustomModal
@@ -224,6 +230,8 @@
 	{id}
 	{index}
 	contentWidth="min(70rem, calc(100vw - 2 * var(--spacing-lg)))"
+	onPrimaryAction={handleConfirm}
+	submitOnEnter={true}
 >
 	{#snippet body()}
 		<div class="body">
@@ -313,10 +321,7 @@
 			<button
 				class="button primary"
 				disabled={!canConfirm}
-				onclick={() => {
-					onConfirm();
-					close();
-				}}>Confirm</button
+				onclick={handleConfirm}>Confirm</button
 			>
 		</div>
 	{/snippet}
