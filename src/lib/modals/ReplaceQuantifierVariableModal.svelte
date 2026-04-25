@@ -50,7 +50,7 @@
 				</div>
 			</div>
 			<div class="input-row">
-				<OperatorKeyboard>
+				<OperatorKeyboard inline compact>
 					<input
 						type="text"
 						{placeholder}
