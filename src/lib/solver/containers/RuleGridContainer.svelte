@@ -140,6 +140,7 @@
 			title,
 			content,
 			placeholder: 'Enter the formula',
+			inputMode: 'formula',
 			showConnectivePosition,
 			defaultConnectivePosition: 'after',
 			onConfirm: (
@@ -214,6 +215,7 @@
 			title: 'Select row',
 			content: 'Select the second row with which to execute the rule',
 			placeholder: 'Enter the row number',
+			inputMode: 'number',
 			onConfirm: (modalInput: HTMLInputElement) => {
 				const other = parseInt(modalInput.value);
 				if (isNaN(other) || other < 1 || other > proof.length) {

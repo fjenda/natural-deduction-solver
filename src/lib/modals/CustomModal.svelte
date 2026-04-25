@@ -6,9 +6,19 @@
 		title: string;
 		body?: Snippet;
 		buttons?: Snippet;
+		contentWidth?: string;
 	}
 
-	const { id, isOpen, close, title, body, buttons, ...rest }: CustomModalProps = $props();
+	const {
+		id,
+		isOpen,
+		close,
+		title,
+		body,
+		buttons,
+		contentWidth,
+		...rest
+	}: CustomModalProps = $props();
 
 	const handleClose = (e: Event) => {
 		if (e.currentTarget === e.target) {
@@ -20,7 +30,7 @@
 
 {#if isOpen}
 	<div {id} {...rest} role="dialog" aria-modal="true" class="modal" onclick={handleClose}>
-		<div class="contents">
+		<div class="contents" style={contentWidth ? `--modal-width:${contentWidth};` : ''}>
 			<div class="header">
 				<h2>{title}</h2>
 			</div>
@@ -67,7 +77,10 @@
 		background-color: var(--surface);
 		padding: var(--spacing-xl);
 		border: 1px solid var(--border);
-		/*width: min(52rem, calc(100vw - 2 * var(--spacing-lg)));*/
+		width: var(--modal-width, auto);
+		max-width: calc(100vw - 2 * var(--spacing-lg));
+		min-width: 0;
+		box-sizing: border-box;
 		max-height: min(88vh, 52rem);
 		border-radius: var(--radius-xl);
 		box-shadow: var(--shadow-xl);

@@ -145,6 +145,7 @@
 	.button-wrapper {
 		display: flex;
 		gap: var(--spacing-md);
+		/*flex-wrap: wrap;*/
 	}
 
 	.undo-redo-group {

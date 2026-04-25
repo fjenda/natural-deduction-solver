@@ -6,9 +6,17 @@
 	interface OperatorKeyboardProps {
 		/** Slot content (the input element to attach the keyboard to) */
 		children: import('svelte').Snippet;
+		/**
+		 * When true the keyboard bar is rendered inline (normal block flow) instead of
+		 * being teleported to a fixed overlay. Use this inside modals / scrollable cards
+		 * to avoid the reserved-space gap.
+		 */
+		inline?: boolean;
+		/** Use tighter spacing and visually attach the keyboard to modal inputs. */
+		compact?: boolean;
 	}
 
-	let { children }: OperatorKeyboardProps = $props();
+	let { children, inline = false, compact = false }: OperatorKeyboardProps = $props();
 
 	let container: HTMLDivElement | null = $state(null);
 	let focusedInput: HTMLInputElement | HTMLTextAreaElement | null = $state(null);
@@ -76,10 +84,8 @@
 
 		const start = focusedInput.selectionStart ?? 0;
 		const end = focusedInput.selectionEnd ?? start;
-		const value = focusedInput.value;
-
-		const newValue = value.slice(0, start) + operator + value.slice(end);
-		focusedInput.value = newValue;
+		focusedInput.value =
+			focusedInput.value.slice(0, start) + operator + focusedInput.value.slice(end);
 
 		// fire input event so Svelte bindings update
 		focusedInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -151,15 +157,29 @@
 <div
 	class="operator-keyboard-wrapper"
 	class:keyboard-visible={visible}
-	style={`padding-bottom:${visible ? reservedHeight : 0}px;`}
+	class:compact={compact}
+	style={inline ? '' : `padding-bottom:${visible ? reservedHeight : 0}px;`}
 	bind:this={container}
 	onfocusin={handleFocusIn}
 	onfocusout={handleFocusOut}
 >
 	{@render children()}
+
+	{#if inline}
+		<div class="inline-shell" class:visible={visible} class:compact-shell={compact} aria-hidden={!visible}>
+			<!-- svelte-ignore a11y_no_static_element_interactions -->
+			<div class="keyboard-bar inline-bar" class:compact-bar={compact} onmousedown={handleButtonMousedown}>
+				{#each operators as op (op.symbol)}
+					<button class="key" type="button" onclick={() => insertOperator(op.symbol)} title={op.title}>
+						{op.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+	{/if}
 </div>
 
-{#if visible}
+{#if visible && !inline}
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div class="keyboard-bar" bind:this={barElement} style={barStyle} onmousedown={handleButtonMousedown}>
 		{#each operators as op (op.symbol)}
@@ -177,6 +197,41 @@
 		transition: padding-bottom var(--transition-base);
 	}
 
+	.operator-keyboard-wrapper.compact {
+		display: grid;
+		gap: 0;
+	}
+
+	.operator-keyboard-wrapper.compact.keyboard-visible :global(input),
+	.operator-keyboard-wrapper.compact.keyboard-visible :global(textarea) {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	.inline-shell {
+		display: grid;
+		grid-template-rows: 0fr;
+		overflow: hidden;
+		opacity: 0;
+		transform: translateY(-6px);
+		transition:
+			grid-template-rows 180ms ease,
+			opacity 160ms ease,
+			transform 180ms ease;
+		pointer-events: none;
+	}
+
+	.inline-shell > .keyboard-bar {
+		min-height: 0;
+	}
+
+	.inline-shell.visible {
+		grid-template-rows: 1fr;
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+
 	.keyboard-bar {
 		z-index: 9999;
 		display: flex;
@@ -188,6 +243,23 @@
 		background: var(--surface);
 		box-shadow: var(--shadow-lg);
 		animation: slideDown 0.15s ease-out;
+	}
+
+	/* Inline variant: renders as a normal block inside the wrapper, no fixed overlay */
+	.keyboard-bar.inline-bar {
+		position: static;
+		z-index: auto;
+		box-shadow: var(--shadow-sm);
+		border-top: none;
+		animation: none;
+	}
+
+	.keyboard-bar.inline-bar.compact-bar {
+		gap: 0.35rem;
+		padding: 0.45rem;
+		border-top: none;
+		border-radius: 0 0 var(--radius-md) var(--radius-md);
+		box-shadow: none;
 	}
 
 	@keyframes slideDown {
@@ -218,6 +290,13 @@
 		cursor: pointer;
 		transition: all var(--transition-base);
 		user-select: none;
+	}
+
+	.compact-bar .key {
+		min-width: 1.9rem;
+		height: 1.9rem;
+		padding: 0 0.45rem;
+		font-size: 1.05rem;
 	}
 
 	.key:hover {

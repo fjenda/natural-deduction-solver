@@ -166,16 +166,17 @@ export function exportToLatex(solution: Solution): string {
 		? '\\textbf{Proof Type:} Indirect (Reductio ad Absurdum)\n\n'
 		: '';
 
-	let statusLine = '';
-	if (solution.complete) {
-		statusLine = '\\textbf{Status:} Proof complete.\n\n';
-	} else {
-		statusLine = '\\textbf{Status:} Proof incomplete.\n\n';
-	}
+	const statusLine = solution.valid && solution.proofComplete
+		? '\\textbf{Status:} Proof complete.\n\n'
+		: solution.proofReached
+			? solution.indirect
+				? '\\textbf{Status:} Contradiction reached, but the proof is not complete because the contradiction is not closed on the last row.\n\n'
+				: '\\textbf{Status:} Conclusion reached, but the proof is not complete because the conclusion is not the last row.\n\n'
+			: '\\textbf{Status:} Proof incomplete.\n\n';
 
 	let contradictionLine = '';
-	if (solution.indirect && solution.contradiction) {
-		const pair = findContradictionLines(proof);
+	if (solution.indirect && solution.proofReached) {
+		const pair = solution.contradictionPairLines ?? findContradictionLines(proof);
 		if (pair) {
 			contradictionLine = `\\textbf{Contradiction:} Lines ${pair[0]} and ${pair[1]}\n\n`;
 		}
@@ -222,16 +223,17 @@ export function exportToTxt(solution: Solution): string {
 
 	const proofType = solution.indirect ? 'Proof Type: Indirect (Reductio ad Absurdum)\n\n' : '';
 
-	let statusLine = '';
-	if (solution.complete) {
-		statusLine = 'Status: Proof complete.';
-	} else {
-		statusLine = 'Status: Proof incomplete.';
-	}
+	const statusLine = solution.valid && solution.proofComplete
+		? 'Status: Proof complete.'
+		: solution.proofReached
+			? solution.indirect
+				? 'Status: Contradiction reached, but the proof is not complete because the contradiction is not closed on the last row.'
+				: 'Status: Conclusion reached, but the proof is not complete because the conclusion is not the last row.'
+			: 'Status: Proof incomplete.';
 
 	let contradictionLine = '';
-	if (solution.indirect && solution.contradiction) {
-		const pair = findContradictionLines(proof);
+	if (solution.indirect && solution.proofReached) {
+		const pair = solution.contradictionPairLines ?? findContradictionLines(proof);
 		if (pair) {
 			contradictionLine = `\nContradiction: Lines ${pair[0]} and ${pair[1]}`;
 		}

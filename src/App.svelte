@@ -78,4 +78,10 @@
 		max-width: 500px;
 		width: 100%;
 	}
+
+	@media screen and (max-width: 950px) {
+		.side-area {
+			max-width: none;
+		}
+	}
 </style>

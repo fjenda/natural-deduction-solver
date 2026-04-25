@@ -19,7 +19,6 @@ import { addProof, substitute, validateSubstitution } from '../services/proofSer
 import { ProofTable } from '../../../prolog/queries/ProofTable';
 import { ArgsTable } from '../../../prolog/queries/ArgsTable';
 import { editState, solving } from '../../../stores/stateStore';
-import { ProofHandler } from '../../../prolog/queries/ProofHandler';
 import { EditState } from '../../../types/EditState';
 import { theorems } from '../../../stores/theoremsStore';
 // --- State Setters ---
@@ -114,6 +113,10 @@ export async function setupProof(): Promise<boolean> {
 
 	const isIndirect = get(indirectSolving);
 	const content = get(solverContent);
+	solverContent.update((sc) => {
+		sc.indirect = isIndirect;
+		return sc;
+	});
 
 	// case: Theorem Mode
 	if (get(editState) === EditState.THEOREM) {
@@ -121,11 +124,6 @@ export async function setupProof(): Promise<boolean> {
 			showToast('Failed to parse left side of the theorem', 'error');
 			return false;
 		}
-
-		solverContent.update((sc) => {
-			sc.indirect = isIndirect;
-			return sc;
-		});
 
 		if (isIndirect) {
 			const right = content.conclusion.tree;
@@ -261,40 +259,77 @@ function validateVariableInput(
  * Checks if the final proof is correct, updates the store and shows toasts.
  */
 export async function checkProof() {
-	const contradiction = await ProofHandler.hasContradiction();
+	const solution = get(solverContent);
 	const isIndirect = get(indirectSolving);
+	const reached = solution.proofReached;
+	const complete = solution.proofComplete;
+	const valid = solution.valid;
 
-	// contradiction logic
-	if (contradiction) {
-		if (isIndirect) {
-			showToast('Proof contains a contradiction, it is correct', 'success');
-			solverContent.update((sc) => {
-				sc.contradiction = true;
-				return sc;
-			});
-		} else {
-			showToast('Something went wrong, proof contains a contradiction', 'error');
-		}
-		return;
-	}
+	solverContent.update((sc) => {
+		sc.contradiction = isIndirect ? reached : false;
+		return sc;
+	});
 
-	// 3. indirect failure
 	if (isIndirect) {
-		showToast('Proof does not contain a contradiction, it is incorrect', 'error');
-		solverContent.update((sc) => {
-			sc.contradiction = false;
-			return sc;
-		});
+		if (complete && valid) {
+			showToast(
+				'Proof complete. The last row closes the contradiction required for the indirect proof.',
+				'success'
+			);
+			return;
+		}
+
+		if (complete && !valid) {
+			showToast(
+				'The proof ends with the required contradiction, but some rows are still invalid or unfinished.',
+				'warning'
+			);
+			return;
+		}
+
+		if (reached) {
+			showToast(
+				'Contradiction reached, but the proof is not complete yet. For an indirect proof, the contradiction must involve the last row of the proof.',
+				'warning'
+			);
+			return;
+		}
+
+		showToast(
+			valid
+				? 'Proof has not reached a contradiction yet, so the indirect proof is incomplete.'
+				: 'Proof has not reached a contradiction yet and still contains invalid or unfinished rows.',
+			'error'
+		);
 		return;
 	}
 
-	// 4. standard success/fail
-	const exists = get(solverContent).complete;
+	if (complete && valid) {
+		showToast('Proof complete. The last row matches the required conclusion.', 'success');
+		return;
+	}
+
+	if (complete && !valid) {
+		showToast(
+			'The last row is the required conclusion, but some earlier rows are still invalid or unfinished.',
+			'warning'
+		);
+		return;
+	}
+
+	if (reached) {
+		showToast(
+			'Conclusion reached, but the proof is not complete yet. For a direct proof, the conclusion must be the last row of the proof.',
+			'warning'
+		);
+		return;
+	}
+
 	showToast(
-		exists
-			? 'Correct! Proof contains a valid row with the conclusion'
-			: 'Proof does not contain a valid row with the conclusion',
-		exists ? 'success' : 'error'
+		valid
+			? 'Proof has not reached the required conclusion yet.'
+			: 'Proof has not reached the required conclusion yet and still contains invalid or unfinished rows.',
+		'error'
 	);
 }
 

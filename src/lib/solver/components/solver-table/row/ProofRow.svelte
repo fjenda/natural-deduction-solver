@@ -198,7 +198,7 @@
 	}
 
 	.row:hover {
-		background: var(--button-hover);
+		background: var(--surface-elevated);
 		box-shadow: var(--shadow-md);
 		/*transform: translateY(-1px);*/
 	}
@@ -346,7 +346,6 @@
 		.edit-main {
 			align-items: stretch;
 		}
-
 
 		.separator {
 			width: 100%;

@@ -9,6 +9,9 @@
 	import { ProofHandler } from '../../prolog/queries/ProofHandler';
 	import { Node } from '../syntax-checker/Node';
 	import { ParseStrategy } from '../../types/ParseStrategy';
+	import OperatorKeyboard from '../components/OperatorKeyboard.svelte';
+	import ParseDiagnosticHint from '../solver/components/ParseDiagnosticHint.svelte';
+	import type { ParseDiagnostic } from '../../types/ParseDiagnostic';
 
 	interface FillVariablesModalProps extends CustomModalProps {
 		onConfirm: () => void;
@@ -18,6 +21,7 @@
 		status: 'empty' | 'invalid' | 'dependency' | 'valid';
 		message: string;
 		prolog?: string;
+		diagnostic?: ParseDiagnostic;
 	};
 
 	const { id, index, isOpen, close, title, onConfirm }: FillVariablesModalProps = $props();
@@ -180,7 +184,11 @@
 		);
 		const formula = PremiseParser.parsePremise(PrettySyntaxer.clean(normalizedInput));
 		if (!formula.tree) {
-			return { status: 'invalid', message: 'Invalid formula syntax.' };
+			return {
+				status: 'invalid',
+				message: 'Invalid formula syntax.',
+				diagnostic: formula.diagnostic
+			};
 		}
 
 		if (!theoremFormula.tree) {
@@ -209,7 +217,14 @@
 	}
 </script>
 
-<CustomModal {isOpen} {close} {title} {id} {index}>
+<CustomModal
+	{isOpen}
+	{close}
+	{title}
+	{id}
+	{index}
+	contentWidth="min(70rem, calc(100vw - 2 * var(--spacing-lg)))"
+>
 	{#snippet body()}
 		<div class="body">
 			<div class="panel theorem-panel">
@@ -253,15 +268,22 @@
 							<span>Editing</span>
 							<MathMLViewer value={activeVariable.varName} />
 						</div>
-						<input
-							type="text"
-							value={$theoremData.varInputs[activeIndex] ?? ''}
-							placeholder={`Set ${activeVariable.varName}`}
-							oninput={handleActiveVariableInput}
-						/>
-						<p class="input-hint" class:error={activeValidation?.status !== 'valid'}>
-							{activeValidation?.message}
-						</p>
+						<OperatorKeyboard inline compact>
+							<input
+								class="row-input"
+								type="text"
+								value={$theoremData.varInputs[activeIndex] ?? ''}
+								placeholder={`Set ${activeVariable.varName}`}
+								oninput={handleActiveVariableInput}
+							/>
+						</OperatorKeyboard>
+						{#if activeValidation?.diagnostic && activeValidation.status === 'invalid'}
+							<ParseDiagnosticHint diagnostic={activeValidation.diagnostic} variant="compact" />
+						{:else}
+							<p class="input-hint" class:error={activeValidation?.status !== 'valid'}>
+								{activeValidation?.message}
+							</p>
+						{/if}
 					</div>
 				{/if}
 			</div>
@@ -303,7 +325,7 @@
 <style>
 	.body {
 		display: grid;
-		grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1.09fr) minmax(0, 1fr);
 		grid-template-areas:
 			'theorem variables'
 			'preview variables';
@@ -404,8 +426,9 @@
 
 	.editor-card {
 		display: grid;
-		gap: var(--spacing-sm);
+		gap: 0.65rem;
 		padding: var(--spacing-md);
+		min-width: 0;
 		border: 1px solid var(--border);
 		border-radius: var(--radius-md);
 		background: var(--surface);
@@ -424,9 +447,30 @@
 		font-size: 1rem;
 	}
 
+	.row-input {
+		width: 100%;
+		height: 3.5rem;
+		padding: 0 var(--spacing-md);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-md);
+		background: var(--surface-elevated);
+		color: var(--text-primary);
+		font-size: 1rem;
+		outline: none;
+		transition:
+			border-color var(--transition-base),
+			box-shadow var(--transition-base);
+	}
+
+	.row-input:focus {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+	}
+
 	.input-hint {
 		font-size: 0.85rem;
 		color: #1e9f65;
+		line-height: 1.4;
 	}
 
 	.input-hint.error {

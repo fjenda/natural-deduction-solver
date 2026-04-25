@@ -54,7 +54,7 @@
 				<TheoremSlot
 					name={theorem.solution.name}
 					index={i}
-					valid={theorem.solution.valid && theorem.solution.complete}
+					valid={theorem.solution.valid && theorem.solution.proofComplete}
 					onClick={() => {
 						handleTheoremClick(theorem, i);
 					}}

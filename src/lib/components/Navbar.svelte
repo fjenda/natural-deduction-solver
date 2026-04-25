@@ -9,9 +9,14 @@
 	import { onDestroy, onMount } from 'svelte';
 
 	let { children } = $props();
+	const MOBILE_BREAKPOINT = 950;
 
 	let showExamples = $state(false);
 	let examplesRef: HTMLDivElement | null = $state(null);
+	let windowWidth = $state(MOBILE_BREAKPOINT + 1);
+	const brandText = $derived(
+		windowWidth <= MOBILE_BREAKPOINT ? 'NDS' : 'Natural Deduction Solver'
+	);
 
 	/**
 	 * Closes the examples dropdown when clicking outside.
@@ -38,13 +43,16 @@
 	onDestroy(() => {
 		document.removeEventListener('click', handleClickOutside);
 	});
+
 </script>
+
+<svelte:window bind:innerWidth={windowWidth} />
 
 <main>
 	<nav>
 		<ul class="nav-left">
 			<li>
-				<a href="/">Natural Deduction Solver</a>
+				<a href="/">{brandText}</a>
 			</li>
 			<div class="examples-menu" bind:this={examplesRef}>
 				<button

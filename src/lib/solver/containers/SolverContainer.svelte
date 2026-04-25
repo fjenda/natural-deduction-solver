@@ -18,7 +18,7 @@
 			<span>Premises & Conclusion</span>
 			<Hint
 				title="Getting Started"
-				text="Enter your premises and a conclusion below. You can use logical operators like ¬, ∧, ∨, ⊃, ≡. An operator keyboard will appear when you focus an input field. Click 'Prove' when ready."
+				text="Enter your premises and a conclusion below. You can use logical operators like ¬, ∧, ∨, ⊃, ≡. An operator keyboard will appear when you focus an input field. Click 'Prove' when ready. Alternatively you can use -, &, |, ->, = for logical operators and @, ? for quantifiers."
 			/>
 		</div>
 
