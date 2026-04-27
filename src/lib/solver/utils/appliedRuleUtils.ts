@@ -1,6 +1,7 @@
 import { PremiseParser } from '../parsers/PremiseParser';
 import { Node } from '../../syntax-checker/Node';
 import { NodeType } from '../../syntax-checker/NodeType';
+import { ParseStrategy } from '../../../types/ParseStrategy';
 import type {
 	AppliedRule,
 	AppliedRuleReplacement,
@@ -46,7 +47,7 @@ export function replacementFromProlog(replacement: string): AppliedRuleReplaceme
 }
 
 function parseTermReplacement(value: string): Node | null {
-	const parsed = PremiseParser.parsePremise(value);
+	const parsed = PremiseParser.parsePremise(value, ParseStrategy.PREDICATE);
 	if (!parsed.tree) return null;
 
 	if (![NodeType.CONSTANT, NodeType.VARIABLE, NodeType.FUNCTION].includes(parsed.tree.type)) {
@@ -54,6 +55,19 @@ function parseTermReplacement(value: string): Node | null {
 	}
 
 	return parsed.tree;
+}
+
+function parseConstantReplacement(value: string): Node | null {
+	const parsed = parseTermReplacement(value);
+	if (parsed?.type === NodeType.CONSTANT) {
+		return parsed;
+	}
+
+	if (/[()]/.test(value)) {
+		return null;
+	}
+
+	return new Node(NodeType.CONSTANT, value);
 }
 
 export function replacementToProlog(
@@ -69,7 +83,7 @@ export function replacementToProlog(
 	}
 
 	if (kind === 'constant') {
-		return new Node(NodeType.CONSTANT, value).toPrologFormat();
+		return parseConstantReplacement(value)?.toPrologFormat() ?? null;
 	}
 
 	const parsed = parseTermReplacement(value);

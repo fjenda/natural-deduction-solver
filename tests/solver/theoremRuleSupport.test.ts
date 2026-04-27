@@ -17,7 +17,7 @@ import { getRulePickerOptions } from '../../src/lib/solver/utils/rulePresentatio
 import { ProofTable } from '../../src/prolog/queries/ProofTable';
 import { logicMode, solverContent } from '../../src/stores/solverStore';
 import { theorems } from '../../src/stores/theoremsStore';
-import { editState } from '../../src/stores/stateStore';
+import { editState, solving } from '../../src/stores/stateStore';
 import { ParseStrategy } from '../../src/types/ParseStrategy';
 import { EditState } from '../../src/types/EditState';
 import { showToast } from '../../src/lib/utils/showToast';
@@ -47,6 +47,7 @@ describe('theorem rule support', () => {
 		vi.clearAllMocks();
 		logicMode.set(ParseStrategy.PREDICATE);
 		editState.set(EditState.SOLVER);
+		solving.set(false);
 		solverContent.set(new Solution('Current'));
 		theorems.reset();
 	});
@@ -58,6 +59,39 @@ describe('theorem rule support', () => {
 
 		expect(parsed.tree).not.toBeNull();
 		expect(parsed.diagnostic).toBeUndefined();
+	});
+
+	it('keeps theorem parsing while solving a theorem proof so bare predicates remain valid', () => {
+		editState.set(EditState.THEOREM);
+		solving.set(true);
+
+		const parsed = PremiseParser.parsePremise('P');
+
+		expect(parsed.tree).not.toBeNull();
+		expect(parsed.diagnostic).toBeUndefined();
+	});
+
+	it('still allows quantifier replacement terms through explicit predicate parsing while solving a theorem proof', () => {
+		editState.set(EditState.THEOREM);
+		solving.set(true);
+
+		const parsed = PremiseParser.parsePremise('c()', ParseStrategy.PREDICATE);
+
+		expect(parsed.tree).not.toBeNull();
+		expect(parsed.tree?.toPrologFormat()).toBe('const(c)');
+		expect(parsed.diagnostic).toBeUndefined();
+	});
+
+	it('parses manual proof rows with theorem syntax while solving a theorem proof', async () => {
+		editState.set(EditState.THEOREM);
+		solving.set(true);
+
+		const result = await FormulaParser.parseFormula('P', 1, 'PREM');
+
+		expect(result.tree).not.toBeNull();
+		expect(result.value).toBe('P');
+		expect(result.rule).toEqual({ rule: 'PREM' });
+		expect(vi.mocked(showToast)).not.toHaveBeenCalled();
 	});
 
 	it('does not expose saved theorems in the built-in rule picker metadata', () => {

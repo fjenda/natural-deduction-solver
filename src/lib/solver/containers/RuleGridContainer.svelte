@@ -19,6 +19,7 @@
 	import InputModal from '../../modals/InputModal.svelte';
 	import { PrettySyntaxer } from '../parsers/PrettySyntaxer';
 	import { PremiseParser } from '../parsers/PremiseParser';
+	import { ParseStrategy } from '../../../types/ParseStrategy';
 	import {
 		getSuggestionsForTerm,
 		proveProlog,
@@ -36,9 +37,12 @@
 		return { proof, selected };
 	};
 
-	const validateFormulaInput = (modalInput: HTMLInputElement) => {
+	const validateFormulaInput = (
+		modalInput: HTMLInputElement,
+		strategy?: ParseStrategy
+	) => {
 		modalInput.value = PrettySyntaxer.clean(modalInput.value);
-		const formula = PremiseParser.parsePremise(modalInput.value);
+		const formula = PremiseParser.parsePremise(modalInput.value, strategy);
 
 		if (!formula.tree) {
 			showToast('Invalid formula', 'error');
@@ -102,7 +106,7 @@
 			row: proof[selected[0] - 1],
 			placeholder,
 			onConfirm: (modalInput: HTMLInputElement) => {
-				const formula = validateFormulaInput(modalInput);
+				const formula = validateFormulaInput(modalInput, ParseStrategy.PREDICATE);
 				if (!formula) return;
 
 				// TODO: Can i replace it with a free variable?

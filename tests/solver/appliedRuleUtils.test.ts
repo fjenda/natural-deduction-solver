@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { appliedRuleFromString, appliedRuleToString } from '../../src/types/AppliedRule';
 import {
 	appliedRuleToPrologReplacements,
@@ -6,8 +6,18 @@ import {
 	inferReplacementKind,
 	replacementToProlog
 } from '../../src/lib/solver/utils/appliedRuleUtils';
+import { editState, solving } from '../../src/stores/stateStore';
+import { logicMode } from '../../src/stores/solverStore';
+import { EditState } from '../../src/types/EditState';
+import { ParseStrategy } from '../../src/types/ParseStrategy';
 
 describe('applied rule helpers', () => {
+	beforeEach(() => {
+		logicMode.set(ParseStrategy.PREDICATE);
+		editState.set(EditState.SOLVER);
+		solving.set(false);
+	});
+
 	it('parses and formats explicit typed quantifier substitutions', () => {
 		const rule = appliedRuleFromString('IU 3 const(a)/var(x)');
 
@@ -77,6 +87,18 @@ describe('applied rule helpers', () => {
 		expect(replacementToProlog({ value: 'a', kind: 'constant' })).toBe('const(a)');
 		expect(replacementToProlog({ value: 'f(a)', kind: 'term' })).toBe('function(f(var(a)))');
 		expect(replacementToProlog({ value: 'y' }, 'variable')).toBe('var(y)');
+	});
+
+	it('parses raw term replacements with predicate grammar even while solving a theorem proof', () => {
+		logicMode.set(ParseStrategy.PREDICATE);
+		editState.set(EditState.THEOREM);
+		solving.set(true);
+
+		expect(replacementToProlog({ value: 'c()', kind: 'term' })).toBe('const(c)');
+	});
+
+	it('normalizes explicit constant replacements written as c() to a Prolog constant', () => {
+		expect(replacementToProlog({ value: 'c()', kind: 'constant' })).toBe('const(c)');
 	});
 
 	it('returns null when a replacement cannot be converted to a term', () => {

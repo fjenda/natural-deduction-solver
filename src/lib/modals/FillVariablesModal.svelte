@@ -239,7 +239,9 @@
 				<div class="panel-header">
 					<p>Original theorem</p>
 				</div>
-				<MathMLViewer value={theoremValue} style="height: auto;" />
+				<div class="mathml-viewer-wrapper">
+					<MathMLViewer value={theoremValue} style="height: auto; justify-content: flex-start;" />
+				</div>
 			</div>
 
 			<div class="panel variable-panel">
@@ -304,7 +306,7 @@
 					</span>
 				</div>
 				<div class="preview-body" class:loading={previewStatus === 'loading'}>
-					<MathMLViewer value={previewValue || theoremValue} />
+					<MathMLViewer value={previewValue || theoremValue} style="justify-content: flex-start;" />
 				</div>
 			</div>
 		</div>
@@ -318,11 +320,7 @@
 					close();
 				}}>Cancel</button
 			>
-			<button
-				class="button primary"
-				disabled={!canConfirm}
-				onclick={handleConfirm}>Confirm</button
-			>
+			<button class="button primary" disabled={!canConfirm} onclick={handleConfirm}>Confirm</button>
 		</div>
 	{/snippet}
 </CustomModal>
@@ -492,6 +490,11 @@
 		padding: var(--spacing-sm);
 		background: var(--surface);
 		transition: all var(--transition-base);
+		overflow: auto hidden;
+	}
+
+	.mathml-viewer-wrapper {
+		overflow: hidden auto;
 	}
 
 	.preview-body.loading {
