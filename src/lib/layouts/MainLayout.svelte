@@ -25,12 +25,19 @@
 		}
 	}
 
-	@media screen and (max-width: 950px) {
-		.grid-layout {
-			flex-direction: column;
-			height: auto;
-			padding: var(--spacing-md);
-			gap: var(--spacing-md);
-		}
+@media screen and (max-width: 950px) {
+	.grid-layout {
+		flex-direction: column;
+		height: auto;
+		padding: var(--spacing-md);
+		gap: var(--spacing-md);
 	}
+}
+
+@media screen and (max-width: 600px) {
+	.grid-layout {
+		padding: var(--spacing-sm);
+		gap: var(--spacing-sm);
+	}
+}
 </style>

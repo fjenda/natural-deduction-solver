@@ -73,15 +73,27 @@
 		border-top: none;
 	}
 
-	.side-area {
-		display: flex;
-		max-width: 500px;
-		width: 100%;
-	}
+.side-area {
+  display: flex;
+  max-width: 500px;
+  width: 100%;
+}
 
-	@media screen and (max-width: 950px) {
-		.side-area {
-			max-width: none;
-		}
-	}
+@media screen and (max-width: 950px) {
+  .side-area {
+    max-width: none;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .main-area,
+  .side-area {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .side-area {
+    order: -1; /* Show sidebar on top on mobile */
+  }
+}
 </style>

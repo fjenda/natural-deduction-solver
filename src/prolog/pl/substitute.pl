@@ -1,11 +1,10 @@
-% Substitute function for theorems
-substitute(forall(Binder, Body), Vars, NewVars, forall(NewBinder, NewBody)) :-
-    substitute(Body, Vars, NewVars, NewBody),
-    substitute(Binder, Vars, NewVars, NewBinder).
+% Substitute theorem placeholders while preserving quantifier binders.
+% Bound variables define scope and must not be replaced when instantiating a theorem.
+substitute(forall(Binder, Body), Vars, NewVars, forall(Binder, NewBody)) :-
+    substitute(Body, Vars, NewVars, NewBody).
 
-substitute(exists(Binder, Body), Vars, NewVars, exists(NewBinder, NewBody)) :-
-    substitute(Body, Vars, NewVars, NewBody),
-    substitute(Binder, Vars, NewVars, NewBinder).
+substitute(exists(Binder, Body), Vars, NewVars, exists(Binder, NewBody)) :-
+    substitute(Body, Vars, NewVars, NewBody).
 
 % Base case: Replace a variable if it appears in Vars.
 substitute(Var, Vars, NewVars, NewVar) :-

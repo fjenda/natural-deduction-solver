@@ -10,6 +10,7 @@
 	import { onChangeConclusion, onChangeTheorem } from '../actions/proofActions';
 	import StyledButton from '../../components/StyledButton.svelte';
 	import Hint from '../../components/Hint.svelte';
+	import HintButton from '../../components/HintButton.svelte';
 </script>
 
 <SolverLayout>
@@ -57,6 +58,7 @@
 
 	{#if $solving}
 		<AssignmentText />
+		<!--		<HintButton />-->
 	{/if}
 
 	<SolutionControlsContainer />

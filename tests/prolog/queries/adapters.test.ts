@@ -78,6 +78,24 @@ describe('prolog query adapters', () => {
 		await expect(ProofHandler.substitute("const('A')", ['var(X)'], ['const(a)'])).resolves.toBe('');
 	});
 
+	it('ProofHandler.substitute builds the expected theorem substitution query', async () => {
+		prologMock.queryOnce.mockResolvedValueOnce({
+			X: 'imp(forall(var(x), predicate(d(var(x)))), exists(var(x), predicate(d(var(x)))))'
+		} as SubstitutionResult);
+
+		await expect(
+			ProofHandler.substitute(
+				'imp(forall(var(x), var(x)), exists(var(x), var(x)))',
+				['var(x)'],
+				['predicate(d(var(x)))']
+			)
+		).resolves.toBe('imp(forall(var(x), predicate(d(var(x)))), exists(var(x), predicate(d(var(x)))))');
+
+		expect(prologMock.queryOnce).toHaveBeenCalledWith(
+			"substitute(imp(forall(var(x), var(x)), exists(var(x), var(x))), [var(x)], [predicate(d(var(x)))], X)."
+		);
+	});
+
 	it('ProofTable.get and boolean helpers handle null and success paths', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 		prologMock.queryOnce.mockResolvedValueOnce(null);
