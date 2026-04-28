@@ -72,14 +72,22 @@ export function pushHistory(): void {
 	updateFlags();
 }
 
+
+/**
+ * Clears the Prolog proof state used by interactive rule application.
+ */
+export async function clearPrologProofState(): Promise<void> {
+	await ProofTable.clear();
+	await ArgsTable.clear();
+}
+
 /**
  * Rebuilds the Prolog proof_table and args_table from the current Svelte store.
  * Must be called after any operation that restores proof rows without going
- * through the normal addProof path (e.g. undo/redo).
+ * through the normal addProof path (e.g. undo/redo or workspace restore).
  */
-async function syncPrologFromStore(): Promise<void> {
-	await ProofTable.clear();
-	await ArgsTable.clear();
+export async function syncPrologFromStore(): Promise<void> {
+	await clearPrologProofState();
 
 	const proof = get(solverContent).proof;
 

@@ -5,10 +5,10 @@
 		saveTheorem,
 		editTheorem
 	} from '../../../stores/theoremsStore';
+	import { clearPrologProofState } from '../../../stores/historyStore';
 	import { solverContent } from '../../../stores/solverStore';
 	import { theorems } from '../../../stores/theoremsStore';
 	import MathMLViewer from '../../solver/components/MathMLViewer.svelte';
-	import { ProofTable } from '../../../prolog/queries/ProofTable';
 
 	interface TheoremSlotProps {
 		name: string;
@@ -41,7 +41,7 @@
 	const handleSaveTheorem = (e: Event) => {
 		e.stopPropagation();
 		saveTheorem(index);
-		ProofTable.clear();
+		void clearPrologProofState();
 	};
 
 	const handleEditTheorem = (e: Event) => {

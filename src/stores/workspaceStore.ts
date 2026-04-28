@@ -1,9 +1,20 @@
 import { writable, get } from 'svelte/store';
 import { Solution } from '../lib/solver/Solution';
-import { solverContent, indirectSolving } from './solverStore';
-import { endSession, startSession } from './historyStore';
+import {
+	indirectSolving,
+	highlightedRows,
+	selectedRows,
+	solverContent
+} from './solverStore';
+import {
+	clearPrologProofState,
+	endSession,
+	startSession,
+	syncPrologFromStore
+} from './historyStore';
 import { solving } from './stateStore';
 import { cloneAppliedRule } from '../types/AppliedRule';
+import { lastHovered } from './lastHoveredStore';
 
 /**
  * Represents a saved workspace containing a proof problem and its state.
@@ -138,11 +149,6 @@ export function switchWorkspace(index: number): void {
 	// save current state into the active workspace
 	saveCurrentWorkspace();
 
-	// end current undo/redo session
-	if (get(solving)) {
-		endSession();
-	}
-
 	// update active index
 	activeWorkspaceIndex.set(index);
 
@@ -225,11 +231,18 @@ function loadWorkspaceIntoSolver(workspace: Workspace): void {
 	solverContent.set(cloneSolution(workspace.solution));
 	solving.set(workspace.isSolving);
 	indirectSolving.set(workspace.indirect);
+	selectedRows.set([]);
+	highlightedRows.set([]);
+	lastHovered.set({ rule: '', selected: [], rows: [] });
 
-	// restart undo/redo session if the workspace was in solving mode
 	if (workspace.isSolving) {
 		startSession();
+		void syncPrologFromStore();
+		return;
 	}
+
+	endSession();
+	void clearPrologProofState();
 }
 
 /**
