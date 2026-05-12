@@ -60,13 +60,26 @@
 
 <style>
 	.wrapper {
+		--max-width: 5rem;
 		width: 100%;
-		max-width: 5rem;
+		max-width: var(--max-width);
 		position: relative;
 	}
 
+	/* High resolution adjustments */
+	@media (min-width: 2560px) {
+		.wrapper {
+			--max-width: 6rem;
+		}
+	}
+
+	@media (min-width: 3840px) {
+		.wrapper {
+			--max-width: 7rem;
+		}
+	}
+
 	.rule-slot {
-		font-size: 1rem;
 		font-weight: 600;
 		width: 100%;
 		aspect-ratio: 1;

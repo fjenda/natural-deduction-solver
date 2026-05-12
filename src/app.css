@@ -158,8 +158,8 @@ h6 {
 
 /* Global scrollbar */
 ::-webkit-scrollbar {
-	width: 6px;
-	height: 6px;
+	width: clamp(6px, 0.3vw, 12px);
+	height: clamp(6px, 0.3vw, 12px);
 }
 
 ::-webkit-scrollbar-track {
@@ -213,6 +213,20 @@ button,
 	border: 1px solid var(--border);
 	transition: all var(--transition-base);
 	box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 2560px) {
+	button, .btn {
+		padding: 0.65rem 1.25rem;
+		font-size: 1.125em;
+	}
+}
+
+@media (min-width: 3840px) {
+	button, .btn {
+		padding: 0.65rem 1.25rem;
+		font-size: 1.25em;
+	}
 }
 
 button:hover:not(:disabled),
@@ -288,4 +302,23 @@ input:disabled,
 textarea:disabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+/* High resolution media queries */
+@media (min-width: 1920px) {
+	:root {
+		font-size: 1.1rem;
+	}
+}
+
+@media (min-width: 2560px) {
+	:root {
+		font-size: 1.2rem;
+	}
+}
+
+@media (min-width: 3840px) {
+	:root {
+		font-size: 1.5rem;
+	}
 }

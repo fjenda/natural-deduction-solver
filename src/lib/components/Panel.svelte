@@ -59,4 +59,23 @@
 			gap: var(--spacing-md);
 		}
 	}
+
+	/* High resolution adjustments */
+	@media (min-width: 1920px) {
+		.small {
+			max-width: 550px;
+		}
+	}
+
+	@media (min-width: 2560px) {
+		.small {
+			max-width: 700px;
+		}
+	}
+
+	@media (min-width: 3840px) {
+		.small {
+			max-width: 900px;
+		}
+	}
 </style>

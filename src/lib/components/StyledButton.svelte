@@ -27,8 +27,9 @@
 
 <style lang="scss">
 	.btn {
+		--height: 3.5rem;
 		width: 100%;
-		height: 3.5rem;
+		height: var(--height);
 		padding: 0 var(--spacing-md);
 		border-radius: var(--radius-md);
 		background: var(--button-bg);
@@ -75,6 +76,19 @@
 			font-size: 0.9rem;
 			height: auto;
 			padding: var(--spacing-sm) var(--spacing-md);
+		}
+	}
+
+	@media (min-width: 2560px) {
+		.btn {
+			--height: 3.75rem;
+			border-radius: var(--radius-lg);
+		}
+	}
+
+	@media (min-width: 3840px) {
+		.btn {
+			--height: 4rem;
 		}
 	}
 </style>

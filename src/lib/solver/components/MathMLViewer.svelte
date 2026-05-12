@@ -30,4 +30,16 @@
 			padding: var(--spacing-md);
 		}
 	}
+
+	@media (min-width: 2560px) {
+		.mathml-viewer {
+			font-size: 1.25rem;
+		}
+	}
+
+	@media (min-width: 3840px) {
+		.mathml-viewer {
+			font-size: 1.5rem;
+		}
+	}
 </style>

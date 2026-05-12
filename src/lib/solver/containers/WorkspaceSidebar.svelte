@@ -46,7 +46,7 @@
 	/* Custom scrollbar styling */
 	.rules-section::-webkit-scrollbar,
 	.theorems-section::-webkit-scrollbar {
-		width: 8px;
+		width: clamp(8px, 0.4vw, 16px);
 	}
 
 	.rules-section::-webkit-scrollbar-track,
